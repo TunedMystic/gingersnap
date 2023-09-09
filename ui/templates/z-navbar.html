@@ -1,0 +1,21 @@
+{{define "navbar"}}
+<header>
+    <div class="container">
+        <div class="row header">
+            <div class="header-first">
+                <h3 class="text-theme"><a class="plain" href="{{.SiteUrl}}/">{{.SiteName}}</a></h3>
+            </div>
+            <div class="header-second">
+                <nav class="site-nav text-dark-gray">
+                    {{$siteUrl := .SiteUrl}}
+                    {{range .Categories}}
+                        <p><a class="plain" href="{{$siteUrl}}/category/{{.Slug}}/">{{.Name}}</a></p>
+                        <span>&sdot;</span>
+                    {{end}}
+                    <p><a class="plain" href="{{.SiteUrl}}/about/">About Us</a></p>
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+{{end}}

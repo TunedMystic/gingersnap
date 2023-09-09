@@ -1,0 +1,51 @@
+{{define "head"}}
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/x-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAAXNSR0IArs4c6QAAAENJREFUOE9jFBDTrvvP9L+a4T8DGwMpgJHhF+M/xlZGfgmtnyRrhlkEMoRfXOs/KRajqx01gIFhNAyGSRhQmpkozc4Aa4Aj960gEOkAAAAASUVORK5CYII="/>
+
+    {{if .AppDebug}}
+        <script src="https://cdn.tailwindcss.com"></script>
+    {{else}}
+        <link rel="stylesheet" href="/static/styles.css">
+    {{end}}
+
+    <title>{{.Title}}</title>
+
+    {{if .AppError}}
+        <meta name="robots" content="noindex, follow">
+        <meta property="og:site_name" content="{{.SiteName}}"/>
+        <meta property="og:locale" content="en_US"/>
+        <meta property="og:title" content="{{.Title}}"/>
+        <meta name="title" content="{{.Title}}"/>
+    {{else}}
+        <meta name="robots" content="index, follow, max-snippet:-1, max-video-preview:-1, max-image-preview:large">
+
+        <link rel="canonical" href="{{.PageUrl}}">
+
+        <meta name="title" content="{{.Title}}"/>
+        <meta name="description" content="{{.Description}}"/>
+
+        <!-- The required open graph tags -->
+        <meta property="og:site_name" content="{{.SiteName}}"/>
+        <meta property="og:type" content="website"/>
+        <meta property="og:title" content="{{.Title}}"/>
+        <meta property="og:description" content="{{.Description}}"/>
+        <meta property="og:url" content="{{.PageUrl}}"/>
+        <meta property="og:locale" content="en_US"/>
+        <meta property="og:image" content="{{.SiteUrl}}{{.Image.Url}}"/>
+        <meta property="og:image:alt" content="{{.Image.Alt}}"/>
+        <meta property="og:image:height" content="{{.Image.Height}}"/>
+        <meta property="og:image:secure_url" content="{{.SiteUrl}}{{.Image.Url}}"/>
+        <meta property="og:image:type" content="image/{{.Image.Type}}"/>
+        <meta property="og:image:width" content="{{.Image.Width}}"/>
+
+        <!-- The open graph tags for twitter -->
+        <meta property="twitter:title" content="{{.Title}}"/>
+        <meta property="twitter:description" content="{{.Description}}"/>
+        <meta property="twitter:image" content="{{.SiteUrl}}{{.Image.Url}}"/>
+        <meta property="twitter:card" content="summary_large_image"/>
+    {{end}}
+</head>
+{{end}}

@@ -1,0 +1,67 @@
+{{define "post"}}
+{{template "page" .}}
+<div class="container">
+    <div class="row">
+        <div class="primary">
+            <!-- Article Copy -->
+            <article class="copy">
+
+                <!-- Article Heading -->
+                <h1>{{.Heading}}</h1>
+
+                <!-- Article Metadata -->
+                <div class="copy-metadata text-xs text-gray">
+                    <p class="author">By <a class="plain" href="{{.SiteUrl}}/about/">Lisa Wong</a></p>
+                    <span>&sdot;</span>
+                    <p class="publish-date">{{.Post.Pubdate}}</p>
+                    <span>&sdot;</span>
+                    <p class="category"><a href="{{.SiteUrl}}/category/{{.Post.Category.Slug}}/">{{.Post.Category.Name}}</a></p>
+                </div>
+
+                <!-- Article Lead Image -->
+                {{if .ShowLeadImage}}<img width="800" height="450" class="drop-shadow" src="{{.SiteUrl}}{{.Image.Url}}" alt="{{.Image.Alt}}" />{{end}}
+
+                <!-- Article Content -->
+                {{safe .Post.Body}}
+
+                <hr>
+                <!-- Article Author -->
+                <div class="author-details">
+                    <img width="85" height="85" src="{{.SiteUrl}}/static/img/author.webp" alt="Lisa Wong">
+                    <div>
+                        <p class="author-name"><b><a class="plain" href="{{.SiteUrl}}/about/">Lisa Wong</a></b></p>
+                        <p class="author-description">Lisa Wong is a software engineer with a passion for building! She enjoys creating tutorials and guides to teach others about Python and Golang.</p>
+                    </div>
+                </div>
+
+                <!-- Latest Articles -->
+                <hr>
+                <p class="section-title">Latest Posts</p>
+                <div class="latest-posts">
+                    {{$siteUrl := .SiteUrl}}
+                    {{range .Posts}}
+                    <p><a href="{{$siteUrl}}/{{.Slug}}/">{{.Heading}}</a></p>
+                    {{end}}
+                </div>
+
+                <!-- Featured Articles -->
+                <hr>
+                <p class="section-title">You May Also Like</p>
+                <div class="suggested-posts">
+                    {{$siteUrl := .SiteUrl}}
+                    {{$showImage := .ShowRelatedImage}}
+                    {{range .FeaturedPosts}}
+                        <div>
+                            <a href="{{$siteUrl}}/{{.Slug}}/">
+                                {{if $showImage}}<img width="800" height="450" src="{{$siteUrl}}{{.ImageUrl}}" alt="{{.ImageAlt}}">{{end}}
+                                <p class="title">{{.Heading}}</p>
+                            </a>
+                        </div>
+                    {{end}}
+                </div>
+            </article>
+        </div>
+    </div>
+</div>
+{{template "endpage" .}}
+{{end}}

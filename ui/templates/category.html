@@ -1,0 +1,24 @@
+{{define "category"}}
+{{template "page" .}}
+<div class="container">
+    <div class="row">
+        <div class="primary-full">
+            <h1>{{.Heading}}</h1>
+            {{$siteUrl := .SiteUrl}}
+
+            <div class="results-grid">
+                {{range .Posts}}
+                <div>
+                    <a href="{{$siteUrl}}/{{.Slug}}/">
+                        <img width="800" height="450" class="drop-shadow" src="{{$siteUrl}}{{.ImageUrl}}" alt="{{.ImageAlt}}">
+                        <p class="title">{{.Heading}}</p>
+                    </a>
+                    <p class="subhead text-dark-gray">{{.Description}}</p>
+                </div>
+                {{end}}
+            </div>
+        </div>
+    </div>
+</div>
+{{template "endpage" .}}
+{{end}}

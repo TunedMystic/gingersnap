@@ -1,0 +1,22 @@
+// --------------------------------------------------------
+// The "page" template defines the beginning of an HTML page.
+// --------------------------------------------------------
+
+{{define "page"}}
+    <!DOCTYPE html>
+    <html lang="en">
+        {{template "head" .}}
+        <body>
+        {{template "navbar" .}}
+{{end}}
+
+
+// --------------------------------------------------------
+// The "endpage" template defines the end of an HTML page.
+// --------------------------------------------------------
+
+{{define "endpage"}}
+        {{template "footer" .}}
+        </body>
+    </html>
+{{end}}

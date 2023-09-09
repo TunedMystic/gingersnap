@@ -1,0 +1,41 @@
+// --------------------------------------------------------
+// The "error" template defines a 404 error and 500 error.
+// --------------------------------------------------------
+
+{{define "error"}}
+{{template "page" .}}
+<div class="container">
+    <div class="row">
+        <div class="primary-full">
+            <div class="app-error">
+                <h1>{{.AppError}}</h1>
+                {{if eq .AppError "404"}}
+                    <h2>Oops! We couldn't find the page you are looking for.</h2>
+                {{else if eq .AppError "500"}}
+                    <h2>Oops! Something unexpected happened.</h2>
+                {{end}}
+
+                {{if .AppTrace}}
+                    <pre style="text-align:left">{{.AppTrace}}</pre>
+                {{end}}
+            </div>
+
+            <hr><br>
+
+            {{$siteUrl := .SiteUrl}}
+            <div class="results-grid hide-last">
+                {{range .LatestPosts}}
+                <div>
+                    <a href="{{$siteUrl}}/{{.Slug}}/">
+                        <img width="800" height="450" class="drop-shadow" src="{{$siteUrl}}{{.ImageUrl}}" alt="{{.ImageAlt}}">
+                        <p class="title">{{.Heading}}</p>
+                    </a>
+                    <p class="subhead text-dark-gray">{{.Description}}</p>
+                </div>
+                {{end}}
+            </div>
+        </div>
+    </div>
+</div>
+{{template "endpage" .}}
+{{end}}

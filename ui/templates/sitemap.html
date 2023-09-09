@@ -1,0 +1,23 @@
+{{define "sitemap"}}
+{{template "page" .}}
+<div class="container">
+    <div class="row">
+        <div class="primary">
+            <h1>{{.Heading}}</h1>
+            {{$siteUrl := .SiteUrl}}
+
+            <div class="sitemap">
+                {{range .Posts}}
+                    <div>
+                        <p><a href="{{$siteUrl}}/{{.Slug}}/">{{.Heading}}</a></p>
+                        <span class="text-dark-gray">{{.Pubdate}}</span>
+                    </div>
+                {{end}}
+            </div>
+
+            <p class="text-xs text-dark-gray">Total {{.Text}} Posts</p>
+        </div>
+    </div>
+</div>
+{{template "endpage" .}}
+{{end}}
