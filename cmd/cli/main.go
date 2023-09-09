@@ -1,13 +1,15 @@
 package main
 
 import (
+	"embed"
 	"fmt"
-	"gingersnap/app"
-	"gingersnap/ui"
+	"io/fs"
 	"log"
 	"net/http"
 	"os"
 	"time"
+
+	"gingersnap/app"
 )
 
 func main() {
@@ -17,10 +19,14 @@ func main() {
 	logger := log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	// Construct the templates, using the embedded FS.
-	templates, err := app.NewTemplate(ui.Templates)
+	templates, err := app.NewTemplate(app.Templates)
 	if err != nil {
 		logger.Fatal(err)
 	}
+
+	// Construct the models.
+	posts := &app.PostModel{}
+	categories := &app.CategoryModel{}
 
 	// Construct the site info
 	config := &app.Config{
@@ -57,11 +63,14 @@ func main() {
 	// Construct the main Gingersnap engine.
 	g := &app.Gingersnap{
 		Debug:      true,
-		Logger:     logger,
-		Static:     ui.Static,
-		Templates:  templates,
 		ListenAddr: ":4000",
+		Logger:     logger,
+		Assets:     app.Assets,
+		Media:      http.Dir("./app/assets/media"),
+		Templates:  templates,
 		Config:     config,
+		Posts:      posts,
+		Categories: categories,
 	}
 
 	// Construct Http Server.
@@ -74,4 +83,20 @@ func main() {
 	}
 
 	g.RunServer()
+}
+
+func getAllFilenames(efs *embed.FS) (files []string, err error) {
+	if err := fs.WalkDir(efs, ".", func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() {
+			return nil
+		}
+
+		files = append(files, path)
+
+		return nil
+	}); err != nil {
+		return nil, err
+	}
+
+	return files, nil
 }

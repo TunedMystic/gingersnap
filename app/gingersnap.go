@@ -16,6 +16,20 @@ import (
 // ------------------------------------------------------------------
 //
 //
+// Embedded files
+//
+//
+// ------------------------------------------------------------------
+
+//go:embed "assets"
+var Assets embed.FS
+
+//go:embed "templates"
+var Templates embed.FS
+
+// ------------------------------------------------------------------
+//
+//
 // Type: Gingersnap
 //
 //
@@ -24,17 +38,18 @@ import (
 // Gingersnap is the main application engine.
 // .
 type Gingersnap struct {
-	Debug  bool
-	Logger *log.Logger
+	Debug      bool
+	ListenAddr string
+	Logger     *log.Logger
 
-	Static    embed.FS
+	Assets    embed.FS
 	Templates *template.Template
 
 	Config     *Config
 	Posts      *PostModel
 	Categories *CategoryModel
+	Media      http.FileSystem
 
-	ListenAddr string
 	HttpServer *http.Server
 }
 
@@ -50,17 +65,18 @@ func (g *Gingersnap) Routes() http.Handler {
 	r := http.NewServeMux()
 
 	r.Handle("/", g.HandleIndex())
-	r.Handle("/static/", g.CacheControl(g.StaticHandler()))
+	r.Handle("/styles.css", g.ServeFile(g.Assets, "assets/styles.css"))
+	r.Handle("/media/", g.CacheControl(http.StripPrefix("/media", http.FileServer(g.Media))))
 
-	// // Build category routes
-	// for _, cat := range g.Categories.All() {
-	// 	r.Handle(fmt.Sprintf("/category/%s/", cat.Slug), g.HandleCategory(cat))
-	// }
+	// Build category routes
+	for _, cat := range g.Categories.All() {
+		r.Handle(fmt.Sprintf("/category/%s/", cat.Slug), g.HandleCategory(cat))
+	}
 
-	// // Build post routes
-	// for _, post := range g.Posts.All() {
-	// 	r.Handle(fmt.Sprintf("/%s/", post.Slug), g.HandlePost(post))
-	// }
+	// Build post routes
+	for _, post := range g.Posts.All() {
+		r.Handle(fmt.Sprintf("/%s/", post.Slug), g.HandlePost(post))
+	}
 
 	return g.RecoverPanic(g.LogRequest(g.SecureHeaders(r)))
 }
@@ -142,18 +158,13 @@ func (g *Gingersnap) ErrNotFoundHandler() http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-// StaticHandler wraps the staticfiles FS in a http.Handler.
-// .
-func (g *Gingersnap) StaticHandler() http.Handler {
-	return http.FileServer(http.FS(g.Static))
-}
-
 // ServeFile returns a http.Handler that serves a specific file.
 // .
-func (g *Gingersnap) ServeFile(fileName string) http.Handler {
+func (g *Gingersnap) ServeFile(efs embed.FS, fileName string) http.Handler {
 	ext := filepath.Ext(fileName)
 
 	contentTypes := map[string]string{
+		".css": "text/css; charset=utf-8",
 		".txt": "text/plain; charset=utf-8",
 		".xml": "application/xml; charset=utf-8",
 	}
@@ -164,7 +175,7 @@ func (g *Gingersnap) ServeFile(fileName string) http.Handler {
 	}
 
 	fn := func(w http.ResponseWriter, r *http.Request) {
-		data, err := g.Static.ReadFile(fileName)
+		data, err := efs.ReadFile(fileName)
 		if err != nil {
 			g.ErrInternalServer(w, err)
 		}
@@ -343,7 +354,11 @@ func (g *Gingersnap) SecureHeaders(next http.Handler) http.Handler {
 // .
 func (g *Gingersnap) CacheControl(next http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Cache-Control", "max-age=31536000") // 1 year
+		if g.Debug {
+			w.Header().Set("Cache-Control", "no-cache")
+		} else {
+			w.Header().Set("Cache-Control", "max-age=172800") // 2 days
+		}
 		next.ServeHTTP(w, r)
 	}
 }
