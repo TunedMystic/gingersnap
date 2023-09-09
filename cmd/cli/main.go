@@ -28,36 +28,45 @@ func main() {
 	posts := &gingersnap.PostModel{}
 	categories := &gingersnap.CategoryModel{}
 
-	// Construct the site info
+	// Construct the config
+	SiteName := "Gingersnap"
+	SiteHost := "localhost:4000"
+	SiteTagline := "The snappy starter project with Go and SQLite!"
+	SiteDescription := "The snappy starter project, built with Go and SQLite. Get up and running with only one command. Dockerize and deploy when you're ready to ship!"
+	SiteTitle := fmt.Sprintf("%s - %s", SiteName, SiteTagline)
+	SiteUrl := fmt.Sprintf("http://%s", SiteHost)
+	SiteEmail := fmt.Sprintf("admin@%s", SiteHost)
+
 	config := &gingersnap.Config{
-		SiteName:        "Gingersnap",
-		SiteHost:        "gingersnap.dev",
-		SiteTagline:     "The snappy starter project with Go and SQLite!",
-		SiteDescription: "The snappy starter project, built with Go and SQLite. Get up and running with only one command. Dockerize and deploy when you're ready to ship!",
-	}
-	config.SiteTitle = fmt.Sprintf("%s - %s", config.SiteName, config.SiteTagline)
-	config.SiteHost = fmt.Sprintf("localhost%s", ":4000")
-	config.SiteUrl = fmt.Sprintf("http://%s", config.SiteHost)
-	config.SiteEmail = fmt.Sprintf("admin@%s", config.SiteHost)
-	config.SiteImage = gingersnap.Image{
-		Url:    "/static/meta-img.webp",
-		Alt:    "some img alt here",
-		Type:   "webp",
-		Width:  "800",
-		Height: "450",
-	}
-	config.NavbarLinks = []gingersnap.Link{
-		{Text: "Golang", Route: "/category/golang/"},
-		{Text: "Python", Route: "/category/python/"},
-		{Text: "SQL", Route: "/category/sql/"},
-		{Text: "About Us", Route: "/about/"},
-	}
-	config.FooterLinks = []gingersnap.Link{
-		{Text: "Home", Route: "/"},
-		{Text: "About Us", Route: "/about/"},
-		{Text: "Contact", Route: "/contact/"},
-		{Text: "Privacy Policy", Route: "/privacy-policy/"},
-		{Text: "Terms of Service", Route: "/terms-of-service/"},
+		Site: gingersnap.Site{
+			Name:        SiteName,
+			Host:        SiteHost,
+			Tagline:     SiteTagline,
+			Description: SiteDescription,
+			Title:       SiteTitle,
+			Url:         SiteUrl,
+			Email:       SiteEmail,
+			Image: gingersnap.Image{
+				Url:    "/static/meta-img.webp",
+				Alt:    "some img alt here",
+				Type:   "webp",
+				Width:  "800",
+				Height: "450",
+			},
+		},
+		NavbarLinks: []gingersnap.Link{
+			{Text: "Golang", Route: "/category/golang/"},
+			{Text: "Python", Route: "/category/python/"},
+			{Text: "SQL", Route: "/category/sql/"},
+			{Text: "About Us", Route: "/about/"},
+		},
+		FooterLinks: []gingersnap.Link{
+			{Text: "Home", Route: "/"},
+			{Text: "About Us", Route: "/about/"},
+			{Text: "Contact", Route: "/contact/"},
+			{Text: "Privacy Policy", Route: "/privacy-policy/"},
+			{Text: "Terms of Service", Route: "/terms-of-service/"},
+		},
 	}
 
 	// Construct the main Gingersnap engine.

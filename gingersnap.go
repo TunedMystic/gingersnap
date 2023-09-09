@@ -122,8 +122,8 @@ func (g *Gingersnap) HandleCategory(cat Category) http.HandlerFunc {
 		}
 
 		rd := g.NewRenderData(r)
-		rd.Title = fmt.Sprintf("%s related Posts - Explore our Content on %s", cat.Title, g.Config.SiteName)
-		rd.Description = fmt.Sprintf("Browse through the %s category on %s and take a look at our posts.", cat.Title, g.Config.SiteName)
+		rd.Title = fmt.Sprintf("%s related Posts - Explore our Content on %s", cat.Title, g.Config.Site.Name)
+		rd.Description = fmt.Sprintf("Browse through the %s category on %s and take a look at our posts.", cat.Title, g.Config.Site.Name)
 		rd.Heading = cat.Title
 		rd.Category = cat
 		rd.Posts = posts
@@ -148,15 +148,6 @@ func (g *Gingersnap) RunServer() {
 //
 //
 // ------------------------------------------------------------------
-
-// ErrNotFoundHandler wraps the ErrNotFound method in a http.Handler.
-// .
-func (g *Gingersnap) ErrNotFoundHandler() http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		g.ErrNotFound(w)
-	}
-	return http.HandlerFunc(fn)
-}
 
 // ServeFile returns a http.Handler that serves a specific file.
 // .
@@ -199,7 +190,7 @@ func (g *Gingersnap) ServeFile(efs embed.FS, fileName string) http.Handler {
 func (g *Gingersnap) ErrNotFound(w http.ResponseWriter) {
 	rd := g.NewRenderData(nil)
 	rd.AppError = "404"
-	rd.Title = fmt.Sprintf("Page Not Found - %s", g.Config.SiteName)
+	rd.Title = fmt.Sprintf("Page Not Found - %s", g.Config.Site.Name)
 	rd.LatestPosts = g.Posts.Latest()
 
 	g.Render(w, http.StatusNotFound, "error", &rd)
@@ -215,7 +206,7 @@ func (g *Gingersnap) ErrInternalServer(w http.ResponseWriter, err error) {
 
 	rd := g.NewRenderData(nil)
 	rd.AppError = "500"
-	rd.Title = fmt.Sprintf("Internal Server Error - %s", g.Config.SiteName)
+	rd.Title = fmt.Sprintf("Internal Server Error - %s", g.Config.Site.Name)
 	rd.LatestPosts = g.Posts.Latest()
 
 	if g.Debug {
@@ -387,25 +378,30 @@ func NewTemplate(files fs.FS) (*template.Template, error) {
 // ------------------------------------------------------------------
 //
 //
-// Type: Site
+// Type: Config
 //
 //
 // ------------------------------------------------------------------
 
-// Config stores site-wide settings
+// Config stores project settings
 // .
 type Config struct {
-	SiteName        string
-	SiteHost        string
-	SiteTagline     string
-	SiteDescription string
-	SiteTitle       string
-	SiteUrl         string
-	SiteEmail       string
-	SiteImage       Image
-
+	Site        Site
 	NavbarLinks []Link
 	FooterLinks []Link
+}
+
+// Site stores site-specific settings
+// .
+type Site struct {
+	Name        string
+	Host        string
+	Tagline     string
+	Description string
+	Title       string
+	Url         string
+	Email       string
+	Image       Image
 }
 
 // Link stores data for an anchor link
@@ -491,22 +487,22 @@ type RenderData struct {
 func (g *Gingersnap) NewRenderData(r *http.Request) RenderData {
 	pageUrl := ""
 	if r != nil {
-		pageUrl = fmt.Sprintf("%s%s", g.Config.SiteUrl, r.URL.RequestURI())
+		pageUrl = fmt.Sprintf("%s%s", g.Config.Site.Url, r.URL.RequestURI())
 	}
 
 	return RenderData{
-		SiteHost:    g.Config.SiteHost,
-		SiteUrl:     g.Config.SiteUrl,
-		SiteName:    g.Config.SiteName,
-		SiteTagline: g.Config.SiteTagline,
-		SiteEmail:   g.Config.SiteEmail,
+		SiteHost:    g.Config.Site.Host,
+		SiteUrl:     g.Config.Site.Url,
+		SiteName:    g.Config.Site.Name,
+		SiteTagline: g.Config.Site.Tagline,
+		SiteEmail:   g.Config.Site.Email,
 		PageUrl:     pageUrl,
 
-		Image: g.Config.SiteImage,
+		Image: g.Config.Site.Image,
 
-		Title:       g.Config.SiteTitle,
-		Description: g.Config.SiteDescription,
-		Heading:     g.Config.SiteTagline,
+		Title:       g.Config.Site.Title,
+		Description: g.Config.Site.Description,
+		Heading:     g.Config.Site.Tagline,
 
 		NavbarLinks: g.Config.NavbarLinks,
 		FooterLinks: g.Config.FooterLinks,
