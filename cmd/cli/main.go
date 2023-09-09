@@ -23,22 +23,35 @@ func main() {
 	}
 
 	// Construct the site info
-	site := &app.Site{
-		Name:        "Gingersnap",
-		Host:        "gingersnap.dev",
-		Tagline:     "The snappy starter project with Go and SQLite!",
-		Description: "The snappy starter project, built with Go and SQLite. Get up and running with only one command. Dockerize and deploy when you're ready to ship!",
+	config := &app.Config{
+		SiteName:        "Gingersnap",
+		SiteHost:        "gingersnap.dev",
+		SiteTagline:     "The snappy starter project with Go and SQLite!",
+		SiteDescription: "The snappy starter project, built with Go and SQLite. Get up and running with only one command. Dockerize and deploy when you're ready to ship!",
 	}
-	site.Title = fmt.Sprintf("%s - %s", site.Name, site.Tagline)
-	site.Host = fmt.Sprintf("localhost%s", ":4000")
-	site.Url = fmt.Sprintf("http://%s", site.Host)
-	site.Email = fmt.Sprintf("admin@%s", site.Host)
-	site.Image = app.Image{
+	config.SiteTitle = fmt.Sprintf("%s - %s", config.SiteName, config.SiteTagline)
+	config.SiteHost = fmt.Sprintf("localhost%s", ":4000")
+	config.SiteUrl = fmt.Sprintf("http://%s", config.SiteHost)
+	config.SiteEmail = fmt.Sprintf("admin@%s", config.SiteHost)
+	config.SiteImage = app.Image{
 		Url:    "/static/meta-img.webp",
 		Alt:    "some img alt here",
 		Type:   "webp",
 		Width:  "800",
 		Height: "450",
+	}
+	config.NavbarLinks = []app.Link{
+		{Text: "Golang", Route: "/category/golang/"},
+		{Text: "Python", Route: "/category/python/"},
+		{Text: "SQL", Route: "/category/sql/"},
+		{Text: "About Us", Route: "/about/"},
+	}
+	config.FooterLinks = []app.Link{
+		{Text: "Home", Route: "/"},
+		{Text: "About Us", Route: "/about/"},
+		{Text: "Contact", Route: "/contact/"},
+		{Text: "Privacy Policy", Route: "/privacy-policy/"},
+		{Text: "Terms of Service", Route: "/terms-of-service/"},
 	}
 
 	// Construct the main Gingersnap engine.
@@ -48,7 +61,7 @@ func main() {
 		Static:     ui.Static,
 		Templates:  templates,
 		ListenAddr: ":4000",
-		Site:       site,
+		Config:     config,
 	}
 
 	// Construct Http Server.

@@ -30,7 +30,7 @@ type Gingersnap struct {
 	Static    embed.FS
 	Templates *template.Template
 
-	Site       *Site
+	Config     *Config
 	Posts      *PostModel
 	Categories *CategoryModel
 
@@ -52,15 +52,15 @@ func (g *Gingersnap) Routes() http.Handler {
 	r.Handle("/", g.HandleIndex())
 	r.Handle("/static/", g.CacheControl(g.StaticHandler()))
 
-	// Build category routes
-	for _, cat := range g.Categories.All() {
-		r.Handle(fmt.Sprintf("/category/%s/", cat.Slug), g.HandleCategory(cat))
-	}
+	// // Build category routes
+	// for _, cat := range g.Categories.All() {
+	// 	r.Handle(fmt.Sprintf("/category/%s/", cat.Slug), g.HandleCategory(cat))
+	// }
 
-	// Build post routes
-	for _, post := range g.Posts.All() {
-		r.Handle(fmt.Sprintf("/%s/", post.Slug), g.HandlePost(post))
-	}
+	// // Build post routes
+	// for _, post := range g.Posts.All() {
+	// 	r.Handle(fmt.Sprintf("/%s/", post.Slug), g.HandlePost(post))
+	// }
 
 	return g.RecoverPanic(g.LogRequest(g.SecureHeaders(r)))
 }
@@ -106,8 +106,8 @@ func (g *Gingersnap) HandleCategory(cat Category) http.HandlerFunc {
 		}
 
 		rd := g.NewRenderData(r)
-		rd.Title = fmt.Sprintf("%s related Posts - Explore our Content on %s", cat.Title, g.Site.Name)
-		rd.Description = fmt.Sprintf("Browse through the %s category on %s and take a look at our posts.", cat.Title, g.Site.Name)
+		rd.Title = fmt.Sprintf("%s related Posts - Explore our Content on %s", cat.Title, g.Config.SiteName)
+		rd.Description = fmt.Sprintf("Browse through the %s category on %s and take a look at our posts.", cat.Title, g.Config.SiteName)
 		rd.Heading = cat.Title
 		rd.Category = cat
 		rd.Posts = posts
@@ -188,7 +188,7 @@ func (g *Gingersnap) ServeFile(fileName string) http.Handler {
 func (g *Gingersnap) ErrNotFound(w http.ResponseWriter) {
 	rd := g.NewRenderData(nil)
 	rd.AppError = "404"
-	rd.Title = fmt.Sprintf("Page Not Found - %s", g.Site.Name)
+	rd.Title = fmt.Sprintf("Page Not Found - %s", g.Config.SiteName)
 	rd.LatestPosts = g.Posts.Latest()
 
 	g.Render(w, http.StatusNotFound, "error", &rd)
@@ -204,7 +204,7 @@ func (g *Gingersnap) ErrInternalServer(w http.ResponseWriter, err error) {
 
 	rd := g.NewRenderData(nil)
 	rd.AppError = "500"
-	rd.Title = fmt.Sprintf("Internal Server Error - %s", g.Site.Name)
+	rd.Title = fmt.Sprintf("Internal Server Error - %s", g.Config.SiteName)
 	rd.LatestPosts = g.Posts.Latest()
 
 	if g.Debug {
@@ -377,19 +377,27 @@ func NewTemplate(files fs.FS) (*template.Template, error) {
 //
 // ------------------------------------------------------------------
 
-// Site stores site-specific settings
+// Config stores site-wide settings
 // .
-type Site struct {
-	Name        string
-	Host        string
-	Tagline     string
-	Description string
+type Config struct {
+	SiteName        string
+	SiteHost        string
+	SiteTagline     string
+	SiteDescription string
+	SiteTitle       string
+	SiteUrl         string
+	SiteEmail       string
+	SiteImage       Image
 
-	Title string
-	Url   string
-	Email string
+	NavbarLinks []Link
+	FooterLinks []Link
+}
 
-	Image Image
+// Link stores data for an anchor link
+// .
+type Link struct {
+	Text  string
+	Route string
 }
 
 // ------------------------------------------------------------------
@@ -455,6 +463,10 @@ type RenderData struct {
 	Category   Category
 	Categories []Category
 
+	// Anchor links
+	NavbarLinks []Link
+	FooterLinks []Link
+
 	// Application info
 	AppDebug bool
 	AppError string
@@ -464,22 +476,25 @@ type RenderData struct {
 func (g *Gingersnap) NewRenderData(r *http.Request) RenderData {
 	pageUrl := ""
 	if r != nil {
-		pageUrl = fmt.Sprintf("%s%s", g.Site.Url, r.URL.RequestURI())
+		pageUrl = fmt.Sprintf("%s%s", g.Config.SiteUrl, r.URL.RequestURI())
 	}
 
 	return RenderData{
-		SiteHost:    g.Site.Host,
-		SiteUrl:     g.Site.Url,
-		SiteName:    g.Site.Name,
-		SiteTagline: g.Site.Tagline,
-		SiteEmail:   g.Site.Email,
+		SiteHost:    g.Config.SiteHost,
+		SiteUrl:     g.Config.SiteUrl,
+		SiteName:    g.Config.SiteName,
+		SiteTagline: g.Config.SiteTagline,
+		SiteEmail:   g.Config.SiteEmail,
 		PageUrl:     pageUrl,
 
-		Image: g.Site.Image,
+		Image: g.Config.SiteImage,
 
-		Title:       g.Site.Title,
-		Description: g.Site.Description,
-		Heading:     g.Site.Tagline,
+		Title:       g.Config.SiteTitle,
+		Description: g.Config.SiteDescription,
+		Heading:     g.Config.SiteTagline,
+
+		NavbarLinks: g.Config.NavbarLinks,
+		FooterLinks: g.Config.FooterLinks,
 
 		Copyright: fmt.Sprintf("2022 - %d", time.Now().Year()),
 		AppDebug:  g.Debug,

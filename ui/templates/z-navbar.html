@@ -8,11 +8,10 @@
             <div class="header-second">
                 <nav class="site-nav text-dark-gray">
                     {{$siteUrl := .SiteUrl}}
-                    {{range .Categories}}
-                        <p><a class="plain" href="{{$siteUrl}}/category/{{.Slug}}/">{{.Name}}</a></p>
+                    {{range .NavbarLinks}}
+                        <p><a class="plain" href="{{$siteUrl}}{{.Route}}">{{.Text}}</a></p>
                         <span>&sdot;</span>
                     {{end}}
-                    <p><a class="plain" href="{{.SiteUrl}}/about/">About Us</a></p>
                 </nav>
             </div>
         </div>
