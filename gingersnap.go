@@ -1,4 +1,4 @@
-package app
+package gingersnap
 
 import (
 	"bytes"
@@ -24,7 +24,7 @@ import (
 //go:embed "assets"
 var Assets embed.FS
 
-//go:embed "templates"
+//go:embed "assets/templates"
 var Templates embed.FS
 
 // ------------------------------------------------------------------
@@ -65,7 +65,7 @@ func (g *Gingersnap) Routes() http.Handler {
 	r := http.NewServeMux()
 
 	r.Handle("/", g.HandleIndex())
-	r.Handle("/styles.css", g.ServeFile(g.Assets, "assets/styles.css"))
+	r.Handle("/styles.css", g.ServeFile(g.Assets, "assets/css/styles.css"))
 	r.Handle("/media/", g.CacheControl(http.StripPrefix("/media", http.FileServer(g.Media))))
 
 	// Build category routes
@@ -381,7 +381,7 @@ func NewTemplate(files fs.FS) (*template.Template, error) {
 		},
 	}
 
-	return template.New("").Funcs(funcs).ParseFS(files, "templates/*.html")
+	return template.New("").Funcs(funcs).ParseFS(files, "assets/templates/*.html")
 }
 
 // ------------------------------------------------------------------

@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 
-	"gingersnap/app"
+	"gingersnap"
 )
 
 func main() {
@@ -19,17 +19,17 @@ func main() {
 	logger := log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lshortfile)
 
 	// Construct the templates, using the embedded FS.
-	templates, err := app.NewTemplate(app.Templates)
+	templates, err := gingersnap.NewTemplate(gingersnap.Templates)
 	if err != nil {
 		logger.Fatal(err)
 	}
 
 	// Construct the models.
-	posts := &app.PostModel{}
-	categories := &app.CategoryModel{}
+	posts := &gingersnap.PostModel{}
+	categories := &gingersnap.CategoryModel{}
 
 	// Construct the site info
-	config := &app.Config{
+	config := &gingersnap.Config{
 		SiteName:        "Gingersnap",
 		SiteHost:        "gingersnap.dev",
 		SiteTagline:     "The snappy starter project with Go and SQLite!",
@@ -39,20 +39,20 @@ func main() {
 	config.SiteHost = fmt.Sprintf("localhost%s", ":4000")
 	config.SiteUrl = fmt.Sprintf("http://%s", config.SiteHost)
 	config.SiteEmail = fmt.Sprintf("admin@%s", config.SiteHost)
-	config.SiteImage = app.Image{
+	config.SiteImage = gingersnap.Image{
 		Url:    "/static/meta-img.webp",
 		Alt:    "some img alt here",
 		Type:   "webp",
 		Width:  "800",
 		Height: "450",
 	}
-	config.NavbarLinks = []app.Link{
+	config.NavbarLinks = []gingersnap.Link{
 		{Text: "Golang", Route: "/category/golang/"},
 		{Text: "Python", Route: "/category/python/"},
 		{Text: "SQL", Route: "/category/sql/"},
 		{Text: "About Us", Route: "/about/"},
 	}
-	config.FooterLinks = []app.Link{
+	config.FooterLinks = []gingersnap.Link{
 		{Text: "Home", Route: "/"},
 		{Text: "About Us", Route: "/about/"},
 		{Text: "Contact", Route: "/contact/"},
@@ -61,12 +61,12 @@ func main() {
 	}
 
 	// Construct the main Gingersnap engine.
-	g := &app.Gingersnap{
+	g := &gingersnap.Gingersnap{
 		Debug:      true,
 		ListenAddr: ":4000",
 		Logger:     logger,
-		Assets:     app.Assets,
-		Media:      http.Dir("./app/assets/media"),
+		Assets:     gingersnap.Assets,
+		Media:      http.Dir("./assets/media"),
 		Templates:  templates,
 		Config:     config,
 		Posts:      posts,
