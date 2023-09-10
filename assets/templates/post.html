@@ -9,17 +9,18 @@
                 <!-- Article Heading -->
                 <h1>{{.Heading}}</h1>
 
-                <!-- Article Metadata -->
-                <div class="copy-metadata text-xs text-gray">
-                    <p class="author">By <a class="plain" href="{{.SiteUrl}}/about/">Lisa Wong</a></p>
-                    <span>&sdot;</span>
-                    <p class="publish-date">{{.Post.Pubdate}}</p>
-                    <span>&sdot;</span>
-                    <p class="category"><a href="{{.SiteUrl}}/category/{{.Post.Category.Slug}}/">{{.Post.Category.Name}}</a></p>
-                </div>
+                {{if not .Post.IsStandalone}}
+                    <!-- Article Metadata -->
+                    <div class="copy-metadata text-xs text-gray">
+                        <p class="publish-date">{{.Post.Pubdate}}</p>
+                        <span>&sdot;</span>
+                        <p class="category"><a href="{{.SiteUrl}}/category/{{.Post.Category.Slug}}/">{{.Post.Category.Title}}</a></p>
+                    </div>
 
-                <!-- Article Lead Image -->
-                {{if .ShowLeadImage}}<img width="800" height="450" class="drop-shadow" src="{{.SiteUrl}}{{.Image.Url}}" alt="{{.Image.Alt}}" />{{end}}
+                    <!-- Article Lead Image -->
+                    <img width="{{.Image.Width}}" height="{{.Image.Height}}" class="drop-shadow" src="{{.SiteUrl}}{{.Image.Url}}" alt="{{.Image.Alt}}" />
+                {{end}}
+
 
                 <!-- Article Content -->
                 {{safe .Post.Body}}
@@ -49,11 +50,10 @@
                 <p class="section-title">You May Also Like</p>
                 <div class="suggested-posts">
                     {{$siteUrl := .SiteUrl}}
-                    {{$showImage := .ShowRelatedImage}}
                     {{range .FeaturedPosts}}
                         <div>
                             <a href="{{$siteUrl}}/{{.Slug}}/">
-                                {{if $showImage}}<img width="800" height="450" src="{{$siteUrl}}{{.ImageUrl}}" alt="{{.ImageAlt}}">{{end}}
+                                <img width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{$siteUrl}}{{.Image.Url}}" alt="{{.Image.Alt}}">
                                 <p class="title">{{.Heading}}</p>
                             </a>
                         </div>

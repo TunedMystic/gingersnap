@@ -10,7 +10,7 @@
                 {{range .Posts}}
                 <div>
                     <a href="{{$siteUrl}}/{{.Slug}}/">
-                        <img width="800" height="450" class="drop-shadow" src="{{$siteUrl}}{{.ImageUrl}}" alt="{{.ImageAlt}}">
+                        <img width="{{.Image.Width}}" height="{{.Image.Height}}" class="drop-shadow" src="{{$siteUrl}}{{.Image.Url}}" alt="{{.Image.Alt}}">
                         <p class="title">{{.Heading}}</p>
                     </a>
                     <p class="subhead text-dark-gray">{{.Description}}</p>

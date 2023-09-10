@@ -15,6 +15,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"runtime/debug"
+	"sort"
 	"strings"
 	"time"
 
@@ -100,6 +101,8 @@ func (g *Gingersnap) HandleIndex() http.HandlerFunc {
 		}
 
 		rd := g.NewRenderData(r)
+		rd.FeaturedPosts = g.Posts.Featured()
+		rd.LatestPosts = g.Posts.Latest()
 
 		g.Render(w, http.StatusOK, "index", &rd)
 	}
@@ -591,40 +594,43 @@ func (g *Gingersnap) NewRenderData(r *http.Request) RenderData {
 // Post represents a blog or an article.
 // .
 type Post struct {
-	// An FNV-1a hash of the slug.
+	// An FNV-1a hash of the slug
 	Hash int
 
-	// The post slug.
+	// The post slug
 	Slug string
 
-	// The post meta title.
+	// The post meta title
 	Title string
 
-	// The post heading, or main title.
+	// The post heading, or main title
 	Heading string
 
-	// The post description.
+	// The post description
 	Description string
 
-	// The post category.
+	// The post category
 	Category Category
 
-	// The lead image.
+	// The lead image
 	Image Image
 
-	// The post body.
+	// The post body
 	Body string
 
-	// The publish date - January 2, 2006.
+	// Is the post featured on the homepage?
+	Featured bool
+
+	// The publish date - January 2, 2006
 	Pubdate string
 
-	// The publish date, as a UNIX timestamp.
+	// The publish date, as a UNIX timestamp
 	PubdateTS int
 
-	// The updated date - January 2, 2006.
+	// The updated date - January 2, 2006
 	Updated string
 
-	// The updated date, as a UNIX timestamp.
+	// The updated date, as a UNIX timestamp
 	UpdatedTS int
 }
 
@@ -633,6 +639,15 @@ type Post struct {
 // .
 func (p *Post) IsStandalone() bool {
 	return p.Image.IsEmpty() || p.Category.IsEmpty()
+}
+
+// LatestTS returns the Post's latest timestamped date.
+// .
+func (p *Post) LatestTS() int {
+	if p.UpdatedTS > p.PubdateTS {
+		return p.UpdatedTS
+	}
+	return p.PubdateTS
 }
 
 // ------------------------------------------------------------------
@@ -668,6 +683,8 @@ func (c *Category) IsEmpty() bool {
 // .
 type PostModel struct {
 	posts           []Post
+	postsLatest     []Post
+	postsFeatured   []Post
 	postsBySlug     map[string]Post
 	postsByCategory map[Category][]Post
 }
@@ -675,16 +692,43 @@ type PostModel struct {
 func NewPostModel(postsBySlug map[string]Post) *PostModel {
 	m := &PostModel{
 		posts:           []Post{},
+		postsLatest:     []Post{},
+		postsFeatured:   []Post{},
 		postsBySlug:     postsBySlug,
 		postsByCategory: make(map[Category][]Post),
 	}
 
+	// Prepare the Post structures.
 	for _, post := range m.postsBySlug {
 		m.posts = append(m.posts, post)
 
 		if !post.Category.IsEmpty() {
 			cat := post.Category
 			m.postsByCategory[cat] = append(m.postsByCategory[cat], post)
+		}
+	}
+
+	// Sort the posts by latest timestamp.
+	sort.SliceStable(m.posts, func(i, j int) bool {
+		return m.posts[i].PubdateTS > m.posts[j].PubdateTS
+	})
+
+	// Prepare the latest posts.
+	for i, post := range m.posts {
+		if i == PostLatestLimit {
+			break
+		}
+		m.postsLatest = append(m.postsLatest, post)
+	}
+
+	// Prepare the featured posts.
+	for _, post := range m.posts {
+		if len(m.postsFeatured) == PostFeaturedLimit {
+			break
+		}
+
+		if post.Featured {
+			m.postsFeatured = append(m.postsFeatured, post)
 		}
 	}
 
@@ -704,15 +748,11 @@ func (m *PostModel) Slugs() []string {
 }
 
 func (m *PostModel) Latest() []Post {
-	return nil
+	return m.postsLatest
 }
 
 func (m *PostModel) Featured() []Post {
-	return nil
-}
-
-func (m *PostModel) Related(p Post) []Post {
-	return nil
+	return m.postsFeatured
 }
 
 func (m *PostModel) ByCategory(c Category) ([]Post, bool) {
@@ -878,6 +918,12 @@ func (p *PostManager) processPost(mkdownBytes []byte) error {
 		return fmt.Errorf("post collision [%s]\n", slug)
 	}
 
+	// Retrieve the featured field.
+	featured := false
+	if _, ok := metadata["featured"]; ok {
+		featured = metadata["featured"].(bool)
+	}
+
 	// Retrieve the pubdate field.
 	pubdate := ""
 	pubdateTs := 0
@@ -902,7 +948,7 @@ func (p *PostManager) processPost(mkdownBytes []byte) error {
 			return fmt.Errorf("failed to parse pubdate %w", err)
 		} else {
 			updated = ud.Format("January 2, 2006")
-			updatedTs = int(pd.Unix())
+			updatedTs = int(ud.Unix())
 		}
 	}
 
@@ -954,6 +1000,7 @@ func (p *PostManager) processPost(mkdownBytes []byte) error {
 		Category:    category,
 		Image:       image,
 		Body:        buf.String(),
+		Featured:    featured,
 		Pubdate:     pubdate,
 		PubdateTS:   pubdateTs,
 		Updated:     updated,
@@ -997,11 +1044,12 @@ func (p *PostManager) filePaths() ([]string, error) {
 	return filePaths, nil
 }
 
-// const ImageWidth = "1280"
-// const ImageHeight = "720"
 const ImageWidth = "800"
 const ImageHeight = "450"
 const ImageType = "webp"
+
+const PostFeaturedLimit = 4
+const PostLatestLimit = 20
 
 // ------------------------------------------------------------------
 //

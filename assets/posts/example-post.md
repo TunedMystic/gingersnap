@@ -7,6 +7,7 @@ category: SQL
 image_url: /media/big-computer.webp
 image_alt: SQLite Full-Text Search
 pubdate: 2022-01-21
+featured: true
 ---
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. [Fusce nec tincidunt](https://news.ycombinator.com/) ipsum, posuere hendrerit metus. Proin eu sapien ipsum. Fusce `posuere lectus ut ex` cursus, at maximus felis aliquet. Integer sodales orci non massa pulvinar lobortis.

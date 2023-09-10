@@ -11,6 +11,7 @@ import (
 func main() {
 	localConfigPath := gingersnap.Path("assets/config/gingersnap.json")
 	localMediaDir := gingersnap.Path("assets/media")
+	localPostsDir := gingersnap.Path("assets/posts")
 
 	// Construct logger.
 	logger := gingersnap.NewLogger()
@@ -21,9 +22,18 @@ func main() {
 		logger.Fatal(err)
 	}
 
+	// Construct the PostManager.
+	postManager := gingersnap.NewPostManager(localPostsDir)
+
+	// Parse the markdown posts.
+	err = postManager.Process()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// Construct the models.
-	posts := &gingersnap.PostModel{}
-	categories := &gingersnap.CategoryModel{}
+	postModel := gingersnap.NewPostModel(postManager.PostsBySlug)
+	categoryModel := gingersnap.NewCategoryModel(postManager.CategoriesBySlug)
 
 	// Construct the config
 	config, err := gingersnap.NewConfig(localConfigPath, true)
@@ -38,8 +48,8 @@ func main() {
 		Media:      http.Dir(localMediaDir),
 		Templates:  templates,
 		Config:     config,
-		Posts:      posts,
-		Categories: categories,
+		Posts:      postModel,
+		Categories: categoryModel,
 	}
 
 	// Construct Http Server.

@@ -12,7 +12,7 @@ func main() {
 	// Construct the PostManager.
 	postManager := gingersnap.NewPostManager(gingersnap.Path("assets/posts"))
 
-	// Run.
+	// Parse the markdown posts.
 	err := postManager.Process()
 	if err != nil {
 		log.Fatal(err)
