@@ -1039,8 +1039,6 @@ func Slugify(s string) string {
 // Path builds filepaths from the project root.
 // .
 func Path(p string) string {
-	// return projectRoot() + "/" + p
-	// return packageRoot() + "/" + p
 	return fmt.Sprintf("%s/%s", packageRoot(), p)
 }
 

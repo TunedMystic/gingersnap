@@ -30,7 +30,4 @@ func main() {
 
 	categoryModel := gingersnap.NewCategoryModel(postManager.CategoriesBySlug)
 	fmt.Printf("%+v\n", categoryModel)
-
-	// fmt.Printf("%+v\n", postManager.PostsBySlug)
-	// fmt.Printf("%+v\n", postManager.CategoriesBySlug)
 }

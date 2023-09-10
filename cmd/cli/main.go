@@ -9,8 +9,8 @@ import (
 )
 
 func main() {
-	const localConfigPath = "./assets/config/gingersnap.json"
-	const localMediaDir = "./assets/media"
+	localConfigPath := gingersnap.Path("assets/config/gingersnap.json")
+	localMediaDir := gingersnap.Path("assets/media")
 
 	// Construct logger.
 	logger := gingersnap.NewLogger()
