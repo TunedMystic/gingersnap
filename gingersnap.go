@@ -679,7 +679,7 @@ func (c *Category) IsEmpty() bool {
 //
 // ------------------------------------------------------------------
 
-// PostModel manages queries for Post resources.
+// PostModel manages queries for Posts.
 // .
 type PostModel struct {
 	posts           []Post
@@ -773,7 +773,7 @@ func (m *PostModel) BySlug(s string) (Post, bool) {
 //
 // ------------------------------------------------------------------
 
-// CategoryModel manages queries for Post resources.
+// CategoryModel manages queries for Categories.
 // .
 type CategoryModel struct {
 	categories       []Category
