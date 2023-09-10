@@ -5,14 +5,24 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"hash/fnv"
 	"html/template"
 	"io/fs"
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
+	"runtime"
 	"runtime/debug"
+	"strings"
 	"time"
+
+	"github.com/yuin/goldmark"
+	meta "github.com/yuin/goldmark-meta"
+	"github.com/yuin/goldmark/parser"
+	"github.com/yuin/goldmark/renderer/html"
+	"github.com/yuin/goldmark/text"
 )
 
 // ------------------------------------------------------------------
@@ -103,9 +113,14 @@ func (g *Gingersnap) HandlePost(post Post) http.HandlerFunc {
 		rd.Description = post.Description
 		rd.Heading = post.Heading
 		rd.Post = post
-		rd.Image = post.Image
 		rd.LatestPosts = g.Posts.Latest()
 		rd.FeaturedPosts = g.Posts.Featured()
+
+		if post.Image.IsEmpty() {
+			rd.Image = g.Config.Site.Image
+		} else {
+			rd.Image = post.Image
+		}
 
 		g.Render(w, http.StatusOK, "post", &rd)
 	}
@@ -444,9 +459,16 @@ func NewConfig(fileName string, debug bool) (*Config, error) {
 		config.Site.Url = fmt.Sprintf("https://%s", config.Site.Host)
 	}
 
-	// Compute the formatted settings.
+	// Compute more settings.
 	config.Site.Title = fmt.Sprintf("%s - %s", config.Site.Name, config.Site.Tagline)
 	config.Site.Email = fmt.Sprintf("admin@%s", config.Site.Host)
+	config.Site.Image = Image{
+		Url:    "/media/meta-img.webp",
+		Alt:    "some img alt here",
+		Type:   ImageType,
+		Width:  ImageWidth,
+		Height: ImageHeight,
+	}
 
 	return config, nil
 }
@@ -467,6 +489,12 @@ type Image struct {
 	Type   string
 	Width  string
 	Height string
+}
+
+// IsEmpty reports if the image is empty.
+// .
+func (i *Image) IsEmpty() bool {
+	return i.Url == ""
 }
 
 // ------------------------------------------------------------------
@@ -587,11 +615,24 @@ type Post struct {
 	// The post body.
 	Body string
 
-	// The date the post was or will be published.
+	// The publish date - January 2, 2006.
 	Pubdate string
 
-	// The pubdate, as a UNIX timestamp.
+	// The publish date, as a UNIX timestamp.
 	PubdateTS int
+
+	// The updated date - January 2, 2006.
+	Updated string
+
+	// The updated date, as a UNIX timestamp.
+	UpdatedTS int
+}
+
+// IsStandalone reports if the Post should be rendered
+// as a standalone page, or as a blog post.
+// .
+func (p *Post) IsStandalone() bool {
+	return p.Image.IsEmpty() || p.Category.IsEmpty()
 }
 
 // ------------------------------------------------------------------
@@ -609,6 +650,12 @@ type Category struct {
 	Title string
 }
 
+// IsEmpty reports if the category is empty.
+// .
+func (c *Category) IsEmpty() bool {
+	return c.Slug == ""
+}
+
 // ------------------------------------------------------------------
 //
 //
@@ -623,6 +670,25 @@ type PostModel struct {
 	posts           []Post
 	postsBySlug     map[string]Post
 	postsByCategory map[Category][]Post
+}
+
+func NewPostModel(postsBySlug map[string]Post) *PostModel {
+	m := &PostModel{
+		posts:           []Post{},
+		postsBySlug:     postsBySlug,
+		postsByCategory: make(map[Category][]Post),
+	}
+
+	for _, post := range m.postsBySlug {
+		m.posts = append(m.posts, post)
+
+		if !post.Category.IsEmpty() {
+			cat := post.Category
+			m.postsByCategory[cat] = append(m.postsByCategory[cat], post)
+		}
+	}
+
+	return m
 }
 
 func (m *PostModel) All() []Post {
@@ -674,6 +740,19 @@ type CategoryModel struct {
 	categoriesBySlug map[string]Category
 }
 
+func NewCategoryModel(categoriesBySlug map[string]Category) *CategoryModel {
+	m := &CategoryModel{
+		categories:       []Category{},
+		categoriesBySlug: categoriesBySlug,
+	}
+
+	for _, category := range m.categoriesBySlug {
+		m.categories = append(m.categories, category)
+	}
+
+	return m
+}
+
 func (m *CategoryModel) All() []Category {
 	return m.categories
 }
@@ -681,4 +760,295 @@ func (m *CategoryModel) All() []Category {
 func (m *CategoryModel) BySlug(s string) (Category, bool) {
 	category, ok := m.categoriesBySlug[s]
 	return category, ok
+}
+
+// ------------------------------------------------------------------
+//
+//
+// PostManager
+//
+//
+// ------------------------------------------------------------------
+
+// PostManager is responsible for parsing markdown posts and
+// storing them as in-memory structs.
+//
+// Main method: `Process()`
+// .
+type PostManager struct {
+	// The markdown parser
+	Markdown goldmark.Markdown
+
+	// The directory where the markdown posts are stored
+	PostsDir string
+
+	// The prepared Posts and Categories
+	PostsBySlug      map[string]Post
+	CategoriesBySlug map[string]Category
+}
+
+// The Process method parses all markdown posts and
+// stores it in memory.
+// .
+func (p *PostManager) Process() error {
+
+	filePaths, err := p.filePaths()
+	if err != nil {
+		return err
+	}
+
+	for _, filePath := range filePaths {
+
+		// Read the markdown file.
+		fileBytes, err := os.ReadFile(filePath)
+		if err != nil {
+			return err
+		}
+
+		// Construct Post item and add it to the database.
+		err = p.processPost(fileBytes)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func NewPostManager(postsDir string) *PostManager {
+	return &PostManager{
+		//
+		Markdown: goldmark.New(
+			goldmark.WithExtensions(
+				meta.New(meta.WithStoresInDocument()),
+			),
+			goldmark.WithParserOptions(
+				parser.WithAutoHeadingID(),
+			),
+			goldmark.WithRendererOptions(
+				html.WithUnsafe(),
+				html.WithHardWraps(),
+			),
+		),
+		//
+		PostsDir: postsDir,
+		//
+		PostsBySlug: make(map[string]Post),
+		//
+		CategoriesBySlug: make(map[string]Category),
+	}
+}
+
+// processPost constructs a Post and optional Category struct
+// from the given markdown file bytes.
+// .
+func (p *PostManager) processPost(mkdownBytes []byte) error {
+	// Parse the file contents.
+	doc := p.Markdown.Parser().Parse(text.NewReader(mkdownBytes))
+
+	// Get the document metadata.
+	metadata := doc.OwnerDocument().Meta()
+
+	// Render the markdown content to a buffer.
+	buf := new(bytes.Buffer)
+	err := p.Markdown.Renderer().Render(buf, mkdownBytes, doc)
+	if err != nil {
+		return err
+	}
+
+	// Retrieve fields from the markdown metadata.
+	title := metadata["title"].(string)
+	heading := metadata["heading"].(string)
+	slug := metadata["slug"].(string)
+	description := metadata["description"].(string)
+
+	// Skip processing if the document is marked as draft.
+	draft := false
+	if _, ok := metadata["draft"]; ok {
+		draft = metadata["draft"].(bool)
+		if draft {
+			fmt.Printf("skipping draft: %s\n", title)
+			return nil
+		}
+	}
+
+	// This check ensures that post slugs remain unique by guarding
+	// against slug collision.
+	if _, exists := p.PostsBySlug[slug]; exists {
+		return fmt.Errorf("post collision [%s]\n", slug)
+	}
+
+	// Retrieve the pubdate field.
+	pubdate := ""
+	pubdateTs := 0
+	// check that the pubdate value is a valid date.
+	pd, err := time.Parse(time.DateOnly, metadata["pubdate"].(string))
+
+	if err != nil {
+		return fmt.Errorf("failed to parse pubdate %w", err)
+	} else {
+		pubdate = pd.Format("January 2, 2006")
+		pubdateTs = int(pd.Unix())
+	}
+
+	// Retrieve the updated field
+	updated := ""
+	updatedTs := 0
+	if _, ok := metadata["updated"]; ok {
+		// check that the updated value is a valid date.
+		ud, err := time.Parse(time.DateOnly, metadata["updated"].(string))
+
+		if err != nil {
+			return fmt.Errorf("failed to parse pubdate %w", err)
+		} else {
+			updated = ud.Format("January 2, 2006")
+			updatedTs = int(pd.Unix())
+		}
+	}
+
+	// Retrieve the category field.
+	category := Category{}
+	if _, ok := metadata["category"]; ok {
+		categoryTitle := metadata["category"].(string)
+		categorySlug := Slugify(categoryTitle)
+
+		// If multiple categories differ in case (ex 'Gardening Tips' and 'GarDENing TIPS'),
+		// then they produce unique categories with the SAME SLUG.
+		// This check ensures that category slugs remain unique by guarding
+		// against category collision.
+		if ct, exists := p.CategoriesBySlug[categorySlug]; exists {
+			if ct.Title != categoryTitle {
+				return fmt.Errorf("category collision [%s] and [%s]\n", ct.Title, categoryTitle)
+			}
+		}
+
+		category = Category{
+			Title: categoryTitle,
+			Slug:  categorySlug,
+		}
+
+		// Save the category.
+		//
+		// At this point, overwriting the category does not produce
+		// any negative effect because it is effectively the same.
+		p.CategoriesBySlug[categorySlug] = category
+	}
+
+	// Retrieve the lead image fields.
+	image := Image{}
+	if _, ok := metadata["image_url"]; ok {
+		image.Url = metadata["image_url"].(string)
+		image.Alt = metadata["image_alt"].(string)
+		image.Type = ImageType
+		image.Width = ImageWidth
+		image.Height = ImageHeight
+	}
+
+	// Construct a Post object.
+	post := Post{
+		Hash:        HashSimple(slug),
+		Slug:        slug,
+		Title:       title,
+		Heading:     heading,
+		Description: description,
+		Category:    category,
+		Image:       image,
+		Body:        buf.String(),
+		Pubdate:     pubdate,
+		PubdateTS:   pubdateTs,
+		Updated:     updated,
+		UpdatedTS:   updatedTs,
+	}
+
+	p.PostsBySlug[slug] = post
+
+	return nil
+}
+
+// filePaths returns the absolute path for all
+// markdown posts in the posts directory.
+// .
+func (p *PostManager) filePaths() ([]string, error) {
+	var filePaths []string
+
+	// Read the contents of the directory.
+	files, err := os.ReadDir(p.PostsDir)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, file := range files {
+		// Ignore directories
+		if file.Type().IsDir() {
+			continue
+		}
+
+		// Ignore all files that are not .md
+		ext := filepath.Ext(file.Name())
+		if ext != ".md" {
+			continue
+		}
+
+		// Build the filename path.
+		filePath := fmt.Sprintf("%s/%s", p.PostsDir, file.Name())
+		filePaths = append(filePaths, filePath)
+	}
+
+	return filePaths, nil
+}
+
+// const ImageWidth = "1280"
+// const ImageHeight = "720"
+const ImageWidth = "800"
+const ImageHeight = "450"
+const ImageType = "webp"
+
+// ------------------------------------------------------------------
+//
+//
+// Utility functions
+//
+//
+// ------------------------------------------------------------------
+
+// GetEnv retrieves an variable from the application environment.
+// If the variable is not found, the fallback is returned instead.
+// .
+func GetEnv(key, fallback string) string {
+	value, exists := os.LookupEnv(key)
+	if !exists {
+		return fallback
+	}
+	return value
+}
+
+// HashSimple converts a string into a FNV-1a hash.
+// .
+func HashSimple(s string) int {
+	h := fnv.New32a()
+	h.Write([]byte(s))
+	return int(h.Sum32())
+}
+
+// Slugify builds a slug from the given string.
+// .
+func Slugify(s string) string {
+	return strings.TrimSpace(strings.ToLower(strings.ReplaceAll(s, " ", "-")))
+}
+
+// Path builds filepaths from the project root.
+// .
+func Path(p string) string {
+	// return projectRoot() + "/" + p
+	// return packageRoot() + "/" + p
+	return fmt.Sprintf("%s/%s", packageRoot(), p)
+}
+
+func projectRoot() string {
+	return path.Dir(packageRoot())
+}
+
+func packageRoot() string {
+	_, b, _, _ := runtime.Caller(0)
+	return path.Dir(b)
 }

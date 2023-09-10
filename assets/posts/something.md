@@ -1,12 +1,13 @@
 ---
 title: Diving into SQLite Full-Text Search - The Complete Guide
 heading: SQLite Full-Text Search
-slug: sqlite-full-text-search
+slug: sqlite-full-text-searchs
 description: In this guide, you'll learn all about SQLite's Full-Text Search feature and how to use it to efficiently search and retrieve data from your database.
 category: SQL
 image_url: /media/big-computer.webp
 image_alt: SQLite Full-Text Search
 pubdate: 2022-01-21
+draft: true
 ---
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. [Fusce nec tincidunt](https://news.ycombinator.com/) ipsum, posuere hendrerit metus. Proin eu sapien ipsum. Fusce `posuere lectus ut ex` cursus, at maximus felis aliquet. Integer sodales orci non massa pulvinar lobortis.
