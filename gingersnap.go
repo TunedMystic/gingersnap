@@ -3,11 +3,13 @@ package gingersnap
 import (
 	"bytes"
 	"embed"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"io/fs"
 	"log"
 	"net/http"
+	"os"
 	"path/filepath"
 	"runtime/debug"
 	"time"
@@ -38,10 +40,7 @@ var Templates embed.FS
 // Gingersnap is the main application engine.
 // .
 type Gingersnap struct {
-	Debug      bool
-	ListenAddr string
-	Logger     *log.Logger
-
+	Logger    *log.Logger
 	Assets    embed.FS
 	Templates *template.Template
 
@@ -133,7 +132,7 @@ func (g *Gingersnap) HandleCategory(cat Category) http.HandlerFunc {
 }
 
 func (g *Gingersnap) RunServer() {
-	g.Logger.Printf("Starting server on %s", g.ListenAddr)
+	g.Logger.Printf("Starting server on %s", g.Config.ListenAddr)
 
 	err := g.HttpServer.ListenAndServe()
 	if err != nil {
@@ -209,7 +208,7 @@ func (g *Gingersnap) ErrInternalServer(w http.ResponseWriter, err error) {
 	rd.Title = fmt.Sprintf("Internal Server Error - %s", g.Config.Site.Name)
 	rd.LatestPosts = g.Posts.Latest()
 
-	if g.Debug {
+	if g.Config.Debug {
 		rd.AppTrace = trace
 	}
 
@@ -224,7 +223,7 @@ func (g *Gingersnap) errInternalServer(w http.ResponseWriter, err error) {
 	g.Logger.Output(2, trace)
 	status := http.StatusInternalServerError
 
-	if g.Debug {
+	if g.Config.Debug {
 		http.Error(w, trace, status)
 		return
 	}
@@ -345,7 +344,7 @@ func (g *Gingersnap) SecureHeaders(next http.Handler) http.Handler {
 // .
 func (g *Gingersnap) CacheControl(next http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if g.Debug {
+		if g.Config.Debug {
 			w.Header().Set("Cache-Control", "no-cache")
 		} else {
 			w.Header().Set("Cache-Control", "max-age=172800") // 2 days
@@ -375,6 +374,12 @@ func NewTemplate(files fs.FS) (*template.Template, error) {
 	return template.New("").Funcs(funcs).ParseFS(files, "assets/templates/*.html")
 }
 
+// NewLogger constructs and returns a new Logger.
+// .
+func NewLogger() *log.Logger {
+	return log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lshortfile)
+}
+
 // ------------------------------------------------------------------
 //
 //
@@ -386,18 +391,20 @@ func NewTemplate(files fs.FS) (*template.Template, error) {
 // Config stores project settings
 // .
 type Config struct {
-	Site        Site
-	NavbarLinks []Link
-	FooterLinks []Link
+	Debug       bool
+	ListenAddr  string
+	Site        Site   `json:"site"`
+	NavbarLinks []Link `json:"navbarLinks"`
+	FooterLinks []Link `json:"footerLinks"`
 }
 
 // Site stores site-specific settings
 // .
 type Site struct {
-	Name        string
-	Host        string
-	Tagline     string
-	Description string
+	Name        string `json:"name"`
+	Host        string `json:"host"`
+	Tagline     string `json:"tagline"`
+	Description string `json:"description"`
 	Title       string
 	Url         string
 	Email       string
@@ -409,6 +416,39 @@ type Site struct {
 type Link struct {
 	Text  string
 	Route string
+}
+
+// NewConfig parses the gingersnap settings into a Config struct.
+// .
+func NewConfig(fileName string, debug bool) (*Config, error) {
+
+	// Read the config file.
+	configBytes, err := os.ReadFile(fileName)
+	if err != nil {
+		return nil, err
+	}
+
+	config := &Config{
+		ListenAddr: ":4000",
+		Debug:      debug,
+	}
+
+	// Parse the config file.
+	json.Unmarshal(configBytes, config)
+
+	// If in "DEBUG" mode, then change the host to localhost.
+	if config.Debug {
+		config.Site.Host = fmt.Sprintf("localhost%s", config.ListenAddr)
+		config.Site.Url = fmt.Sprintf("http://%s", config.Site.Host)
+	} else {
+		config.Site.Url = fmt.Sprintf("https://%s", config.Site.Host)
+	}
+
+	// Compute the formatted settings.
+	config.Site.Title = fmt.Sprintf("%s - %s", config.Site.Name, config.Site.Tagline)
+	config.Site.Email = fmt.Sprintf("admin@%s", config.Site.Host)
+
+	return config, nil
 }
 
 // ------------------------------------------------------------------
@@ -508,7 +548,7 @@ func (g *Gingersnap) NewRenderData(r *http.Request) RenderData {
 		FooterLinks: g.Config.FooterLinks,
 
 		Copyright: fmt.Sprintf("2022 - %d", time.Now().Year()),
-		AppDebug:  g.Debug,
+		AppDebug:  g.Config.Debug,
 	}
 }
 
