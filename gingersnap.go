@@ -6,7 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"hash/fnv"
-	"html/template"
+	htmlTemplate "html/template"
 	"io/fs"
 	"log"
 	"net/http"
@@ -17,6 +17,7 @@ import (
 	"runtime/debug"
 	"sort"
 	"strings"
+	textTemplate "text/template"
 	"time"
 
 	"github.com/yuin/goldmark"
@@ -25,20 +26,6 @@ import (
 	"github.com/yuin/goldmark/renderer/html"
 	"github.com/yuin/goldmark/text"
 )
-
-// ------------------------------------------------------------------
-//
-//
-// Embedded files
-//
-//
-// ------------------------------------------------------------------
-
-//go:embed "assets"
-var Assets embed.FS
-
-//go:embed "assets/templates"
-var Templates embed.FS
 
 // ------------------------------------------------------------------
 //
@@ -53,7 +40,7 @@ var Templates embed.FS
 type Gingersnap struct {
 	Logger    *log.Logger
 	Assets    embed.FS
-	Templates *template.Template
+	Templates *htmlTemplate.Template
 
 	Config     *Config
 	Posts      *PostModel
@@ -61,6 +48,15 @@ type Gingersnap struct {
 	Media      http.FileSystem
 
 	HttpServer *http.Server
+}
+
+func (g *Gingersnap) RunServer() {
+	g.Logger.Printf("Starting server on %s", g.Config.ListenAddr)
+
+	err := g.HttpServer.ListenAndServe()
+	if err != nil {
+		g.Logger.Print(err)
+	}
 }
 
 // ------------------------------------------------------------------
@@ -76,6 +72,9 @@ func (g *Gingersnap) Routes() http.Handler {
 
 	r.Handle("/", g.HandleIndex())
 	r.Handle("/styles.css", g.ServeFile(g.Assets, "assets/css/styles.css"))
+	r.Handle("/sitemap.xml", g.HandleSitemap())
+	r.Handle("/robots.txt", g.HandleRobotsTxt())
+	r.Handle("/CNAME", g.HandleCname())
 	r.Handle("/media/", g.CacheControl(http.StripPrefix("/media", http.FileServer(g.Media))))
 
 	// Build category routes
@@ -149,12 +148,111 @@ func (g *Gingersnap) HandleCategory(cat Category) http.HandlerFunc {
 	}
 }
 
-func (g *Gingersnap) RunServer() {
-	g.Logger.Printf("Starting server on %s", g.Config.ListenAddr)
+func (g *Gingersnap) HandleCname() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(g.Config.Site.Host))
+	}
+}
 
-	err := g.HttpServer.ListenAndServe()
+const RobotsTemplate = `
+User-agent: *
+Disallow:
+
+Sitemap: {{.}}/sitemap.xml
+`
+
+func (g *Gingersnap) HandleRobotsTxt() http.HandlerFunc {
+
+	// Prepare the robots template.
+	tmpl, err := textTemplate.New("").Parse(strings.TrimPrefix(RobotsTemplate, "\n"))
 	if err != nil {
-		g.Logger.Print(err)
+		panic(err)
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		buf := new(bytes.Buffer)
+
+		// Write the template to the buffer first.
+		// If error, then respond with a server error and return.
+		err = tmpl.Execute(buf, g.Config.Site.Url)
+		if err != nil {
+			g.errInternalServer(w, err)
+			return
+		}
+
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		w.Write(buf.Bytes())
+	}
+}
+
+const SitemapTemplate = `
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+	{{- range $key, $value := .}}
+	<url>
+		<loc>{{$key}}</loc>
+		{{if $value}}<lastmod>{{$value}}</lastmod>{{end}}
+	</url>
+	{{- end}}
+</urlset>
+`
+
+func (g *Gingersnap) HandleSitemap() http.HandlerFunc {
+
+	// Prepare the sitemap template.
+	tmpl, err := textTemplate.New("").Parse(strings.TrimPrefix(SitemapTemplate, "\n"))
+	if err != nil {
+		panic(err)
+	}
+
+	// The urlSet is a map of urls to lastmod dates.
+	// It is used to render the sitemap.
+	urlSet := make(map[string]string)
+
+	// permalink is a helper function which generates
+	// the permalink for a given path
+	permalink := func(urlPath string) string {
+		return fmt.Sprintf("%v%v", g.Config.Site.Url, urlPath)
+	}
+
+	// Add sitemap entries for the index page.
+	urlSet[permalink("/")] = ""
+
+	// Add sitemap entries for all the categories.
+	for _, cat := range g.Categories.All() {
+		categoryPath := fmt.Sprintf("/category/%s/", cat.Slug)
+		urlSet[permalink(categoryPath)] = ""
+	}
+
+	// Add sitemap entries for all the posts.
+	for _, post := range g.Posts.All() {
+		postPath := fmt.Sprintf("/%s/", post.Slug)
+		lastMod := ""
+
+		if ts := post.LatestTS(); ts > 0 {
+			lastMod = time.Unix(int64(ts), 0).Format("2006-01-02T00:00:00+00:00")
+		}
+
+		urlSet[permalink(postPath)] = lastMod
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		buf := new(bytes.Buffer)
+
+		// Write the template to the buffer first.
+		// If error, then respond with a server error and return.
+		err = tmpl.Execute(buf, urlSet)
+		if err != nil {
+			g.errInternalServer(w, err)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/xml; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		w.Write(buf.Bytes())
 	}
 }
 
@@ -382,14 +480,14 @@ func (g *Gingersnap) CacheControl(next http.Handler) http.HandlerFunc {
 // NewTemplate parses and loads all templates from
 // the the given filesystem interface.
 // .
-func NewTemplate(files fs.FS) (*template.Template, error) {
-	funcs := template.FuncMap{
-		"safe": func(content string) template.HTML {
-			return template.HTML(content)
+func NewTemplate(files fs.FS) (*htmlTemplate.Template, error) {
+	funcs := htmlTemplate.FuncMap{
+		"safe": func(content string) htmlTemplate.HTML {
+			return htmlTemplate.HTML(content)
 		},
 	}
 
-	return template.New("").Funcs(funcs).ParseFS(files, "assets/templates/*.html")
+	return htmlTemplate.New("").Funcs(funcs).ParseFS(files, "assets/templates/*.html")
 }
 
 // NewLogger constructs and returns a new Logger.
@@ -805,17 +903,17 @@ func (m *CategoryModel) BySlug(s string) (Category, bool) {
 // ------------------------------------------------------------------
 //
 //
-// PostManager
+// Processor
 //
 //
 // ------------------------------------------------------------------
 
-// PostManager is responsible for parsing markdown posts and
+// Processor is responsible for parsing markdown posts and
 // storing them as in-memory structs.
 //
 // Main method: `Process()`
 // .
-type PostManager struct {
+type Processor struct {
 	// The markdown parser
 	Markdown goldmark.Markdown
 
@@ -830,9 +928,9 @@ type PostManager struct {
 // The Process method parses all markdown posts and
 // stores it in memory.
 // .
-func (p *PostManager) Process() error {
+func (pr *Processor) Process() error {
 
-	filePaths, err := p.filePaths()
+	filePaths, err := pr.filePaths()
 	if err != nil {
 		return err
 	}
@@ -846,7 +944,7 @@ func (p *PostManager) Process() error {
 		}
 
 		// Construct Post item and add it to the database.
-		err = p.processPost(fileBytes)
+		err = pr.processPost(fileBytes)
 		if err != nil {
 			return err
 		}
@@ -855,8 +953,8 @@ func (p *PostManager) Process() error {
 	return nil
 }
 
-func NewPostManager(postsDir string) *PostManager {
-	return &PostManager{
+func NewProcessor(postsDir string) *Processor {
+	return &Processor{
 		//
 		Markdown: goldmark.New(
 			goldmark.WithExtensions(
@@ -882,16 +980,16 @@ func NewPostManager(postsDir string) *PostManager {
 // processPost constructs a Post and optional Category struct
 // from the given markdown file bytes.
 // .
-func (p *PostManager) processPost(mkdownBytes []byte) error {
+func (pr *Processor) processPost(mkdownBytes []byte) error {
 	// Parse the file contents.
-	doc := p.Markdown.Parser().Parse(text.NewReader(mkdownBytes))
+	doc := pr.Markdown.Parser().Parse(text.NewReader(mkdownBytes))
 
 	// Get the document metadata.
 	metadata := doc.OwnerDocument().Meta()
 
 	// Render the markdown content to a buffer.
 	buf := new(bytes.Buffer)
-	err := p.Markdown.Renderer().Render(buf, mkdownBytes, doc)
+	err := pr.Markdown.Renderer().Render(buf, mkdownBytes, doc)
 	if err != nil {
 		return err
 	}
@@ -914,7 +1012,7 @@ func (p *PostManager) processPost(mkdownBytes []byte) error {
 
 	// This check ensures that post slugs remain unique by guarding
 	// against slug collision.
-	if _, exists := p.PostsBySlug[slug]; exists {
+	if _, exists := pr.PostsBySlug[slug]; exists {
 		return fmt.Errorf("post collision [%s]\n", slug)
 	}
 
@@ -962,7 +1060,7 @@ func (p *PostManager) processPost(mkdownBytes []byte) error {
 		// then they produce unique categories with the SAME SLUG.
 		// This check ensures that category slugs remain unique by guarding
 		// against category collision.
-		if ct, exists := p.CategoriesBySlug[categorySlug]; exists {
+		if ct, exists := pr.CategoriesBySlug[categorySlug]; exists {
 			if ct.Title != categoryTitle {
 				return fmt.Errorf("category collision [%s] and [%s]\n", ct.Title, categoryTitle)
 			}
@@ -977,7 +1075,7 @@ func (p *PostManager) processPost(mkdownBytes []byte) error {
 		//
 		// At this point, overwriting the category does not produce
 		// any negative effect because it is effectively the same.
-		p.CategoriesBySlug[categorySlug] = category
+		pr.CategoriesBySlug[categorySlug] = category
 	}
 
 	// Retrieve the lead image fields.
@@ -1007,7 +1105,7 @@ func (p *PostManager) processPost(mkdownBytes []byte) error {
 		UpdatedTS:   updatedTs,
 	}
 
-	p.PostsBySlug[slug] = post
+	pr.PostsBySlug[slug] = post
 
 	return nil
 }
@@ -1015,11 +1113,11 @@ func (p *PostManager) processPost(mkdownBytes []byte) error {
 // filePaths returns the absolute path for all
 // markdown posts in the posts directory.
 // .
-func (p *PostManager) filePaths() ([]string, error) {
+func (pr *Processor) filePaths() ([]string, error) {
 	var filePaths []string
 
 	// Read the contents of the directory.
-	files, err := os.ReadDir(p.PostsDir)
+	files, err := os.ReadDir(pr.PostsDir)
 	if err != nil {
 		return nil, err
 	}
@@ -1037,19 +1135,12 @@ func (p *PostManager) filePaths() ([]string, error) {
 		}
 
 		// Build the filename path.
-		filePath := fmt.Sprintf("%s/%s", p.PostsDir, file.Name())
+		filePath := fmt.Sprintf("%s/%s", pr.PostsDir, file.Name())
 		filePaths = append(filePaths, filePath)
 	}
 
 	return filePaths, nil
 }
-
-const ImageWidth = "800"
-const ImageHeight = "450"
-const ImageType = "webp"
-
-const PostFeaturedLimit = 4
-const PostLatestLimit = 20
 
 // ------------------------------------------------------------------
 //
@@ -1098,3 +1189,24 @@ func packageRoot() string {
 	_, b, _, _ := runtime.Caller(0)
 	return path.Dir(b)
 }
+
+// ------------------------------------------------------------------
+//
+//
+// Constants and embedded assets
+//
+//
+// ------------------------------------------------------------------
+
+//go:embed "assets"
+var Assets embed.FS
+
+//go:embed "assets/templates"
+var Templates embed.FS
+
+const ImageWidth = "800"
+const ImageHeight = "450"
+const ImageType = "webp"
+
+const PostFeaturedLimit = 4
+const PostLatestLimit = 20

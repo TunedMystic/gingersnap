@@ -9,11 +9,11 @@ import (
 func main() {
 	fmt.Println("🚀 Parsing Posts")
 
-	// Construct the PostManager.
-	postManager := gingersnap.NewPostManager(gingersnap.Path("assets/posts"))
+	// Construct the Processor.
+	processor := gingersnap.NewProcessor(gingersnap.Path("assets/posts"))
 
 	// Parse the markdown posts.
-	err := postManager.Process()
+	err := processor.Process()
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -21,13 +21,13 @@ func main() {
 	// Printing results.
 	fmt.Printf(
 		"📝 Parsed %d Posts, %d Categories\n",
-		len(postManager.PostsBySlug),
-		len(postManager.CategoriesBySlug),
+		len(processor.PostsBySlug),
+		len(processor.CategoriesBySlug),
 	)
 
-	postModel := gingersnap.NewPostModel(postManager.PostsBySlug)
+	postModel := gingersnap.NewPostModel(processor.PostsBySlug)
 	fmt.Printf("%+v\n", postModel)
 
-	categoryModel := gingersnap.NewCategoryModel(postManager.CategoriesBySlug)
+	categoryModel := gingersnap.NewCategoryModel(processor.CategoriesBySlug)
 	fmt.Printf("%+v\n", categoryModel)
 }
