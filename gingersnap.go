@@ -1213,7 +1213,7 @@ func (e *Exporter) Export() error {
 	}
 
 	// Copy the media directory.
-	err = e.copyDir(e.MediaDir, filepath.Join(e.OutputPath, "media/"))
+	err = CopyDir(e.MediaDir, filepath.Join(e.OutputPath, "media/"))
 	if err != nil {
 		return err
 	}
@@ -1236,7 +1236,7 @@ func (e *Exporter) makePath(url string) string {
 	//     /sitemap.xml  =>  /sitemap.xml
 	//     /CNAME        =>  /CNAME
 	//
-	if ext := filepath.Ext(p); ext == "" || url == "/CNAME" {
+	if ext := filepath.Ext(p); ext == "" && url != "/CNAME" {
 		p = filepath.Join(p, "index.html")
 	}
 
@@ -1260,74 +1260,9 @@ func (e *Exporter) exportPage(url, dstPath string) error {
 	}
 
 	// Write the contents of the response body.
-	err = os.WriteFile(dstPath, w.Body.Bytes(), os.ModePerm)
+	err = os.WriteFile(dstPath, w.Body.Bytes(), os.FileMode(0644))
 	if err != nil {
 		return fmt.Errorf("failed to write destination file: %w", err)
-	}
-
-	return nil
-}
-
-func (e *Exporter) copyDir(source, dest string) error {
-	// Create destination directory.
-	err := os.MkdirAll(dest, os.ModePerm)
-	if err != nil {
-		return fmt.Errorf("failed to create destination directory: %w", err)
-	}
-
-	// Open source directory
-	dir, err := os.Open(source)
-	if err != nil {
-		return fmt.Errorf("failed open source directory: %w", err)
-	}
-	defer dir.Close()
-
-	// Read the source directory contents
-	files, err := dir.ReadDir(0)
-	if err != nil {
-		return fmt.Errorf("failed to read source directory: %w", err)
-	}
-
-	for _, file := range files {
-		srcPath := filepath.Join(source, file.Name())
-		dstPath := filepath.Join(dest, file.Name())
-
-		if file.IsDir() {
-			// Recursively copy subdirectory.
-			err := e.copyDir(srcPath, dstPath)
-			if err != nil {
-				return err
-			}
-		} else {
-			// Copy file to destination.
-			err := e.copyFile(srcPath, dstPath)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-func (e *Exporter) copyFile(source, dest string) error {
-	// Open source file.
-	srcFile, err := os.Open(source)
-	if err != nil {
-		return fmt.Errorf("failed to open source file: %w", err)
-	}
-	defer srcFile.Close()
-
-	// Create destination file.
-	dstFile, err := os.Create(dest)
-	if err != nil {
-		return fmt.Errorf("failed to create destination file: %w", err)
-	}
-
-	// Copy file contents to destination.
-	_, err = io.Copy(dstFile, srcFile)
-	if err != nil {
-		return fmt.Errorf("failed to copy source file: %w", err)
 	}
 
 	return nil
@@ -1379,6 +1314,75 @@ func projectRoot() string {
 func packageRoot() string {
 	_, b, _, _ := runtime.Caller(0)
 	return path.Dir(b)
+}
+
+// CopyDir recursively copies a directory to another location.
+// .
+func CopyDir(source, dest string) error {
+	// Create destination directory.
+	err := os.MkdirAll(dest, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("failed to create destination directory: %w", err)
+	}
+
+	// Open source directory
+	dir, err := os.Open(source)
+	if err != nil {
+		return fmt.Errorf("failed open source directory: %w", err)
+	}
+	defer dir.Close()
+
+	// Read the source directory contents
+	files, err := dir.ReadDir(0)
+	if err != nil {
+		return fmt.Errorf("failed to read source directory: %w", err)
+	}
+
+	for _, file := range files {
+		srcPath := filepath.Join(source, file.Name())
+		dstPath := filepath.Join(dest, file.Name())
+
+		if file.IsDir() {
+			// Recursively copy subdirectory.
+			err := CopyDir(srcPath, dstPath)
+			if err != nil {
+				return err
+			}
+		} else {
+			// Copy file to destination.
+			err := CopyFile(srcPath, dstPath)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// CopyFile copies a file to another location.
+// .
+func CopyFile(source, dest string) error {
+	// Open source file.
+	srcFile, err := os.Open(source)
+	if err != nil {
+		return fmt.Errorf("failed to open source file: %w", err)
+	}
+	defer srcFile.Close()
+
+	// Create destination file.
+	dstFile, err := os.Create(dest)
+	if err != nil {
+		return fmt.Errorf("failed to create destination file: %w", err)
+	}
+
+	// Copy file contents to destination.
+	_, err = io.Copy(dstFile, srcFile)
+	if err != nil {
+		return fmt.Errorf("failed to copy source file: %w", err)
+	}
+
+	return nil
 }
 
 // ------------------------------------------------------------------
