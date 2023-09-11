@@ -1199,6 +1199,8 @@ type Exporter struct {
 	Urls []string
 }
 
+// Export exports the configured server routes into a static site.
+// .
 func (e *Exporter) Export() error {
 	// Remove the output path, if it exists.
 	err := os.RemoveAll(e.OutputPath)
@@ -1226,23 +1228,39 @@ func (e *Exporter) Export() error {
 	return nil
 }
 
+// makePath builds the output path based on the given route being rendered.
+//
+// Ex:
+//
+//	/sitemap.xml      =>  /sitemap.xml
+//	/404/             =>  /404.html
+//	/CNAME            =>  /CNAME
+//
+//	/some-post/       =>  /some-post/index.html
+//	/category/shoes/  =>  /category/shoes/index.html
+//
+// .
 func (e *Exporter) makePath(url string) string {
+	if url == "/CNAME" {
+		return filepath.Join(e.OutputPath, "/CNAME")
+	}
+
+	if url == "/404/" {
+		return filepath.Join(e.OutputPath, "404.html")
+	}
+
 	p := filepath.Join(e.OutputPath, url)
 
-	// If the url has no extension, then we want to render the page
-	// as a directory with an index.html inside.
-	// Ex:
-	//     /some-post/   =>  /some-post/index.html
-	//     /sitemap.xml  =>  /sitemap.xml
-	//     /CNAME        =>  /CNAME
-	//
-	if ext := filepath.Ext(p); ext == "" && url != "/CNAME" {
+	if ext := filepath.Ext(p); ext == "" {
 		p = filepath.Join(p, "index.html")
 	}
 
 	return p
 }
 
+// exportPage exports a single page to the filesystem
+// by using the httptest framework to render the page.
+// .
 func (e *Exporter) exportPage(url, dstPath string) error {
 	r := httptest.NewRequest(http.MethodGet, url, nil)
 	w := httptest.NewRecorder()
