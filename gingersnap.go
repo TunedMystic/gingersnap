@@ -1370,6 +1370,80 @@ func CopyFile(source, dest string) error {
 	}
 	defer srcFile.Close()
 
+	// Create destination directory.
+	err = os.MkdirAll(filepath.Dir(dest), os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("failed to create destination directory: %w", err)
+	}
+
+	// Create destination file.
+	dstFile, err := os.Create(dest)
+	if err != nil {
+		return fmt.Errorf("failed to create destination file: %w", err)
+	}
+
+	// Copy file contents to destination.
+	_, err = io.Copy(dstFile, srcFile)
+	if err != nil {
+		return fmt.Errorf("failed to copy source file: %w", err)
+	}
+
+	return nil
+}
+
+// CopyEmbeddedDir recursively copies a directory to another location.
+// .
+func CopyEmbeddedDir(efs embed.FS, source, dest string) error {
+	// Create destination directory.
+	err := os.MkdirAll(dest, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("failed to create destination directory: %w", err)
+	}
+
+	// Read the source directory contents
+	files, err := efs.ReadDir(source)
+	if err != nil {
+		return fmt.Errorf("failed to read source directory: %w", err)
+	}
+
+	for _, file := range files {
+		srcPath := filepath.Join(source, file.Name())
+		dstPath := filepath.Join(dest, file.Name())
+
+		if file.IsDir() {
+			// Recursively copy subdirectory.
+			err := CopyEmbeddedDir(efs, srcPath, dstPath)
+			if err != nil {
+				return err
+			}
+		} else {
+			// Copy file to destination.
+			err := CopyEmbeddedFile(efs, srcPath, dstPath)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+// CopyEmbeddedFile copies an embedded file to another location.
+// .
+func CopyEmbeddedFile(efs embed.FS, source, dest string) error {
+	// Open source file.
+	srcFile, err := efs.Open(source)
+	if err != nil {
+		return fmt.Errorf("failed to open source file: %w", err)
+	}
+	defer srcFile.Close()
+
+	// Create destination directory.
+	err = os.MkdirAll(filepath.Dir(dest), os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("failed to create destination directory: %w", err)
+	}
+
 	// Create destination file.
 	dstFile, err := os.Create(dest)
 	if err != nil {
