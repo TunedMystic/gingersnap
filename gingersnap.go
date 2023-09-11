@@ -79,12 +79,12 @@ func (g *Gingersnap) Routes() http.Handler {
 
 	// Build category routes
 	for _, cat := range g.Categories.All() {
-		r.Handle(fmt.Sprintf("/category/%s/", cat.Slug), g.HandleCategory(cat))
+		r.Handle(cat.Route(), g.HandleCategory(cat))
 	}
 
 	// Build post routes
 	for _, post := range g.Posts.All() {
-		r.Handle(fmt.Sprintf("/%s/", post.Slug), g.HandlePost(post))
+		r.Handle(post.Route(), g.HandlePost(post))
 	}
 
 	return g.RecoverPanic(g.LogRequest(g.SecureHeaders(r)))
@@ -223,20 +223,18 @@ func (g *Gingersnap) HandleSitemap() http.HandlerFunc {
 
 	// Add sitemap entries for all the categories.
 	for _, cat := range g.Categories.All() {
-		categoryPath := fmt.Sprintf("/category/%s/", cat.Slug)
-		urlSet[permalink(categoryPath)] = ""
+		urlSet[permalink(cat.Route())] = ""
 	}
 
 	// Add sitemap entries for all the posts.
 	for _, post := range g.Posts.All() {
-		postPath := fmt.Sprintf("/%s/", post.Slug)
 		lastMod := ""
 
 		if ts := post.LatestTS(); ts > 0 {
 			lastMod = time.Unix(int64(ts), 0).Format("2006-01-02T00:00:00+00:00")
 		}
 
-		urlSet[permalink(postPath)] = lastMod
+		urlSet[permalink(post.Route())] = lastMod
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -748,6 +746,14 @@ func (p *Post) LatestTS() int {
 	return p.PubdateTS
 }
 
+// Route returns the url path for the Post.
+//
+// ex: "/post-slug/"
+// .
+func (p *Post) Route() string {
+	return fmt.Sprintf("/%s/", p.Slug)
+}
+
 // ------------------------------------------------------------------
 //
 //
@@ -767,6 +773,14 @@ type Category struct {
 // .
 func (c *Category) IsEmpty() bool {
 	return c.Slug == ""
+}
+
+// Route returns the url path for the Post.
+//
+// ex: "/category/some-slug/"
+// .
+func (c *Category) Route() string {
+	return fmt.Sprintf("/category/%s/", c.Slug)
 }
 
 // ------------------------------------------------------------------
