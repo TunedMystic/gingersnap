@@ -7,9 +7,11 @@ import (
 	"fmt"
 	"hash/fnv"
 	htmlTemplate "html/template"
+	"io"
 	"io/fs"
 	"log"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"path"
 	"path/filepath"
@@ -75,6 +77,7 @@ func (g *Gingersnap) Routes() http.Handler {
 	r.Handle("/sitemap.xml", g.HandleSitemap())
 	r.Handle("/robots.txt", g.HandleRobotsTxt())
 	r.Handle("/CNAME", g.HandleCname())
+	r.Handle("/404/", g.Handle404())
 	r.Handle("/media/", g.CacheControl(http.StripPrefix("/media", http.FileServer(g.Media))))
 
 	// Build category routes
@@ -153,6 +156,12 @@ func (g *Gingersnap) HandleCname() http.HandlerFunc {
 		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(g.Config.Site.Host))
+	}
+}
+
+func (g *Gingersnap) Handle404() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		g.render404(w, http.StatusOK)
 	}
 }
 
@@ -301,12 +310,20 @@ func (g *Gingersnap) ServeFile(efs embed.FS, fileName string) http.Handler {
 // ErrNotFound renders the 404.html template.
 // .
 func (g *Gingersnap) ErrNotFound(w http.ResponseWriter) {
+	g.render404(w, http.StatusNotFound)
+}
+
+// render404 renders the error template with the assigned status code.
+// Usually, we render the not-found template with a 404 error code.
+// But when exporting the site, we need to render the not-found template with a 200 instead.
+// .
+func (g *Gingersnap) render404(w http.ResponseWriter, status int) {
 	rd := g.NewRenderData(nil)
 	rd.AppError = "404"
 	rd.Title = fmt.Sprintf("Page Not Found - %s", g.Config.Site.Name)
 	rd.LatestPosts = g.Posts.Latest()
 
-	g.Render(w, http.StatusNotFound, "error", &rd)
+	g.Render(w, status, "error", &rd)
 }
 
 // ErrInternalServer renders the 500.html template.
@@ -917,7 +934,7 @@ func (m *CategoryModel) BySlug(s string) (Category, bool) {
 // ------------------------------------------------------------------
 //
 //
-// Processor
+// Type: Processor
 //
 //
 // ------------------------------------------------------------------
@@ -1154,6 +1171,166 @@ func (pr *Processor) filePaths() ([]string, error) {
 	}
 
 	return filePaths, nil
+}
+
+// ------------------------------------------------------------------
+//
+//
+// Type: Exporter
+//
+//
+// ------------------------------------------------------------------
+
+// Exporter is responsible for exporting the server as a static site.
+//
+// Main method: `Export()`
+// .
+type Exporter struct {
+	// The http handler responsible for rendering the urls.
+	Handler http.Handler
+
+	// The directory where the site will be exported to.
+	OutputPath string
+
+	// The directory where all the media files are stored.
+	MediaDir string
+
+	// The set of URLs to render.
+	Urls []string
+}
+
+func (e *Exporter) Export() error {
+	// Remove the output path, if it exists.
+	err := os.RemoveAll(e.OutputPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Make the output path.
+	err = os.MkdirAll(e.OutputPath, os.ModePerm)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// Copy the media directory.
+	err = e.copyDir(e.MediaDir, filepath.Join(e.OutputPath, "media/"))
+	if err != nil {
+		return err
+	}
+
+	// Render all the paths.
+	for _, url := range e.Urls {
+		e.exportPage(url, e.makePath(url))
+	}
+
+	return nil
+}
+
+func (e *Exporter) makePath(url string) string {
+	p := filepath.Join(e.OutputPath, url)
+
+	// If the url has no extension, then we want to render the page
+	// as a directory with an index.html inside.
+	// Ex:
+	//     /some-post/   =>  /some-post/index.html
+	//     /sitemap.xml  =>  /sitemap.xml
+	//     /CNAME        =>  /CNAME
+	//
+	if ext := filepath.Ext(p); ext == "" || url == "/CNAME" {
+		p = filepath.Join(p, "index.html")
+	}
+
+	return p
+}
+
+func (e *Exporter) exportPage(url, dstPath string) error {
+	r := httptest.NewRequest(http.MethodGet, url, nil)
+	w := httptest.NewRecorder()
+
+	e.Handler.ServeHTTP(w, r)
+
+	if c := w.Result().StatusCode; c != http.StatusOK {
+		return fmt.Errorf("expected URL %s to return %d, but it returned %d instead", url, http.StatusOK, c)
+	}
+
+	// Create the destination directory.
+	err := os.MkdirAll(filepath.Dir(dstPath), os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("failed to make destination directory: %w", err)
+	}
+
+	// Write the contents of the response body.
+	err = os.WriteFile(dstPath, w.Body.Bytes(), os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("failed to write destination file: %w", err)
+	}
+
+	return nil
+}
+
+func (e *Exporter) copyDir(source, dest string) error {
+	// Create destination directory.
+	err := os.MkdirAll(dest, os.ModePerm)
+	if err != nil {
+		return fmt.Errorf("failed to create destination directory: %w", err)
+	}
+
+	// Open source directory
+	dir, err := os.Open(source)
+	if err != nil {
+		return fmt.Errorf("failed open source directory: %w", err)
+	}
+	defer dir.Close()
+
+	// Read the source directory contents
+	files, err := dir.ReadDir(0)
+	if err != nil {
+		return fmt.Errorf("failed to read source directory: %w", err)
+	}
+
+	for _, file := range files {
+		srcPath := filepath.Join(source, file.Name())
+		dstPath := filepath.Join(dest, file.Name())
+
+		if file.IsDir() {
+			// Recursively copy subdirectory.
+			err := e.copyDir(srcPath, dstPath)
+			if err != nil {
+				return err
+			}
+		} else {
+			// Copy file to destination.
+			err := e.copyFile(srcPath, dstPath)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func (e *Exporter) copyFile(source, dest string) error {
+	// Open source file.
+	srcFile, err := os.Open(source)
+	if err != nil {
+		return fmt.Errorf("failed to open source file: %w", err)
+	}
+	defer srcFile.Close()
+
+	// Create destination file.
+	dstFile, err := os.Create(dest)
+	if err != nil {
+		return fmt.Errorf("failed to create destination file: %w", err)
+	}
+
+	// Copy file contents to destination.
+	_, err = io.Copy(dstFile, srcFile)
+	if err != nil {
+		return fmt.Errorf("failed to copy source file: %w", err)
+	}
+
+	return nil
 }
 
 // ------------------------------------------------------------------
