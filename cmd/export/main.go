@@ -71,16 +71,6 @@ func main() {
 		WriteTimeout: 10 * time.Second,
 	}
 
-	urls := []string{"/", "/404/", "/sitemap.xml", "/robots.txt", "/CNAME", "/styles.css"}
-
-	for _, post := range g.Posts.All() {
-		urls = append(urls, post.Route())
-	}
-
-	for _, cat := range g.Categories.All() {
-		urls = append(urls, cat.Route())
-	}
-
 	// --------------------------------------------------------------
 	//
 	// Construct the Exporter
@@ -96,8 +86,7 @@ func main() {
 
 	// Perform site export.
 	fmt.Println("🤖 Exporting Site")
-	err = exporter.Export()
-	if err != nil {
+	if err := exporter.Export(); err != nil {
 		log.Fatal(err)
 	}
 }
