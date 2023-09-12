@@ -2,7 +2,6 @@ package main
 
 import (
 	"gingersnap"
-	"log"
 	"net/http"
 	"time"
 )
@@ -12,11 +11,12 @@ func main() {
 	localMediaDir := gingersnap.Path("assets/media")
 	localPostsDir := gingersnap.Path("assets/posts")
 
-	// Construct logger.
+	// Construct the logger.
 	logger := gingersnap.NewLogger()
 
-	// Construct the templates, using the embedded FS.
-	templates, err := gingersnap.NewTemplate(gingersnap.Templates)
+	// Construct the config
+	configBytes := gingersnap.MustRead(localConfigPath)
+	config, err := gingersnap.NewConfig(configBytes, true)
 	if err != nil {
 		logger.Fatal(err)
 	}
@@ -27,17 +27,17 @@ func main() {
 	// Parse the markdown posts.
 	err = processor.Process()
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 
-	// Construct the models.
+	// Construct the models from the processed markdown posts.
 	postModel := gingersnap.NewPostModel(processor.PostsBySlug)
 	categoryModel := gingersnap.NewCategoryModel(processor.CategoriesBySlug)
 
-	// Construct the config
-	config, err := gingersnap.NewConfig(localConfigPath, true)
+	// Construct the templates, using the embedded FS.
+	templates, err := gingersnap.NewTemplate(gingersnap.Templates)
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 
 	// Construct the main Gingersnap engine.
@@ -66,7 +66,7 @@ func main() {
 	//
 	// --------------------------------------------------------------
 
-	gingersnap.CopyEmbeddedDir(gingersnap.Assets, "assets/media", "./media")
-	gingersnap.CopyEmbeddedDir(gingersnap.Assets, "assets/posts", "./posts")
-	gingersnap.CopyEmbeddedFile(gingersnap.Assets, "assets/config/gingersnap.json", "./gingersnap.json")
+	gingersnap.CopyDir(gingersnap.Assets, "assets/media", "media")
+	gingersnap.CopyDir(gingersnap.Assets, "assets/posts", "posts")
+	gingersnap.CopyFile(gingersnap.Assets, "assets/config/gingersnap.json", "gingersnap.json")
 }

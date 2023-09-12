@@ -551,13 +551,7 @@ type Link struct {
 
 // NewConfig parses the gingersnap settings into a Config struct.
 // .
-func NewConfig(fileName string, debug bool) (*Config, error) {
-
-	// Read the config file.
-	configBytes, err := os.ReadFile(fileName)
-	if err != nil {
-		return nil, err
-	}
+func NewConfig(configBytes []byte, debug bool) (*Config, error) {
 
 	config := &Config{
 		ListenAddr: ":4000",
@@ -956,6 +950,30 @@ type Processor struct {
 	CategoriesBySlug map[string]Category
 }
 
+func NewProcessor(postsDir string) *Processor {
+	return &Processor{
+		//
+		Markdown: goldmark.New(
+			goldmark.WithExtensions(
+				meta.New(meta.WithStoresInDocument()),
+			),
+			goldmark.WithParserOptions(
+				parser.WithAutoHeadingID(),
+			),
+			goldmark.WithRendererOptions(
+				html.WithUnsafe(),
+				html.WithHardWraps(),
+			),
+		),
+		//
+		PostsDir: postsDir,
+		//
+		PostsBySlug: make(map[string]Post),
+		//
+		CategoriesBySlug: make(map[string]Category),
+	}
+}
+
 // The Process method parses all markdown posts and
 // stores it in memory.
 // .
@@ -982,30 +1000,6 @@ func (pr *Processor) Process() error {
 	}
 
 	return nil
-}
-
-func NewProcessor(postsDir string) *Processor {
-	return &Processor{
-		//
-		Markdown: goldmark.New(
-			goldmark.WithExtensions(
-				meta.New(meta.WithStoresInDocument()),
-			),
-			goldmark.WithParserOptions(
-				parser.WithAutoHeadingID(),
-			),
-			goldmark.WithRendererOptions(
-				html.WithUnsafe(),
-				html.WithHardWraps(),
-			),
-		),
-		//
-		PostsDir: postsDir,
-		//
-		PostsBySlug: make(map[string]Post),
-		//
-		CategoriesBySlug: make(map[string]Category),
-	}
 }
 
 // processPost constructs a Post and optional Category struct
@@ -1145,7 +1139,7 @@ func (pr *Processor) processPost(mkdownBytes []byte) error {
 // markdown posts in the posts directory.
 // .
 func (pr *Processor) filePaths() ([]string, error) {
-	var filePaths []string
+	var paths []string
 
 	// Read the contents of the directory.
 	files, err := os.ReadDir(pr.PostsDir)
@@ -1166,11 +1160,10 @@ func (pr *Processor) filePaths() ([]string, error) {
 		}
 
 		// Build the filename path.
-		filePath := fmt.Sprintf("%s/%s", pr.PostsDir, file.Name())
-		filePaths = append(filePaths, filePath)
+		paths = append(paths, filepath.Join(pr.PostsDir, file.Name()))
 	}
 
-	return filePaths, nil
+	return paths, nil
 }
 
 // ------------------------------------------------------------------
@@ -1193,7 +1186,7 @@ type Exporter struct {
 	OutputPath string
 
 	// The directory where all the media files are stored.
-	MediaDir string
+	MediaDir fs.FS
 
 	// The set of URLs to render.
 	Urls []string
@@ -1209,16 +1202,20 @@ func (e *Exporter) Export() error {
 	}
 
 	// Make the output path.
-	err = os.MkdirAll(e.OutputPath, os.ModePerm)
-	if err != nil {
-		log.Fatal(err)
-	}
+	MustExist(e.OutputPath)
+	// err = os.MkdirAll(e.OutputPath, os.ModePerm)
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+
+	// // Copy the media directory.
+	// err = CopyDir(e.MediaDir, filepath.Join(e.OutputPath, "media/"))
+	// if err != nil {
+	// 	return err
+	// }
 
 	// Copy the media directory.
-	err = CopyDir(e.MediaDir, filepath.Join(e.OutputPath, "media/"))
-	if err != nil {
-		return err
-	}
+	CopyDir(e.MediaDir, ".", e.OutputPath)
 
 	// Render all the paths.
 	for _, url := range e.Urls {
@@ -1271,17 +1268,23 @@ func (e *Exporter) exportPage(url, dstPath string) error {
 		return fmt.Errorf("expected URL %s to return %d, but it returned %d instead", url, http.StatusOK, c)
 	}
 
+	// // Create the destination directory.
+	// err := os.MkdirAll(filepath.Dir(dstPath), os.ModePerm)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to make destination directory: %w", err)
+	// }
+
 	// Create the destination directory.
-	err := os.MkdirAll(filepath.Dir(dstPath), os.ModePerm)
-	if err != nil {
-		return fmt.Errorf("failed to make destination directory: %w", err)
-	}
+	MustExist(dstPath)
+
+	// // Write the contents of the response body.
+	// err = os.WriteFile(dstPath, w.Body.Bytes(), os.FileMode(0644))
+	// if err != nil {
+	// 	return fmt.Errorf("failed to write destination file: %w", err)
+	// }
 
 	// Write the contents of the response body.
-	err = os.WriteFile(dstPath, w.Body.Bytes(), os.FileMode(0644))
-	if err != nil {
-		return fmt.Errorf("failed to write destination file: %w", err)
-	}
+	MustWrite(dstPath, w.Body.Bytes())
 
 	return nil
 }
@@ -1334,147 +1337,87 @@ func packageRoot() string {
 	return path.Dir(b)
 }
 
-// CopyDir recursively copies a directory to another location.
-// .
-func CopyDir(source, dest string) error {
-	// Create destination directory.
-	err := os.MkdirAll(dest, os.ModePerm)
+func MustOpen(fs fs.FS, source string) fs.File {
+	// Open source file.
+	f, err := fs.Open(source)
 	if err != nil {
-		return fmt.Errorf("failed to create destination directory: %w", err)
+		log.Fatal(fmt.Errorf("failed to open source file: %w", err))
 	}
-
-	// Open source directory
-	dir, err := os.Open(source)
-	if err != nil {
-		return fmt.Errorf("failed open source directory: %w", err)
-	}
-	defer dir.Close()
-
-	// Read the source directory contents
-	files, err := dir.ReadDir(0)
-	if err != nil {
-		return fmt.Errorf("failed to read source directory: %w", err)
-	}
-
-	for _, file := range files {
-		srcPath := filepath.Join(source, file.Name())
-		dstPath := filepath.Join(dest, file.Name())
-
-		if file.IsDir() {
-			// Recursively copy subdirectory.
-			err := CopyDir(srcPath, dstPath)
-			if err != nil {
-				return err
-			}
-		} else {
-			// Copy file to destination.
-			err := CopyFile(srcPath, dstPath)
-			if err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
+	return f
 }
 
-// CopyFile copies a file to another location.
-// .
-func CopyFile(source, dest string) error {
-	// Open source file.
-	srcFile, err := os.Open(source)
+func MustRead(src string) []byte {
+	// Read the source file.
+	srcBytes, err := os.ReadFile(src)
 	if err != nil {
-		return fmt.Errorf("failed to open source file: %w", err)
+		log.Fatal(fmt.Errorf("failed to read source file: %w", err))
 	}
-	defer srcFile.Close()
+	return srcBytes
+}
 
-	// Create destination directory.
-	err = os.MkdirAll(filepath.Dir(dest), os.ModePerm)
+func MustExist(source string) {
+	// Create parent directories, if necessary.
+	err := os.MkdirAll(filepath.Dir(source), os.ModePerm)
 	if err != nil {
-		return fmt.Errorf("failed to create destination directory: %w", err)
+		log.Fatal(fmt.Errorf("failed to create parent directories: %w", err))
 	}
+}
+
+func MustCreate(source string) *os.File {
+	MustExist(source)
 
 	// Create destination file.
-	dstFile, err := os.Create(dest)
+	f, err := os.Create(source)
 	if err != nil {
-		return fmt.Errorf("failed to create destination file: %w", err)
+		log.Fatal(fmt.Errorf("failed to create destination file: %w", err))
 	}
-
-	// Copy file contents to destination.
-	_, err = io.Copy(dstFile, srcFile)
-	if err != nil {
-		return fmt.Errorf("failed to copy source file: %w", err)
-	}
-
-	return nil
+	return f
 }
 
-// CopyEmbeddedDir recursively copies a directory to another location.
-// .
-func CopyEmbeddedDir(efs embed.FS, source, dest string) error {
-	// Create destination directory.
-	err := os.MkdirAll(dest, os.ModePerm)
+func MustWrite(source string, data []byte) {
+	MustExist(source)
+
+	// Write the contents to the file.
+	err := os.WriteFile(source, data, os.FileMode(0644))
 	if err != nil {
-		return fmt.Errorf("failed to create destination directory: %w", err)
+		log.Fatal(fmt.Errorf("failed to write destination file: %w", err))
 	}
+}
 
-	// Read the source directory contents
-	files, err := efs.ReadDir(source)
+func MustCopy(dst io.Writer, src io.Reader) {
+	_, err := io.Copy(dst, src)
 	if err != nil {
-		return fmt.Errorf("failed to read source directory: %w", err)
+		log.Fatal(fmt.Errorf("failed to copy source file: %w", err))
 	}
+}
 
-	for _, file := range files {
-		srcPath := filepath.Join(source, file.Name())
-		dstPath := filepath.Join(dest, file.Name())
+func CopyDir(fsys fs.FS, root, dst string) {
+	prefix, _ := filepath.Split(root)
 
-		if file.IsDir() {
-			// Recursively copy subdirectory.
-			err := CopyEmbeddedDir(efs, srcPath, dstPath)
-			if err != nil {
-				return err
+	fs.WalkDir(fsys, root, func(p string, d fs.DirEntry, err error) error {
+
+		if !d.IsDir() {
+			strippedP, ok := strings.CutPrefix(p, prefix)
+
+			if !ok {
+				log.Fatal(fmt.Errorf("failed to cut prefix %s from %s", prefix, p))
 			}
-		} else {
-			// Copy file to destination.
-			err := CopyEmbeddedFile(efs, srcPath, dstPath)
-			if err != nil {
-				return err
-			}
+
+			fmt.Printf("%s ... %s\n", p, filepath.Join(dst, strippedP))
+			CopyFile(fsys, p, filepath.Join(dst, strippedP))
 		}
-	}
-
-	return nil
+		return nil
+	})
 }
 
-// CopyEmbeddedFile copies an embedded file to another location.
-// .
-func CopyEmbeddedFile(efs embed.FS, source, dest string) error {
-	// Open source file.
-	srcFile, err := efs.Open(source)
-	if err != nil {
-		return fmt.Errorf("failed to open source file: %w", err)
-	}
+func CopyFile(fsys fs.FS, src, dst string) {
+	srcFile := MustOpen(fsys, src)
 	defer srcFile.Close()
 
-	// Create destination directory.
-	err = os.MkdirAll(filepath.Dir(dest), os.ModePerm)
-	if err != nil {
-		return fmt.Errorf("failed to create destination directory: %w", err)
-	}
+	destFile := MustCreate(dst)
+	defer destFile.Close()
 
-	// Create destination file.
-	dstFile, err := os.Create(dest)
-	if err != nil {
-		return fmt.Errorf("failed to create destination file: %w", err)
-	}
-
-	// Copy file contents to destination.
-	_, err = io.Copy(dstFile, srcFile)
-	if err != nil {
-		return fmt.Errorf("failed to copy source file: %w", err)
-	}
-
-	return nil
+	MustCopy(destFile, srcFile)
 }
 
 // ------------------------------------------------------------------
