@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"path/filepath"
 	"time"
 
 	"gingersnap"
@@ -22,10 +24,15 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	// Construct the Processor.
-	processor := gingersnap.NewProcessor(localPostsDir)
+	// Gather the markdown post files.
+	markdownGlob := fmt.Sprintf("%s/%s", localPostsDir, "*.md")
+	filePaths, err := filepath.Glob(markdownGlob)
+	if err != nil {
+		logger.Fatal(err)
+	}
 
 	// Parse the markdown posts.
+	processor := gingersnap.NewProcessor(filePaths)
 	err = processor.Process()
 	if err != nil {
 		logger.Fatal(err)

@@ -942,15 +942,15 @@ type Processor struct {
 	// The markdown parser
 	Markdown goldmark.Markdown
 
-	// The directory where the markdown posts are stored
-	PostsDir string
+	// A slice of markdown posts filepaths to process
+	FilePaths []string
 
 	// The prepared Posts and Categories
 	PostsBySlug      map[string]Post
 	CategoriesBySlug map[string]Category
 }
 
-func NewProcessor(postsDir string) *Processor {
+func NewProcessor(filePaths []string) *Processor {
 	return &Processor{
 		//
 		Markdown: goldmark.New(
@@ -966,7 +966,7 @@ func NewProcessor(postsDir string) *Processor {
 			),
 		),
 		//
-		PostsDir: postsDir,
+		FilePaths: filePaths,
 		//
 		PostsBySlug: make(map[string]Post),
 		//
@@ -979,12 +979,7 @@ func NewProcessor(postsDir string) *Processor {
 // .
 func (pr *Processor) Process() error {
 
-	filePaths, err := pr.filePaths()
-	if err != nil {
-		return err
-	}
-
-	for _, filePath := range filePaths {
+	for _, filePath := range pr.FilePaths {
 
 		// Read the markdown file.
 		fileBytes, err := os.ReadFile(filePath)
@@ -1133,37 +1128,6 @@ func (pr *Processor) processPost(mkdownBytes []byte) error {
 	pr.PostsBySlug[slug] = post
 
 	return nil
-}
-
-// filePaths returns the absolute path for all
-// markdown posts in the posts directory.
-// .
-func (pr *Processor) filePaths() ([]string, error) {
-	var paths []string
-
-	// Read the contents of the directory.
-	files, err := os.ReadDir(pr.PostsDir)
-	if err != nil {
-		return nil, err
-	}
-
-	for _, file := range files {
-		// Ignore directories
-		if file.Type().IsDir() {
-			continue
-		}
-
-		// Ignore all files that are not .md
-		ext := filepath.Ext(file.Name())
-		if ext != ".md" {
-			continue
-		}
-
-		// Build the filename path.
-		paths = append(paths, filepath.Join(pr.PostsDir, file.Name()))
-	}
-
-	return paths, nil
 }
 
 // ------------------------------------------------------------------
