@@ -93,6 +93,20 @@ func (g *Gingersnap) Routes() http.Handler {
 	return g.RecoverPanic(g.LogRequest(g.SecureHeaders(r)))
 }
 
+func (g *Gingersnap) AllUrls() []string {
+	urls := []string{"/", "/styles.css", "/sitemap.xml", "/robots.txt", "/CNAME", "/404/"}
+
+	for _, post := range g.Posts.All() {
+		urls = append(urls, post.Route())
+	}
+
+	for _, cat := range g.Categories.All() {
+		urls = append(urls, cat.Route())
+	}
+
+	return urls
+}
+
 func (g *Gingersnap) HandleIndex() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -549,32 +563,56 @@ type Link struct {
 	Route string
 }
 
-// NewConfig parses the gingersnap settings into a Config struct.
+// NewConfig parses the settings into a "production" Config struct.
 // .
-func NewConfig(configBytes []byte, debug bool) (*Config, error) {
+func NewConfig(configBytes []byte) (*Config, error) {
 
 	config := &Config{
+		Debug:      false,
 		ListenAddr: ":4000",
-		Debug:      debug,
 	}
 
 	// Parse the config file.
-	json.Unmarshal(configBytes, config)
-
-	// If in "DEBUG" mode, then change the host to localhost.
-	if config.Debug {
-		config.Site.Host = fmt.Sprintf("localhost%s", config.ListenAddr)
-		config.Site.Url = fmt.Sprintf("http://%s", config.Site.Host)
-	} else {
-		config.Site.Url = fmt.Sprintf("https://%s", config.Site.Host)
+	if err := json.Unmarshal(configBytes, config); err != nil {
+		return nil, err
 	}
 
-	// Compute more settings.
+	config.Site.Url = fmt.Sprintf("https://%s", config.Site.Host)
 	config.Site.Title = fmt.Sprintf("%s - %s", config.Site.Name, config.Site.Tagline)
 	config.Site.Email = fmt.Sprintf("admin@%s", config.Site.Host)
 	config.Site.Image = Image{
 		Url:    "/media/meta-img.webp",
-		Alt:    "some img alt here",
+		Alt:    config.Site.Title,
+		Type:   ImageType,
+		Width:  ImageWidth,
+		Height: ImageHeight,
+	}
+
+	return config, nil
+}
+
+// NewDebugConfig parses the settings into a "debug" Config struct.
+// .
+func NewDebugConfig(configBytes []byte) (*Config, error) {
+
+	config := &Config{
+		Debug:      true,
+		ListenAddr: ":4000",
+	}
+
+	// Parse the config file.
+	if err := json.Unmarshal(configBytes, config); err != nil {
+		return nil, err
+	}
+
+	// In "debug" mode, we change the host to localhost.
+	config.Site.Host = fmt.Sprintf("localhost%s", config.ListenAddr)
+	config.Site.Url = fmt.Sprintf("http://%s", config.Site.Host)
+	config.Site.Title = fmt.Sprintf("%s - %s", config.Site.Name, config.Site.Tagline)
+	config.Site.Email = fmt.Sprintf("admin@%s", config.Site.Host)
+	config.Site.Image = Image{
+		Url:    "/media/meta-img.webp",
+		Alt:    config.Site.Title,
 		Type:   ImageType,
 		Width:  ImageWidth,
 		Height: ImageHeight,
@@ -982,14 +1020,13 @@ func (pr *Processor) Process() error {
 	for _, filePath := range pr.FilePaths {
 
 		// Read the markdown file.
-		fileBytes, err := os.ReadFile(filePath)
+		fileBytes, err := ReadFile(filePath)
 		if err != nil {
 			return err
 		}
 
 		// Construct Post item and add it to the database.
-		err = pr.processPost(fileBytes)
-		if err != nil {
+		if err := pr.processPost(fileBytes); err != nil {
 			return err
 		}
 	}
@@ -1146,44 +1183,65 @@ type Exporter struct {
 	// The http handler responsible for rendering the urls.
 	Handler http.Handler
 
-	// The directory where the site will be exported to.
-	OutputPath string
+	// The set of URLs to export.
+	Urls []string
 
 	// The directory where all the media files are stored.
 	MediaDir fs.FS
 
-	// The set of URLs to render.
-	Urls []string
+	// The directory where the site will be exported to.
+	OutputPath string
 }
 
 // Export exports the configured server routes into a static site.
 // .
 func (e *Exporter) Export() error {
 	// Remove the output path, if it exists.
-	err := os.RemoveAll(e.OutputPath)
-	if err != nil {
-		log.Fatal(err)
+	if err := os.RemoveAll(e.OutputPath); err != nil {
+		return err
 	}
 
-	// Make the output path.
-	MustExist(e.OutputPath)
-	// err = os.MkdirAll(e.OutputPath, os.ModePerm)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// // Copy the media directory.
-	// err = CopyDir(e.MediaDir, filepath.Join(e.OutputPath, "media/"))
-	// if err != nil {
-	// 	return err
-	// }
+	// Create the output directory.
+	if err := EnsurePath(e.OutputPath); err != nil {
+		return err
+	}
 
 	// Copy the media directory.
-	CopyDir(e.MediaDir, ".", filepath.Join(e.OutputPath, "media"))
+	if err := CopyDir(e.MediaDir, ".", filepath.Join(e.OutputPath, "media")); err != nil {
+		return err
+	}
 
 	// Render all the paths.
 	for _, url := range e.Urls {
-		e.exportPage(url, e.makePath(url))
+		if err := e.exportPage(url, e.makePath(url)); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// exportPage exports a single page to the filesystem
+// by using the httptest framework to render the page.
+// .
+func (e *Exporter) exportPage(url, dstPath string) error {
+	r := httptest.NewRequest(http.MethodGet, url, nil)
+	w := httptest.NewRecorder()
+
+	e.Handler.ServeHTTP(w, r)
+
+	if c := w.Result().StatusCode; c != http.StatusOK {
+		return fmt.Errorf("expected URL %s to return %d, but it returned %d instead", url, http.StatusOK, c)
+	}
+
+	// Create the destination directory.
+	if err := EnsurePath(dstPath); err != nil {
+		return err
+	}
+
+	// Write the contents of the response body.
+	if err := WriteFile(dstPath, w.Body.Bytes()); err != nil {
+		return err
 	}
 
 	return nil
@@ -1193,12 +1251,9 @@ func (e *Exporter) Export() error {
 //
 // Ex:
 //
-//	/sitemap.xml      =>  /sitemap.xml
 //	/404/             =>  /404.html
 //	/CNAME            =>  /CNAME
-//
 //	/some-post/       =>  /some-post/index.html
-//	/category/shoes/  =>  /category/shoes/index.html
 //
 // .
 func (e *Exporter) makePath(url string) string {
@@ -1217,40 +1272,6 @@ func (e *Exporter) makePath(url string) string {
 	}
 
 	return p
-}
-
-// exportPage exports a single page to the filesystem
-// by using the httptest framework to render the page.
-// .
-func (e *Exporter) exportPage(url, dstPath string) error {
-	r := httptest.NewRequest(http.MethodGet, url, nil)
-	w := httptest.NewRecorder()
-
-	e.Handler.ServeHTTP(w, r)
-
-	if c := w.Result().StatusCode; c != http.StatusOK {
-		return fmt.Errorf("expected URL %s to return %d, but it returned %d instead", url, http.StatusOK, c)
-	}
-
-	// // Create the destination directory.
-	// err := os.MkdirAll(filepath.Dir(dstPath), os.ModePerm)
-	// if err != nil {
-	// 	return fmt.Errorf("failed to make destination directory: %w", err)
-	// }
-
-	// Create the destination directory.
-	MustExist(dstPath)
-
-	// // Write the contents of the response body.
-	// err = os.WriteFile(dstPath, w.Body.Bytes(), os.FileMode(0644))
-	// if err != nil {
-	// 	return fmt.Errorf("failed to write destination file: %w", err)
-	// }
-
-	// Write the contents of the response body.
-	MustWrite(dstPath, w.Body.Bytes())
-
-	return nil
 }
 
 // ------------------------------------------------------------------
@@ -1301,88 +1322,103 @@ func packageRoot() string {
 	return path.Dir(b)
 }
 
-func MustOpen(fs fs.FS, source string) fs.File {
+func OpenFile(fs fs.FS, source string) (fs.File, error) {
 	// Open source file.
 	f, err := fs.Open(source)
 	if err != nil {
-		log.Fatal(fmt.Errorf("failed to open source file: %w", err))
+		return nil, fmt.Errorf("failed to open source file: %w", err)
 	}
-	return f
+	return f, nil
 }
 
-func MustRead(src string) []byte {
+func ReadFile(src string) ([]byte, error) {
 	// Read the source file.
 	srcBytes, err := os.ReadFile(src)
 	if err != nil {
-		log.Fatal(fmt.Errorf("failed to read source file: %w", err))
+		return nil, fmt.Errorf("failed to read source file: %w", err)
 	}
-	return srcBytes
+	return srcBytes, nil
 }
 
-func MustExist(source string) {
+func EnsurePath(source string) error {
 	// Create parent directories, if necessary.
-	err := os.MkdirAll(filepath.Dir(source), os.ModePerm)
-	if err != nil {
-		log.Fatal(fmt.Errorf("failed to create parent directories: %w", err))
+	if err := os.MkdirAll(filepath.Dir(source), os.ModePerm); err != nil {
+		return fmt.Errorf("failed to create parent directories: %w", err)
 	}
+	return nil
 }
 
-func MustCreate(source string) *os.File {
-	MustExist(source)
+func CreateFile(source string) (*os.File, error) {
+	if err := EnsurePath(source); err != nil {
+		return nil, err
+	}
 
 	// Create destination file.
 	f, err := os.Create(source)
 	if err != nil {
-		log.Fatal(fmt.Errorf("failed to create destination file: %w", err))
+		return nil, fmt.Errorf("failed to create destination file: %w", err)
 	}
-	return f
+
+	return f, nil
 }
 
-func MustWrite(source string, data []byte) {
-	MustExist(source)
+func WriteFile(source string, data []byte) error {
+	if err := EnsurePath(source); err != nil {
+		return err
+	}
 
 	// Write the contents to the file.
-	err := os.WriteFile(source, data, os.FileMode(0644))
-	if err != nil {
-		log.Fatal(fmt.Errorf("failed to write destination file: %w", err))
+	if err := os.WriteFile(source, data, os.FileMode(0644)); err != nil {
+		return fmt.Errorf("failed to write destination file: %w", err)
 	}
+
+	return nil
 }
 
-func MustCopy(dst io.Writer, src io.Reader) {
-	_, err := io.Copy(dst, src)
-	if err != nil {
-		log.Fatal(fmt.Errorf("failed to copy source file: %w", err))
-	}
-}
-
-func CopyDir(fsys fs.FS, root, dst string) {
+func CopyDir(fsys fs.FS, root, dst string) error {
 	prefix, _ := filepath.Split(root)
 
-	fs.WalkDir(fsys, root, func(p string, d fs.DirEntry, err error) error {
+	return fs.WalkDir(fsys, root, func(p string, d fs.DirEntry, err error) error {
 
 		if !d.IsDir() {
 			strippedP, ok := strings.CutPrefix(p, prefix)
-			fmt.Printf("prefix is %s .. p is %s .. strippedP is %s\n", prefix, p, strippedP)
+			// fmt.Printf("prefix is %s .. p is %s .. strippedP is %s\n", prefix, p, strippedP)
 
 			if !ok {
-				log.Fatal(fmt.Errorf("failed to cut prefix %s from %s", prefix, p))
+				return fmt.Errorf("failed to cut prefix %s from %s", prefix, p)
 			}
 
-			fmt.Printf("%s ... %s\n", p, filepath.Join(dst, strippedP))
-			CopyFile(fsys, p, filepath.Join(dst, strippedP))
+			// fmt.Printf("%s ... %s\n", p, filepath.Join(dst, strippedP))
+			err := CopyFile(fsys, p, filepath.Join(dst, strippedP))
+			if err != nil {
+				return err
+			}
 		}
 		return nil
 	})
 }
 
-func CopyFile(fsys fs.FS, src, dst string) {
-	srcFile := MustOpen(fsys, src)
+func CopyFile(fsys fs.FS, src, dst string) error {
+	// Open the source file.
+	srcFile, err := OpenFile(fsys, src)
+	if err != nil {
+		return err
+	}
 	defer srcFile.Close()
 
-	destFile := MustCreate(dst)
+	// Create the destination file.
+	destFile, err := CreateFile(dst)
+	if err != nil {
+		return err
+	}
 	defer destFile.Close()
 
-	MustCopy(destFile, srcFile)
+	// Copy the source file to the destination.
+	if _, err := io.Copy(destFile, srcFile); err != nil {
+		return fmt.Errorf("failed to copy source file: %w", err)
+	}
+
+	return nil
 }
 
 // ------------------------------------------------------------------

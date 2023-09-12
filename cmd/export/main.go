@@ -11,33 +11,36 @@ import (
 )
 
 func main() {
-	localConfigPath := gingersnap.Path("assets/config/gingersnap.json")
-	localMediaDir := gingersnap.Path("assets/media")
-	localPostsDir := gingersnap.Path("assets/posts")
+	configPath := "assets/config/gingersnap.json"
+	postsGlob := "assets/posts/*.md"
+	mediaDir := "assets/media"
 
 	// Construct the logger.
 	logger := gingersnap.NewLogger()
 
 	// Construct the config
-	configBytes := gingersnap.MustRead(localConfigPath)
-	config, err := gingersnap.NewConfig(configBytes, true)
+	configBytes, err := gingersnap.ReadFile(configPath)
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	config, err := gingersnap.NewDebugConfig(configBytes)
 	if err != nil {
 		logger.Fatal(err)
 	}
 
 	// Gather the markdown post files.
-	markdownGlob := fmt.Sprintf("%s/%s", localPostsDir, "*.md")
-	filePaths, err := filepath.Glob(markdownGlob)
+	filePaths, err := filepath.Glob(postsGlob)
 	if err != nil {
 		logger.Fatal(err)
 	}
 
 	// Parse the markdown posts.
 	processor := gingersnap.NewProcessor(filePaths)
-	err = processor.Process()
-	if err != nil {
+	if err := processor.Process(); err != nil {
 		logger.Fatal(err)
 	}
+
 	// Construct the models from the processed markdown posts.
 	postModel := gingersnap.NewPostModel(processor.PostsBySlug)
 	categoryModel := gingersnap.NewCategoryModel(processor.CategoriesBySlug)
@@ -52,7 +55,7 @@ func main() {
 	g := &gingersnap.Gingersnap{
 		Logger:     logger,
 		Assets:     gingersnap.Assets,
-		Media:      http.Dir(localMediaDir),
+		Media:      http.Dir(mediaDir),
 		Templates:  templates,
 		Config:     config,
 		Posts:      postModel,
@@ -85,12 +88,10 @@ func main() {
 	// --------------------------------------------------------------
 
 	exporter := &gingersnap.Exporter{
-		Handler: g.Routes(),
-		// OutputPath: gingersnap.Path("dist/"),
+		Handler:    g.Routes(),
+		Urls:       g.AllUrls(),
+		MediaDir:   os.DirFS("assets/media"),
 		OutputPath: "dist",
-		// MediaDir:   localMediaDir,
-		MediaDir: os.DirFS("assets/media"),
-		Urls:     urls,
 	}
 
 	// Perform site export.

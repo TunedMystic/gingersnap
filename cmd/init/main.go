@@ -17,8 +17,12 @@ func main() {
 	logger := gingersnap.NewLogger()
 
 	// Construct the config
-	configBytes := gingersnap.MustRead(localConfigPath)
-	config, err := gingersnap.NewConfig(configBytes, true)
+	configBytes, err := gingersnap.ReadFile(localConfigPath)
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	config, err := gingersnap.NewDebugConfig(configBytes)
 	if err != nil {
 		logger.Fatal(err)
 	}
