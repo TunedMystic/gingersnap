@@ -85,8 +85,9 @@ func main() {
 	// --------------------------------------------------------------
 
 	exporter := &gingersnap.Exporter{
-		Handler:    g.Routes(),
-		OutputPath: gingersnap.Path("dist/"),
+		Handler: g.Routes(),
+		// OutputPath: gingersnap.Path("dist/"),
+		OutputPath: "dist",
 		// MediaDir:   localMediaDir,
 		MediaDir: os.DirFS("assets/media"),
 		Urls:     urls,

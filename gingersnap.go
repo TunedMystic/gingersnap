@@ -1179,7 +1179,7 @@ func (e *Exporter) Export() error {
 	// }
 
 	// Copy the media directory.
-	CopyDir(e.MediaDir, ".", e.OutputPath)
+	CopyDir(e.MediaDir, ".", filepath.Join(e.OutputPath, "media"))
 
 	// Render all the paths.
 	for _, url := range e.Urls {
@@ -1362,6 +1362,7 @@ func CopyDir(fsys fs.FS, root, dst string) {
 
 		if !d.IsDir() {
 			strippedP, ok := strings.CutPrefix(p, prefix)
+			fmt.Printf("prefix is %s .. p is %s .. strippedP is %s\n", prefix, p, strippedP)
 
 			if !ok {
 				log.Fatal(fmt.Errorf("failed to cut prefix %s from %s", prefix, p))
