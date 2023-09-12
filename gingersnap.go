@@ -152,6 +152,8 @@ func (g *Gingersnap) HandleCategory(cat Category) http.HandlerFunc {
 		posts, ok := g.Posts.ByCategory(cat)
 		if !ok {
 			g.Logger.Printf("Cannot find Posts for Category '%s'", cat.Slug)
+			g.ErrNotFound(w)
+			return
 		}
 
 		rd := g.NewRenderData(r)
