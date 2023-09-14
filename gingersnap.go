@@ -55,8 +55,7 @@ type Gingersnap struct {
 func (g *Gingersnap) RunServer() {
 	g.Logger.Printf("Starting server on %s", g.Config.ListenAddr)
 
-	err := g.HttpServer.ListenAndServe()
-	if err != nil {
+	if err := g.HttpServer.ListenAndServe(); err != nil {
 		g.Logger.Print(err)
 	}
 }
@@ -193,7 +192,7 @@ func (g *Gingersnap) HandleRobotsTxt() http.HandlerFunc {
 	// Prepare the robots template.
 	tmpl, err := textTemplate.New("").Parse(strings.TrimPrefix(RobotsTemplate, "\n"))
 	if err != nil {
-		panic(err)
+		g.Logger.Fatal(err)
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -201,8 +200,7 @@ func (g *Gingersnap) HandleRobotsTxt() http.HandlerFunc {
 
 		// Write the template to the buffer first.
 		// If error, then respond with a server error and return.
-		err = tmpl.Execute(buf, g.Config.Site.Url)
-		if err != nil {
+		if err := tmpl.Execute(buf, g.Config.Site.Url); err != nil {
 			g.errInternalServer(w, err)
 			return
 		}
@@ -267,8 +265,7 @@ func (g *Gingersnap) HandleSitemap() http.HandlerFunc {
 
 		// Write the template to the buffer first.
 		// If error, then respond with a server error and return.
-		err = tmpl.Execute(buf, urlSet)
-		if err != nil {
+		if err := tmpl.Execute(buf, urlSet); err != nil {
 			g.errInternalServer(w, err)
 			return
 		}
@@ -385,8 +382,7 @@ func (g *Gingersnap) Render(w http.ResponseWriter, status int, page string, data
 
 	// Write the template to the buffer first.
 	// If error, then respond with a server error and return.
-	err := g.Templates.ExecuteTemplate(buf, page, data)
-	if err != nil {
+	if err := g.Templates.ExecuteTemplate(buf, page, data); err != nil {
 		g.errInternalServer(w, err)
 		return
 	}
@@ -1048,8 +1044,7 @@ func (pr *Processor) processPost(mkdownBytes []byte) error {
 
 	// Render the markdown content to a buffer.
 	buf := new(bytes.Buffer)
-	err := pr.Markdown.Renderer().Render(buf, mkdownBytes, doc)
-	if err != nil {
+	if err := pr.Markdown.Renderer().Render(buf, mkdownBytes, doc); err != nil {
 		return err
 	}
 
@@ -1384,15 +1379,11 @@ func CopyDir(fsys fs.FS, root, dst string) error {
 
 		if !d.IsDir() {
 			strippedP, ok := strings.CutPrefix(p, prefix)
-			// fmt.Printf("prefix is %s .. p is %s .. strippedP is %s\n", prefix, p, strippedP)
-
 			if !ok {
 				return fmt.Errorf("failed to cut prefix %s from %s", prefix, p)
 			}
 
-			// fmt.Printf("%s ... %s\n", p, filepath.Join(dst, strippedP))
-			err := CopyFile(fsys, p, filepath.Join(dst, strippedP))
-			if err != nil {
+			if err := CopyFile(fsys, p, filepath.Join(dst, strippedP)); err != nil {
 				return err
 			}
 		}
