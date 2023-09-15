@@ -59,14 +59,8 @@ func New() *Gingersnap {
 	return &Gingersnap{}
 }
 
-// ------------------------------------------------------------------
-//
-//
-// Server HTTP Handlers
-//
-//
-// ------------------------------------------------------------------
-
+// Routes constructs and returns the complete http.Handler for the server.
+// .
 func (g *Gingersnap) Routes() http.Handler {
 	r := http.NewServeMux()
 
@@ -91,6 +85,8 @@ func (g *Gingersnap) Routes() http.Handler {
 	return g.RecoverPanic(g.LogRequest(g.SecureHeaders(r)))
 }
 
+// AllUrls returns all urls of the server.
+// .
 func (g *Gingersnap) AllUrls() ([]string, error) {
 	urls := []string{"/", "/styles.css", "/sitemap.xml", "/robots.txt", "/CNAME", "/404/"}
 
@@ -108,10 +104,7 @@ func (g *Gingersnap) AllUrls() ([]string, error) {
 
 	// Build routes for all media files.
 	for _, file := range files {
-		name := file.Name()
-
-		// If file is not a dot file, then build a route for it.
-		if !strings.HasPrefix(name, ".") {
+		if name := file.Name(); !strings.HasPrefix(name, ".") {
 			urls = append(urls, fmt.Sprintf("/media/%s", name))
 		}
 	}
@@ -128,6 +121,14 @@ func (g *Gingersnap) AllUrls() ([]string, error) {
 
 	return urls, nil
 }
+
+// ------------------------------------------------------------------
+//
+//
+// Server HTTP Handlers
+//
+//
+// ------------------------------------------------------------------
 
 func (g *Gingersnap) HandleIndex() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

@@ -20,6 +20,7 @@ Commands:
   init        Create a new project, and scaffold the required assets
   dev         Start the dev server, and reload on file changes
   export      Export the project as a static site
+  deploy      Export the project, and push it to a dedicated repository
 `
 
 var unknownCmdText = `
