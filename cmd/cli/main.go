@@ -38,7 +38,7 @@ func main() {
 		ConfigPath: "gingersnap.json",
 		PostsGlob:  "posts/*.md",
 		MediaDir:   "media",
-		Debug:      false,
+		Debug:      true,
 	}
 
 	switch os.Args[1] {
@@ -101,6 +101,8 @@ func main() {
 		//
 		//
 		// ----------------------------------------------------------
+
+		s.Debug = false
 
 		// Construct the gingersnap engine.
 		g := gingersnap.New()
