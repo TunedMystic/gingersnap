@@ -1,21 +1,30 @@
 package main
 
 import (
-	"gingersnap"
+	"fmt"
+	"os"
 )
 
 func main() {
-	s := gingersnap.Settings{
-		ConfigPath: "assets/config/gingersnap.json",
-		PostsGlob:  "assets/posts/*.md",
-		MediaDir:   "assets/media",
+	f, err := os.Stat("assets/config/gingersnaps.json")
+	if err != nil {
+		fmt.Println(err)
+		return
 	}
+	fmt.Println("all good", f)
+	return
 
-	g := gingersnap.New()
-	g.Init(s)
+	// s := gingersnap.Settings{
+	// 	ConfigPath: "assets/config/gingersnap.json",
+	// 	PostsGlob:  "assets/posts/*.md",
+	// 	MediaDir:   "assets/media",
+	// }
 
-	go g.RunServerWithWatcher(s)
+	// g := gingersnap.New()
+	// g.Init(s)
 
-	// Block main goroutine forever.
-	<-make(chan struct{})
+	// go g.RunServerWithWatcher(s)
+
+	// // Block main goroutine forever.
+	// <-make(chan struct{})
 }

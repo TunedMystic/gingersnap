@@ -560,12 +560,12 @@ type Link struct {
 	Route string
 }
 
-// NewConfig parses the settings into a "production" Config struct.
+// NewConfig parses the settings into a Config struct.
 // .
-func NewConfig(configBytes []byte) (*Config, error) {
+func NewConfig(configBytes []byte, debug bool) (*Config, error) {
 
 	config := &Config{
-		Debug:      false,
+		Debug:      debug,
 		ListenAddr: ":4000",
 	}
 
@@ -575,44 +575,21 @@ func NewConfig(configBytes []byte) (*Config, error) {
 	}
 
 	config.Site.Url = fmt.Sprintf("https://%s", config.Site.Host)
-	config.Site.Title = fmt.Sprintf("%s - %s", config.Site.Name, config.Site.Tagline)
 	config.Site.Email = fmt.Sprintf("admin@%s", config.Site.Host)
+	config.Site.Title = fmt.Sprintf("%s - %s", config.Site.Name, config.Site.Tagline)
 	config.Site.Image = Image{
 		Url:    "/media/meta-img.webp",
 		Alt:    config.Site.Title,
 		Type:   ImageType,
 		Width:  ImageWidth,
 		Height: ImageHeight,
-	}
-
-	return config, nil
-}
-
-// NewDebugConfig parses the settings into a "debug" Config struct.
-// .
-func NewDebugConfig(configBytes []byte) (*Config, error) {
-
-	config := &Config{
-		Debug:      true,
-		ListenAddr: ":4000",
-	}
-
-	// Parse the config file.
-	if err := json.Unmarshal(configBytes, config); err != nil {
-		return nil, err
 	}
 
 	// In "debug" mode, we change the host to localhost.
-	config.Site.Host = fmt.Sprintf("localhost%s", config.ListenAddr)
-	config.Site.Url = fmt.Sprintf("http://%s", config.Site.Host)
-	config.Site.Title = fmt.Sprintf("%s - %s", config.Site.Name, config.Site.Tagline)
-	config.Site.Email = fmt.Sprintf("admin@%s", config.Site.Host)
-	config.Site.Image = Image{
-		Url:    "/media/meta-img.webp",
-		Alt:    config.Site.Title,
-		Type:   ImageType,
-		Width:  ImageWidth,
-		Height: ImageHeight,
+	if config.Debug {
+		config.Site.Host = fmt.Sprintf("localhost%s", config.ListenAddr)
+		config.Site.Url = fmt.Sprintf("http://%s", config.Site.Host)
+		config.Site.Email = fmt.Sprintf("admin@%s", config.Site.Host)
 	}
 
 	return config, nil
@@ -1447,6 +1424,9 @@ const PostLatestLimit = 20
 // DEBUG and for PROD.
 // .
 type Settings struct {
+	// Debug mode
+	Debug bool
+
 	// The path to the json config file
 	ConfigPath string
 
@@ -1503,7 +1483,7 @@ func (g *Gingersnap) Init(s Settings) {
 		logger.Fatal(err)
 	}
 
-	config, err := NewDebugConfig(configBytes)
+	config, err := NewConfig(configBytes, s.Debug)
 	if err != nil {
 		logger.Fatal(err)
 	}

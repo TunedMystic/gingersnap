@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"gingersnap"
+	"log"
 	"os"
 )
 
@@ -32,69 +34,67 @@ func main() {
 		os.Exit(0)
 	}
 
+	// Settings for gingersnap resources.
+	s := gingersnap.Settings{
+		ConfigPath: "assets/config/gingersnap.json",
+		PostsGlob:  "assets/posts/*.md",
+		MediaDir:   "assets/media",
+	}
+
 	switch os.Args[1] {
+
 	case "init":
+
 		fmt.Println("Subcommand [init]")
+
+		// If gingersnap.json exists in the current directory,
+		// then do not scaffold a new project here.
+		if _, err := os.Stat("./gingersnap.json"); !os.IsNotExist(err) {
+			log.Fatal("Config gingersnap.json detected. Skipping")
+		}
+
+		// Copy embedded resources into the current directory.
+		gingersnap.CopyDir(gingersnap.Assets, "assets/media", ".")
+		gingersnap.CopyDir(gingersnap.Assets, "assets/posts", ".")
+		gingersnap.CopyFile(gingersnap.Assets, "assets/config/gingersnap.json", "./gingersnap.json")
+
 	case "dev":
+
 		fmt.Println("Subcommand [dev]")
+
+		// Construct the gingersnap engine.
+		g := gingersnap.New()
+		g.Init(s)
+
+		go g.RunServerWithWatcher(s)
+
+		// Block main goroutine forever.
+		<-make(chan struct{})
+
 	case "export":
+
 		fmt.Println("Subcommand [export]")
+
+		// Construct the gingersnap engine.
+		g := gingersnap.New()
+		g.Init(s)
+
+		// Construct the exporter.
+		exporter := &gingersnap.Exporter{
+			Handler:    g.Routes(),
+			Urls:       g.AllUrls(),
+			MediaDir:   os.DirFS(s.MediaDir),
+			OutputPath: "dist",
+		}
+
+		// Perform site export.
+		fmt.Println("🤖 Exporting Site")
+		if err := exporter.Export(); err != nil {
+			log.Fatal(err)
+		}
+
 	default:
 		fmt.Printf(unknownCmdText, os.Args[1])
 		os.Exit(1)
 	}
-
-	// localConfigPath := gingersnap.Path("assets/config/gingersnap.json")
-	// localMediaDir := gingersnap.Path("assets/media")
-	// localPostsDir := gingersnap.Path("assets/posts")
-
-	// // Construct logger.
-	// logger := gingersnap.NewLogger()
-
-	// // Construct the templates, using the embedded FS.
-	// templates, err := gingersnap.NewTemplate(gingersnap.Templates)
-	// if err != nil {
-	// 	logger.Fatal(err)
-	// }
-
-	// // Construct the PostManager.
-	// postManager := gingersnap.NewPostManager(localPostsDir)
-
-	// // Parse the markdown posts.
-	// err = postManager.Process()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// // Construct the models.
-	// postModel := gingersnap.NewPostModel(postManager.PostsBySlug)
-	// categoryModel := gingersnap.NewCategoryModel(postManager.CategoriesBySlug)
-
-	// // Construct the config
-	// config, err := gingersnap.NewConfig(localConfigPath, true)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-
-	// // Construct the main Gingersnap engine.
-	// g := &gingersnap.Gingersnap{
-	// 	Logger:     logger,
-	// 	Assets:     gingersnap.Assets,
-	// 	Media:      http.Dir(localMediaDir),
-	// 	Templates:  templates,
-	// 	Config:     config,
-	// 	Posts:      postModel,
-	// 	Categories: categoryModel,
-	// }
-
-	// // Construct Http Server.
-	// g.HttpServer = &http.Server{
-	// 	Addr:         g.Config.ListenAddr,
-	// 	Handler:      g.Routes(),
-	// 	IdleTimeout:  time.Minute,
-	// 	ReadTimeout:  10 * time.Second,
-	// 	WriteTimeout: 10 * time.Second,
-	// }
-
-	// g.RunServer()
 }
