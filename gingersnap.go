@@ -744,7 +744,7 @@ func (g *Gingersnap) NewRenderData(r *http.Request) RenderData {
 //
 // ------------------------------------------------------------------
 
-// Post represents a blog or an article.
+// Post represents an article or a web page.
 // .
 type Post struct {
 	// An FNV-1a hash of the slug
