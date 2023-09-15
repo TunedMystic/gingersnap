@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"gingersnap"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"time"
+
+	"gingersnap"
 )
 
 var helpText = `
