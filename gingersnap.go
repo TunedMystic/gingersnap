@@ -1467,7 +1467,7 @@ const ExportDir = "dist"
 //
 // ------------------------------------------------------------------
 
-// Settings stores external settings for Gingersnap resources.
+// Settings stores external settings for gingersnap resources.
 // These settings are used to configure the engine differently for
 // DEBUG and for PROD.
 // .
