@@ -544,7 +544,7 @@ func NewTemplate(files fs.FS) (*htmlTemplate.Template, error) {
 // NewLogger constructs and returns a new Logger.
 // .
 func NewLogger() *log.Logger {
-	return log.New(os.Stderr, "", log.Ldate|log.Ltime|log.Lshortfile)
+	return log.New(os.Stderr, "", log.Ltime)
 }
 
 // ------------------------------------------------------------------
@@ -1613,7 +1613,7 @@ func (g *Gingersnap) RunServerWithWatcher(s Settings) {
 				return
 			}
 			if event.Has(fsnotify.Write) || event.Has(fsnotify.Create) || event.Has(fsnotify.Rename) {
-				g.Logger.Println("file changes detected, restarting server...")
+				g.Logger.Println("Files changed. Restarting server")
 
 				g.Configure(s)
 				go g.RunServer()
@@ -1630,11 +1630,9 @@ func (g *Gingersnap) RunServerWithWatcher(s Settings) {
 // RunServer runs the gingersnap server.
 // .
 func (g *Gingersnap) RunServer() {
-	g.Logger.Printf("Starting server on %s", g.Config.ListenAddr)
+	g.Logger.Printf("Starting server on %s 🤖\n\n", g.Config.ListenAddr)
 
-	if err := g.HttpServer.ListenAndServe(); err != nil {
-		g.Logger.Print(err)
-	}
+	_ = g.HttpServer.ListenAndServe()
 }
 
 // Export exports the server as a static site.

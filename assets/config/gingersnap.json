@@ -17,5 +17,6 @@
 		{"text": "Contact", "route": "/contact/"},
 		{"text": "Privacy Policy", "route": "/privacy-policy/"},
 		{"text": "Terms of Service", "route": "/terms-of-service/"}
-	]
+	],
+	"staticRepository": "/path/to/static/repo"
 }

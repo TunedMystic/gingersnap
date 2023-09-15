@@ -37,16 +37,10 @@ func main() {
 	}
 
 	// Settings for gingersnap resources.
-	// s := gingersnap.Settings{
-	// 	ConfigPath: "gingersnap.json",
-	// 	PostsGlob:  "posts/*.md",
-	// 	MediaDir:   "media",
-	// 	Debug:      true,
-	// }
 	s := gingersnap.Settings{
-		ConfigPath: "assets/config/gingersnap.json",
-		PostsGlob:  "assets/posts/*.md",
-		MediaDir:   "assets/media",
+		ConfigPath: "gingersnap.json",
+		PostsGlob:  "posts/*.md",
+		MediaDir:   "media",
 		Debug:      true,
 	}
 
@@ -73,7 +67,7 @@ func main() {
 		gingersnap.CopyDir(gingersnap.Assets, "assets/posts", ".")
 		gingersnap.CopyFile(gingersnap.Assets, "assets/config/gingersnap.json", "./gingersnap.json")
 
-		Loginfo("Done")
+		Loginfo("Gingersnap project initialized ✅")
 
 	case "dev":
 
@@ -122,7 +116,7 @@ func main() {
 			Logerr("export error: %s", err)
 		}
 
-		Loginfo("Done")
+		Loginfo("Site export complete ✅")
 
 	case "deploy":
 
@@ -211,7 +205,7 @@ func main() {
 		Loginfo("[5/5] Cleaning up")
 		Remove(ExportDir)
 
-		Loginfo("Done")
+		Loginfo("Site export and deploy complete ✅")
 
 	default:
 		fmt.Printf(unknownCmdText, os.Args[1])
