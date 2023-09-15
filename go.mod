@@ -3,8 +3,12 @@ module gingersnap
 go 1.21.1
 
 require (
+	github.com/fsnotify/fsnotify v1.6.0
 	github.com/yuin/goldmark v1.5.6
 	github.com/yuin/goldmark-meta v1.1.0
 )
 
-require gopkg.in/yaml.v2 v2.3.0 // indirect
+require (
+	golang.org/x/sys v0.0.0-20220908164124-27713097b956 // indirect
+	gopkg.in/yaml.v2 v2.3.0 // indirect
+)

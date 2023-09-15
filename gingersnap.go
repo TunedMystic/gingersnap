@@ -22,6 +22,7 @@ import (
 	textTemplate "text/template"
 	"time"
 
+	"github.com/fsnotify/fsnotify"
 	"github.com/yuin/goldmark"
 	meta "github.com/yuin/goldmark-meta"
 	"github.com/yuin/goldmark/parser"
@@ -52,12 +53,10 @@ type Gingersnap struct {
 	HttpServer *http.Server
 }
 
-func (g *Gingersnap) RunServer() {
-	g.Logger.Printf("Starting server on %s", g.Config.ListenAddr)
-
-	if err := g.HttpServer.ListenAndServe(); err != nil {
-		g.Logger.Print(err)
-	}
+// New returns an empty Gingernap engine.
+// .
+func New() *Gingersnap {
+	return &Gingersnap{}
 }
 
 // ------------------------------------------------------------------
@@ -1434,3 +1433,178 @@ const ImageType = "webp"
 
 const PostFeaturedLimit = 4
 const PostLatestLimit = 20
+
+// ------------------------------------------------------------------
+//
+//
+// External config and utilities
+//
+//
+// ------------------------------------------------------------------
+
+// Settings stores external settings for Gingersnap resources.
+// These settings are used to configure the engine differently for
+// DEBUG and for PROD.
+// .
+type Settings struct {
+	// The path to the json config file
+	ConfigPath string
+
+	// The glob pattern for the markdown posts
+	PostsGlob string
+
+	// The directory for media resources
+	MediaDir string
+}
+
+// SafeDir returns a filepath directory.
+// If the given path is a file, then the parent directory of the file will be returned.
+// If the given path is a directory, then the directory itself will be returned.
+// .
+func (s Settings) SafeDir(p string) string {
+	if ext := filepath.Ext(p); ext != "" {
+		return filepath.Dir(p)
+	}
+	return p
+}
+
+// Init wipes and reconfigures the gingersnap engine.
+// .
+func (g *Gingersnap) Init(s Settings) {
+
+	// ------------------------------------------
+	//
+	// [1/3] Wipe the gingersnap engine.
+	//
+	// ------------------------------------------
+
+	if g.HttpServer != nil {
+		g.HttpServer.Close()
+		g.HttpServer = nil
+	}
+	g.Logger = nil
+	g.Templates = nil
+	g.Config = nil
+	g.Posts = nil
+	g.Categories = nil
+
+	// ------------------------------------------
+	//
+	// [2/3] Configure the engine components.
+	//
+	// ------------------------------------------
+
+	// Construct the logger.
+	logger := NewLogger()
+
+	// Construct the config
+	configBytes, err := ReadFile(s.ConfigPath)
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	config, err := NewDebugConfig(configBytes)
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	// Gather the markdown post files.
+	filePaths, err := filepath.Glob(s.PostsGlob)
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	// Parse the markdown posts.
+	processor := NewProcessor(filePaths)
+	if err := processor.Process(); err != nil {
+		logger.Fatal(err)
+	}
+
+	// Construct the models from the processed markdown posts.
+	postModel := NewPostModel(processor.PostsBySlug)
+	categoryModel := NewCategoryModel(processor.CategoriesBySlug)
+
+	// Construct the templates, using the embedded FS.
+	templates, err := NewTemplate(Templates)
+	if err != nil {
+		logger.Fatal(err)
+	}
+
+	// ------------------------------------------
+	//
+	// [3/3] Construct the main gingersnap engine.
+	//
+	// ------------------------------------------
+
+	g.Logger = logger
+	g.Assets = Assets
+	g.Media = http.Dir(s.MediaDir)
+	g.Templates = templates
+	g.Config = config
+	g.Posts = postModel
+	g.Categories = categoryModel
+	g.HttpServer = &http.Server{
+		Addr:         g.Config.ListenAddr,
+		Handler:      g.Routes(),
+		IdleTimeout:  time.Minute,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+	}
+}
+
+// RunServerWithWatcher runs the server and and watches for file changes.
+// On file change, it resets the gingersnap engine and restarts the server.
+// .
+func (g *Gingersnap) RunServerWithWatcher(s Settings) {
+	// Create new watcher.
+	w, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if err = w.Add(s.SafeDir(s.ConfigPath)); err != nil {
+		log.Fatal(err)
+	}
+
+	if err = w.Add(s.SafeDir(s.PostsGlob)); err != nil {
+		log.Fatal(err)
+	}
+
+	if err = w.Add(s.SafeDir(s.MediaDir)); err != nil {
+		log.Fatal(err)
+	}
+
+	g.Logger.Printf("Watching for file changes")
+
+	go g.RunServer()
+
+	for {
+		select {
+		case event, ok := <-w.Events:
+			if !ok {
+				return
+			}
+			if event.Has(fsnotify.Write) || event.Has(fsnotify.Create) || event.Has(fsnotify.Rename) {
+				g.Logger.Println("🔥 File changes detected. Resetting Server...")
+
+				g.Init(s)
+				go g.RunServer()
+			}
+		case err, ok := <-w.Errors:
+			if !ok {
+				return
+			}
+			g.Logger.Println("error:", err)
+		}
+	}
+}
+
+// RunServer runs the gingersnap server.
+// .
+func (g *Gingersnap) RunServer() {
+	g.Logger.Printf("Starting server on %s", g.Config.ListenAddr)
+
+	if err := g.HttpServer.ListenAndServe(); err != nil {
+		g.Logger.Print(err)
+	}
+}
