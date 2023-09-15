@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"gingersnap"
-	"log"
 	"os"
 )
 
@@ -46,12 +45,19 @@ func main() {
 
 	case "init":
 
-		fmt.Println("Subcommand [init]")
+		// ----------------------------------------------------------
+		//
+		//
+		// Init - Create a new project. Scaffold assets.
+		//
+		//
+		// ----------------------------------------------------------
 
 		// If gingersnap.json exists in the current directory,
 		// then do not scaffold a new project here.
 		if _, err := os.Stat("./gingersnap.json"); !os.IsNotExist(err) {
-			log.Fatal("Config gingersnap.json detected. Skipping")
+			fmt.Println("Config gingersnap.json detected. Skipping.")
+			os.Exit(1)
 		}
 
 		// Copy embedded resources into the current directory.
@@ -61,11 +67,17 @@ func main() {
 
 	case "dev":
 
-		fmt.Println("Subcommand [dev]")
+		// ----------------------------------------------------------
+		//
+		//
+		// Dev - Start the dev server, and reload on file changes.
+		//
+		//
+		// ----------------------------------------------------------
 
 		// Construct the gingersnap engine.
 		g := gingersnap.New()
-		g.Init(s)
+		g.Configure(s)
 
 		go g.RunServerWithWatcher(s)
 
@@ -74,24 +86,22 @@ func main() {
 
 	case "export":
 
-		fmt.Println("Subcommand [export]")
+		// ----------------------------------------------------------
+		//
+		//
+		// Export - Export the project as a static site.
+		//
+		//
+		// ----------------------------------------------------------
 
 		// Construct the gingersnap engine.
 		g := gingersnap.New()
-		g.Init(s)
+		g.Configure(s)
 
-		// Construct the exporter.
-		exporter := &gingersnap.Exporter{
-			Handler:    g.Routes(),
-			Urls:       g.AllUrls(),
-			MediaDir:   os.DirFS(s.MediaDir),
-			OutputPath: "dist",
-		}
-
-		// Perform site export.
-		fmt.Println("🤖 Exporting Site")
-		if err := exporter.Export(); err != nil {
-			log.Fatal(err)
+		// Export the site.
+		if err := g.Export(); err != nil {
+			fmt.Println(err)
+			os.Exit(1)
 		}
 
 	default:

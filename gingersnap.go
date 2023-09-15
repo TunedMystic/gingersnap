@@ -91,18 +91,42 @@ func (g *Gingersnap) Routes() http.Handler {
 	return g.RecoverPanic(g.LogRequest(g.SecureHeaders(r)))
 }
 
-func (g *Gingersnap) AllUrls() []string {
+func (g *Gingersnap) AllUrls() ([]string, error) {
 	urls := []string{"/", "/styles.css", "/sitemap.xml", "/robots.txt", "/CNAME", "/404/"}
 
+	// Open the media directory.
+	f, err := g.Media.Open(".")
+	if err != nil {
+		return nil, err
+	}
+
+	// Read the media directory.
+	files, err := f.Readdir(-1)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build routes for all media files.
+	for _, file := range files {
+		name := file.Name()
+
+		// If file is not a dot file, then build a route for it.
+		if !strings.HasPrefix(name, ".") {
+			urls = append(urls, fmt.Sprintf("/media/%s", name))
+		}
+	}
+
+	// Build routes for all posts.
 	for _, post := range g.Posts.All() {
 		urls = append(urls, post.Route())
 	}
 
+	// Build routes for all categories.
 	for _, cat := range g.Categories.All() {
 		urls = append(urls, cat.Route())
 	}
 
-	return urls
+	return urls, nil
 }
 
 func (g *Gingersnap) HandleIndex() http.HandlerFunc {
@@ -1159,9 +1183,6 @@ type Exporter struct {
 	// The set of URLs to export.
 	Urls []string
 
-	// The directory where all the media files are stored.
-	MediaDir fs.FS
-
 	// The directory where the site will be exported to.
 	OutputPath string
 }
@@ -1176,11 +1197,6 @@ func (e *Exporter) Export() error {
 
 	// Create the output directory.
 	if err := EnsurePath(e.OutputPath); err != nil {
-		return err
-	}
-
-	// Copy the media directory.
-	if err := CopyDir(e.MediaDir, ".", filepath.Join(e.OutputPath, "media")); err != nil {
 		return err
 	}
 
@@ -1448,9 +1464,9 @@ func (s Settings) SafeDir(p string) string {
 	return p
 }
 
-// Init wipes and reconfigures the gingersnap engine.
+// Configure wipes and reconfigures the gingersnap engine.
 // .
-func (g *Gingersnap) Init(s Settings) {
+func (g *Gingersnap) Configure(s Settings) {
 
 	// ------------------------------------------
 	//
@@ -1565,9 +1581,9 @@ func (g *Gingersnap) RunServerWithWatcher(s Settings) {
 				return
 			}
 			if event.Has(fsnotify.Write) || event.Has(fsnotify.Create) || event.Has(fsnotify.Rename) {
-				g.Logger.Println("🔥 File changes detected. Resetting Server...")
+				g.Logger.Println("file changes detected, restarting server...")
 
-				g.Init(s)
+				g.Configure(s)
 				go g.RunServer()
 			}
 		case err, ok := <-w.Errors:
@@ -1587,4 +1603,22 @@ func (g *Gingersnap) RunServer() {
 	if err := g.HttpServer.ListenAndServe(); err != nil {
 		g.Logger.Print(err)
 	}
+}
+
+// Export exports the server as a static site.
+// .
+func (g *Gingersnap) Export() error {
+
+	urls, err := g.AllUrls()
+	if err != nil {
+		return err
+	}
+
+	exporter := &Exporter{
+		Handler:    g.Routes(),
+		Urls:       urls,
+		OutputPath: "dist",
+	}
+
+	return exporter.Export()
 }

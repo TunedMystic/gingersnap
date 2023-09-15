@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"gingersnap"
-	"log"
 	"os"
 )
 
@@ -15,24 +14,11 @@ func main() {
 	}
 
 	g := gingersnap.New()
-	g.Init(s)
+	g.Configure(s)
 
-	// --------------------------------------------------------------
-	//
-	// Construct the Exporter
-	//
-	// --------------------------------------------------------------
-
-	exporter := &gingersnap.Exporter{
-		Handler:    g.Routes(),
-		Urls:       g.AllUrls(),
-		MediaDir:   os.DirFS(s.MediaDir),
-		OutputPath: "dist",
-	}
-
-	// Perform site export.
-	fmt.Println("🤖 Exporting Site")
-	if err := exporter.Export(); err != nil {
-		log.Fatal(err)
+	// Export the site.
+	if err := g.Export(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
 	}
 }
