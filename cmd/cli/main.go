@@ -39,6 +39,7 @@ func main() {
 		ConfigPath: "assets/config/gingersnap.json",
 		PostsGlob:  "assets/posts/*.md",
 		MediaDir:   "assets/media",
+		Debug:      true,
 	}
 
 	switch os.Args[1] {
