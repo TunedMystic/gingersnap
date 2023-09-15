@@ -64,14 +64,15 @@ func main() {
 		// If gingersnap.json exists in the current directory,
 		// then do not scaffold a new project here.
 		if Exists(s.ConfigPath) {
-			fmt.Printf("\nConfig gingersnap.json detected. Skipping.\n\n")
-			os.Exit(1)
+			Logerr("Config gingersnap.json detected. Skipping.")
 		}
 
 		// Copy embedded resources into the current directory.
 		gingersnap.CopyDir(gingersnap.Assets, "assets/media", ".")
 		gingersnap.CopyDir(gingersnap.Assets, "assets/posts", ".")
 		gingersnap.CopyFile(gingersnap.Assets, "assets/config/gingersnap.json", "./gingersnap.json")
+
+		Loginfo("Done")
 
 	case "dev":
 
@@ -86,8 +87,7 @@ func main() {
 		// If gingersnap.json does not exist in the current directory,
 		// then do not start the server
 		if !Exists(s.ConfigPath) {
-			fmt.Printf("\nNo gingersnap.json config detected. Skipping.\n\n")
-			os.Exit(1)
+			Logerr("No gingersnap.json config detected. Skipping.")
 		}
 
 		// Construct the gingersnap engine.
@@ -118,9 +118,10 @@ func main() {
 
 		// Export the site.
 		if err := g.Export(); err != nil {
-			fmt.Printf("\nexport error: %s\n\n", err)
-			os.Exit(1)
+			Logerr("export error: %s", err)
 		}
+
+		Loginfo("Done")
 
 	case "deploy":
 
@@ -138,62 +139,92 @@ func main() {
 		g := gingersnap.New()
 		g.Configure(s)
 
-		// Export the site.
-		if err := g.Export(); err != nil {
-			fmt.Printf("\nexport error: %s\n\n", err)
-			os.Exit(1)
-		}
+		// ----------------------------------------------------------
+		// Preliminary checks
+		// ----------------------------------------------------------
+
+		// The gingersnap project directory.
+		ProjectDir := CurrentDir()
 
 		// The directory where the static site will be exported to.
-		// This is only a temporary directory. To fully deploy the site,
-		// the exported site must be moved to the production site repository.
 		ExportDir := gingersnap.ExportDir
 
 		// The git repository where the production static site will be stored.
 		ProdRepo := g.Config.ProdRepo
 
-		// Deploy the exported site
-
 		if ProdRepo == "" {
-			fmt.Println("Please specify a git repository to deploy the site to.")
-			os.Exit(1)
+			Logerr("Please specify a git repository to deploy the site to.")
 		}
 
-		if CurrentDir() == ProdRepo {
-			fmt.Println("Cannot push site to current directory. You must specify another git repository.")
-			os.Exit(1)
+		if ProjectDir == ProdRepo {
+			Logerr("Cannot push site to current directory. You must specify another git repository.")
 		}
 
-		fmt.Println("Checking that the static site dir exists and is a repository")
 		if !Exists(ProdRepo) {
-			fmt.Printf("Dir %s does not exist.\n", ProdRepo)
-			os.Exit(1)
+			Logerr("Dir %s does not exist.", ProdRepo)
 		}
 
 		if !Exists(filepath.Join(ProdRepo, ".git")) {
-			fmt.Printf("Dir %s is not a git repository.\n", ProdRepo)
-			os.Exit(1)
+			Logerr("Dir %s is not a git repository.", ProdRepo)
 		}
 
-		fmt.Println("Removing current static site contents")
-		Command(fmt.Sprintf("cd %s && git rm -rf --ignore-unmatch --quiet .", ProdRepo))
+		// ----------------------------------------------------------
+		// Export and deploy
+		// ----------------------------------------------------------
 
-		fmt.Println("Copying into the static site directory")
-		Command("cp", "-R", ExportDir, ProdRepo)
+		//
+		// Export the site.
+		//
+		Loginfo("[1/5] Exporting the site")
+		if err := g.Export(); err != nil {
+			Logerr("export error: %s", err)
+		}
 
-		fmt.Println("Deploying the site")
-		Command(fmt.Sprintf("cd %s && git add -A && git commit -m 'Updated site on %s' && git push -f origin main", ProdRepo, time.Now().Format(time.Stamp)))
+		//
+		// Remove all content from the prod repo directory.
+		//
+		Loginfo("[2/5] Removing static site contents")
+		Chdir(ProdRepo)
+		Command("git", "rm", "-rf", "--ignore-unmatch", "--quiet", ".")
+		Chdir(ProjectDir)
 
-		fmt.Println("Cleaning up")
+		//
+		// Copy the exported site to the prod repo directory.
+		//
+		Loginfo("[3/5] Copying into the static site directory")
+		gingersnap.CopyDir(os.DirFS(ExportDir), ".", ProdRepo)
+
+		//
+		// Navigate to the prod repo, commit the changes and push upstream.
+		//
+		Loginfo("[4/5] Deploying the site")
+		Chdir(ProdRepo)
+		Command("git", "add", "-A")
+		Command("git", "commit", "-m", fmt.Sprintf("Updated site on %s", time.Now().Format(time.UnixDate)))
+		Command("git", "push", "-f", "origin", "main")
+		Chdir(ProjectDir)
+
+		//
+		// Remove the exported site from the project directory.
+		//
+		Loginfo("[5/5] Cleaning up")
 		Remove(ExportDir)
 
-		fmt.Println("Done!")
+		Loginfo("Done")
 
 	default:
 		fmt.Printf(unknownCmdText, os.Args[1])
 		os.Exit(1)
 	}
 }
+
+// ------------------------------------------------------------------
+//
+//
+// Utility functions
+//
+//
+// ------------------------------------------------------------------
 
 func CurrentDir() string {
 	dir, err := os.Getwd()
@@ -207,6 +238,13 @@ func CurrentDir() string {
 func Command(cmds ...string) {
 	_, err := exec.Command(cmds[0], cmds[1:]...).Output()
 	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+}
+
+func Chdir(source string) {
+	if err := os.Chdir(source); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
@@ -226,4 +264,16 @@ func Remove(source string) {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+}
+
+func Loginfo(msg string) {
+	fmt.Printf("\n%s\n\n", msg)
+}
+
+func Logerr(msg string, args ...any) {
+	fmt.Println()
+	fmt.Printf(msg, args...)
+	fmt.Println()
+	fmt.Println()
+	os.Exit(1)
 }

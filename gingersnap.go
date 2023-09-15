@@ -1209,6 +1209,14 @@ func (e *Exporter) Export() error {
 		return err
 	}
 
+	// Write the timestamp file.
+	tsPath := filepath.Join(e.OutputPath, ".gingersnap")
+	ts := time.Now().Format(time.UnixDate)
+
+	if err := WriteFile(tsPath, []byte(ts)); err != nil {
+		return err
+	}
+
 	// Render all the paths.
 	for _, url := range e.Urls {
 		if err := e.exportPage(url, e.makePath(url)); err != nil {
