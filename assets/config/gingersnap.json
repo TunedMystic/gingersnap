@@ -17,6 +17,5 @@
 		{"text": "Contact", "route": "/contact/"},
 		{"text": "Privacy Policy", "route": "/privacy-policy/"},
 		{"text": "Terms of Service", "route": "/terms-of-service/"}
-	],
-	"staticRepository": "/Users/sandeep/Desktop/test-static-site"
+	]
 }

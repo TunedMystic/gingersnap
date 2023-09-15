@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"gingersnap"
-	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -31,26 +30,22 @@ Run 'gingersnap' for help with usage.
 `
 
 func main() {
-	out, err := os.Getwd()
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println(out)
-	if out == "/Users/sandeep/dev/gingersnap-cli" {
-		fmt.Println("ITS THE SAME DIRECTORY MAN ...")
-	}
-	os.Exit(0)
-
 	if len(os.Args) < 2 {
 		fmt.Println(helpText)
 		os.Exit(0)
 	}
 
 	// Settings for gingersnap resources.
+	// s := gingersnap.Settings{
+	// 	ConfigPath: "gingersnap.json",
+	// 	PostsGlob:  "posts/*.md",
+	// 	MediaDir:   "media",
+	// 	Debug:      true,
+	// }
 	s := gingersnap.Settings{
-		ConfigPath: "gingersnap.json",
-		PostsGlob:  "posts/*.md",
-		MediaDir:   "media",
+		ConfigPath: "assets/config/gingersnap.json",
+		PostsGlob:  "assets/posts/*.md",
+		MediaDir:   "assets/media",
 		Debug:      true,
 	}
 
@@ -68,7 +63,7 @@ func main() {
 
 		// If gingersnap.json exists in the current directory,
 		// then do not scaffold a new project here.
-		if Exists("./gingersnap.json") {
+		if Exists(s.ConfigPath) {
 			fmt.Printf("\nConfig gingersnap.json detected. Skipping.\n\n")
 			os.Exit(1)
 		}
@@ -90,7 +85,7 @@ func main() {
 
 		// If gingersnap.json does not exist in the current directory,
 		// then do not start the server
-		if !Exists("./gingersnap.json") {
+		if !Exists(s.ConfigPath) {
 			fmt.Printf("\nNo gingersnap.json config detected. Skipping.\n\n")
 			os.Exit(1)
 		}
@@ -158,6 +153,12 @@ func main() {
 		ProdRepo := g.Config.ProdRepo
 
 		// Deploy the exported site
+
+		if ProdRepo == "" {
+			fmt.Println("Please specify a git repository to deploy the site to.")
+			os.Exit(1)
+		}
+
 		if CurrentDir() == ProdRepo {
 			fmt.Println("Cannot push site to current directory. You must specify another git repository.")
 			os.Exit(1)
