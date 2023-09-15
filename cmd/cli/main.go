@@ -35,10 +35,10 @@ func main() {
 
 	// Settings for gingersnap resources.
 	s := gingersnap.Settings{
-		ConfigPath: "assets/config/gingersnap.json",
-		PostsGlob:  "assets/posts/*.md",
-		MediaDir:   "assets/media",
-		Debug:      true,
+		ConfigPath: "gingersnap.json",
+		PostsGlob:  "posts/*.md",
+		MediaDir:   "media",
+		Debug:      false,
 	}
 
 	switch os.Args[1] {
@@ -55,8 +55,8 @@ func main() {
 
 		// If gingersnap.json exists in the current directory,
 		// then do not scaffold a new project here.
-		if _, err := os.Stat("./gingersnap.json"); !os.IsNotExist(err) {
-			fmt.Println("Config gingersnap.json detected. Skipping.")
+		if gingersnap.Exists("./gingersnap.json") {
+			fmt.Printf("\nConfig gingersnap.json detected. Skipping.\n\n")
 			os.Exit(1)
 		}
 
@@ -75,10 +75,18 @@ func main() {
 		//
 		// ----------------------------------------------------------
 
+		// If gingersnap.json does not exist in the current directory,
+		// then do not start the server
+		if !gingersnap.Exists("./gingersnap.json") {
+			fmt.Printf("\nNo gingersnap.json config detected. Skipping.\n\n")
+			os.Exit(1)
+		}
+
 		// Construct the gingersnap engine.
 		g := gingersnap.New()
 		g.Configure(s)
 
+		// Run the server.
 		go g.RunServerWithWatcher(s)
 
 		// Block main goroutine forever.
@@ -100,7 +108,7 @@ func main() {
 
 		// Export the site.
 		if err := g.Export(); err != nil {
-			fmt.Println(err)
+			fmt.Printf("\nexport error: %s\n\n", err)
 			os.Exit(1)
 		}
 

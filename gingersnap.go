@@ -1311,6 +1311,15 @@ func packageRoot() string {
 	return path.Dir(b)
 }
 
+func Exists(source string) bool {
+	_, err := os.Stat(source)
+
+	if os.IsNotExist(err) {
+		return false
+	}
+	return true
+}
+
 func OpenFile(fs fs.FS, source string) (fs.File, error) {
 	// Open source file.
 	f, err := fs.Open(source)
