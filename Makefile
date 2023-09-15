@@ -6,9 +6,9 @@ APP="$$(basename -- $$(PWD))"
 # -------------------------------------------------------------------
 
 ## @(app) - Run the Go app  --watch     ⭐️
-run: bin/watchexec bin/cwebp
+run:
 	@echo "✨📦✨ Running the app server\n"
-	@./bin/watchexec -r -e go,css,js,html,md "DEBUG=true go run ./cmd/server/"
+	@go run ./cmd/server/
 
 
 ## @(app) - Run tailwindcss --watch     ⭐️
@@ -29,6 +29,9 @@ clean:
 	@go clean -testcache
 	@find . -name '.DS_Store' -type f -delete
 	@bash -c "mkdir -p bin && cd bin && find . ! -name 'watchexec' ! -name 'cwebp' ! -name 'tailwind' -type f -exec rm -f {} +"
+	@rm -f gingersnap.json
+	@rm -rf posts
+	@rm -rf media
 
 
 bin/watchexec:
