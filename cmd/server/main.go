@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"path/filepath"
 	"time"
@@ -10,15 +9,15 @@ import (
 )
 
 func main() {
-	localConfigPath := gingersnap.Path("assets/config/gingersnap.json")
-	localMediaDir := gingersnap.Path("assets/media")
-	localPostsDir := gingersnap.Path("assets/posts")
+	configPath := "assets/config/gingersnap.json"
+	postsGlob := "assets/posts/*.md"
+	mediaDir := "assets/media"
 
 	// Construct the logger.
 	logger := gingersnap.NewLogger()
 
 	// Construct the config
-	configBytes, err := gingersnap.ReadFile(localConfigPath)
+	configBytes, err := gingersnap.ReadFile(configPath)
 	if err != nil {
 		logger.Fatal(err)
 	}
@@ -29,16 +28,14 @@ func main() {
 	}
 
 	// Gather the markdown post files.
-	markdownGlob := fmt.Sprintf("%s/%s", localPostsDir, "*.md")
-	filePaths, err := filepath.Glob(markdownGlob)
+	filePaths, err := filepath.Glob(postsGlob)
 	if err != nil {
 		logger.Fatal(err)
 	}
 
 	// Parse the markdown posts.
 	processor := gingersnap.NewProcessor(filePaths)
-	err = processor.Process()
-	if err != nil {
+	if err := processor.Process(); err != nil {
 		logger.Fatal(err)
 	}
 
@@ -56,7 +53,7 @@ func main() {
 	g := &gingersnap.Gingersnap{
 		Logger:     logger,
 		Assets:     gingersnap.Assets,
-		Media:      http.Dir(localMediaDir),
+		Media:      http.Dir(mediaDir),
 		Templates:  templates,
 		Config:     config,
 		Posts:      postModel,
