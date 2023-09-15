@@ -557,11 +557,20 @@ func NewLogger() *log.Logger {
 // Config stores project settings
 // .
 type Config struct {
-	Debug       bool
-	ListenAddr  string
-	Site        Site   `json:"site"`
+	Debug      bool
+	ListenAddr string
+
+	// Site-specific settings
+	Site Site `json:"site"`
+
+	// Anchor links for the navbar
 	NavbarLinks []Link `json:"navbarLinks"`
+
+	// Anchor links for the footer
 	FooterLinks []Link `json:"footerLinks"`
+
+	// The git repository where the production static site will be managed
+	ProdRepo string `json:"staticRepository"`
 }
 
 // Site stores site-specific settings
@@ -1436,6 +1445,11 @@ const ImageType = "webp"
 const PostFeaturedLimit = 4
 const PostLatestLimit = 20
 
+// The directory where the static site will be exported to.
+// This is only a temporary directory. To fully deploy the site,
+// the exported site must be moved to the production site repository.
+const ExportDir = "dist"
+
 // ------------------------------------------------------------------
 //
 //
@@ -1626,7 +1640,7 @@ func (g *Gingersnap) Export() error {
 	exporter := &Exporter{
 		Handler:    g.Routes(),
 		Urls:       urls,
-		OutputPath: "dist",
+		OutputPath: ExportDir,
 	}
 
 	return exporter.Export()
