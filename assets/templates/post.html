@@ -1,67 +1,142 @@
 {{define "post"}}
 {{template "page" .}}
-<div class="container">
-    <div class="row">
-        <div class="primary">
-            <!-- Article Copy -->
-            <article class="copy">
+<style>
+:root{
+    --nc-font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --nc-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+    --nc-tx-1:#000000;
+    --nc-tx-2:#263040;
+    --nc-bg-1:#FFFFFF;
+    --nc-bg-2:#F6F8FA;
+    --nc-bg-3:#E5E7EB;
+    --nc-lk-tx:#FFFFFF;
+    --nc-ac-1:#BFDBFE;
+    --nc-ac-2:#FEF9C3;
+    --nc-ac-tx:#1A1A1A;
+    --link-color:#2563eb;
+    --link-color-hov:#1e40af;
+    --theme-color: #4f46e5;
+    --code-color: #075985;
+    --margin-size: 1.8rem;
+    --font-size: 1.2rem;
+    --font-size-sm: 1.15rem;
+    --line-height: 2.1rem;
+    --width-small: 750px;
+    --width: 1200px;
+    --padding: 1.2rem;
+}
+.a26 {margin:0 auto;border-radius:6px;overflow-x:hidden;word-break:break-word;overflow-wrap:break-word;color:var(--nc-tx-2);font-size:var(--font-size);line-height:var(--line-height)}
+.a26 address, .a26 area, .a26 article, .a26 aside, .a26 audio, .a26 blockquote, .a26 datalist, .a26 details, .a26 dl, .a26 fieldset, .a26 figure, .a26 form, .a26 iframe, .a26 img, .a26 input, .a26 meter, .a26 nav, .a26 ol, .a26 optgroup, .a26 option, .a26 output, .a26 p, .a26 pre, .a26 progress, .a26 ruby, .a26 section, .a26 table, .a26 textarea, .a26 ul, .a26 video{margin-bottom:var(--margin-size)}
+.a26 a{color:var(--link-color);text-decoration:none}
+.a26 a:hover{color:var(--link-color-hov);text-decoration:underline}
+.a26 abbr:hover{cursor:help}
+.a26 blockquote{padding:1.5rem;background:var(--nc-bg-2);border-left:5px solid var(--nc-bg-3)}
+.a26 blockquote:last-child{padding-bottom:0;margin-bottom:0}
+.a26 abbr{cursor:help}
+.a26 a code{color: inherit !important;background:none;padding:0 1px}
+.a26 code, .a26 kbd, .a26 pre, .a26 samp{font-family:var(--nc-font-mono);background:var(--nc-bg-2);color:var(--code-color);padding:2px 6px;font-size:1.1rem;border-radius:3px}
+.a26 kbd{border-bottom:3px solid var(--nc-bg-3)}
+.a26 pre{padding:1rem 1.4rem;max-width:100%;overflow:auto;line-height:1.7rem;border-radius:4px}
+.a26 pre code{background:inherit;color:inherit;border:0;padding:0;margin:0;font-size:0.945rem;line-height:1.7rem}
+.a26 code pre{display:inline;background:inherit;font-size:inherit;color:inherit;border:0;padding:0;margin:0}
+.a26 details{padding:.9rem 1rem;background:var(--nc-bg-2);border:1px solid var(--nc-bg-3);border-radius:4px;font-size:1.08rem}
+.a26 summary{cursor:pointer;font-weight:700;font-size:1.15rem}
+.a26 details[open]>:last-child{margin-bottom:0}
+.a26 dt{font-weight:700}
+.a26 dd::before{content:'→ '}
+.a26 hr{border:0;border-bottom:1px solid var(--nc-bg-3);margin:1rem auto}
+.a26 fieldset{margin-top:1rem;padding:2rem;border:1px solid var(--nc-bg-3);border-radius:4px}
+.a26 legend{padding:auto .5rem}
+.a26 table{border-collapse:collapse;width:100%}
+.a26 td, .a26 th{border:1px solid var(--nc-bg-3);text-align:left;padding:.5rem}
+.a26 th{background:var(--nc-bg-2)}
+.a26 tr:nth-child(even){background:var(--nc-bg-2)}
+.a26 table caption{font-weight:700;margin-bottom:.5rem}
+.a26 textarea{max-width:100%}
+.a26 ol, .a26 ul{padding-left:2rem}
+.a26 li{margin-top:.4rem}
+.a26 ol ol, .a26 ol ul, .a26 ul ol, .a26 ul ul{margin-bottom:0}
+.a26 mark{padding:3px 6px;background:var(--nc-ac-2);color:var(--nc-ac-tx)}
+.a26 input, .a26 select, .a26 textarea{padding:9px 12px;margin-bottom:.5rem;background:var(--nc-bg-2);color:var(--nc-tx-2);border:1px solid var(--nc-bg-3);border-radius:4px;box-shadow:none;box-sizing:border-box;font-size:1.125rem}
+.a26 img{max-width:100%;height:auto;width:auto;border-radius:4px}
+.a26 h1{line-height:1;color:var(--nc-tx-1);margin-bottom:var(--margin-size);font-weight:700;letter-spacing:0.2px;font-size:2rem}
+.a26 h2{line-height:1;color:var(--nc-tx-1);margin-bottom:var(--margin-size);font-weight:700;letter-spacing:0.2px;padding-top:1.5rem;margin-bottom:1.4rem;font-size:1.85rem}
+.a26 h3{line-height:1;color:var(--nc-tx-1);margin-bottom:var(--margin-size);font-weight:700;letter-spacing:0.2px;padding-top:1.5rem;margin-bottom:1.4rem;font-size:1.55rem}
+.a26 h4{line-height:1;color:var(--nc-tx-1);margin-bottom:var(--margin-size);font-weight:700;letter-spacing:0.2px;padding-top:1.5rem;margin-bottom:1.4rem;font-size:1.25rem}
+.a26 h5{line-height:1;color:var(--nc-tx-1);margin-bottom:var(--margin-size);font-weight:700;letter-spacing:0.2px;padding-top:1.5rem;margin-bottom:1.4rem;font-size:1rem}
+.a26 h6{line-height:1;color:var(--nc-tx-1);margin-bottom:var(--margin-size);font-weight:700;letter-spacing:0.2px;padding-top:1.5rem;margin-bottom:1.4rem;font-size:.875rem}
+.a26 h3{color:#6366f1}
+.a26 h4{color:#3730a3}
 
-                <!-- Article Heading -->
-                <h1>{{.Heading}}</h1>
+article.copy{width:100%;margin-left:auto;margin-right:auto}
 
-                {{if not .Post.IsStandalone}}
-                    <!-- Article Metadata -->
-                    <div class="copy-metadata text-xs text-gray">
-                        <p class="publish-date">{{.Post.Pubdate}}</p>
-                        <span>&sdot;</span>
-                        <p class="category"><a href="{{.SiteUrl}}/category/{{.Post.Category.Slug}}/">{{.Post.Category.Title}}</a></p>
-                    </div>
+@media (min-width: 768px) {
+    article.copy {-ms-flex:0 0 94%;flex:0 0 94%;max-width:94%}
+}
 
-                    <!-- Article Lead Image -->
-                    <img width="{{.Image.Width}}" height="{{.Image.Height}}" class="drop-shadow" src="{{.SiteUrl}}{{.Image.Url}}" alt="{{.Image.Alt}}" />
-                {{end}}
+@media (min-width: 1024px) {
+    article.copy {-ms-flex:0 0 72%;flex:0 0 72%;max-width:72%}
+}
+
+@media (min-width: 1280px) {
+    article.copy {-ms-flex:0 0 66%;flex:0 0 66%;max-width:66%}
+}
+</style>
+
+<div class="w-full mx-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl px-5">
+    {{$siteUrl := .SiteUrl}}
+
+    <!-- Article Copy -->
+    <article class="copy">
 
 
-                <!-- Article Content -->
-                {{safe .Post.Body}}
+        <!-- Article Heading -->
+        <h1 class="font-bold text-3xl text-black mb-3">{{.Heading}}</h1>
 
-                <hr>
-                <!-- Article Author -->
-                <div class="author-details">
-                    <img width="85" height="85" src="{{.SiteUrl}}/static/img/author.webp" alt="Lisa Wong">
-                    <div>
-                        <p class="author-name"><b><a class="plain" href="{{.SiteUrl}}/about/">Lisa Wong</a></b></p>
-                        <p class="author-description">Lisa Wong is a software engineer with a passion for building! She enjoys creating tutorials and guides to teach others about Python and Golang.</p>
-                    </div>
-                </div>
 
-                <!-- Latest Articles -->
-                <hr>
-                <p class="section-title">Latest Posts</p>
-                <div class="latest-posts">
-                    {{$siteUrl := .SiteUrl}}
-                    {{range .Posts}}
-                    <p><a href="{{$siteUrl}}/{{.Slug}}/">{{.Heading}}</a></p>
-                    {{end}}
-                </div>
+        {{if not .Post.IsStandalone}}
+            <!-- Article Metadata -->
+            <div class="flex text-slate-500 space-x-2.5 pt-1 mb-9">
+                <p class="publish-date">{{.Post.Pubdate}}</p>
+                <span>&sdot;</span>
+                <p class="text-indigo-600 font-medium tracking-wide uppercase underline"><a href="{{.SiteUrl}}/category/{{.Post.Category.Slug}}/">{{.Post.Category.Title}}</a></p>
+            </div>
 
-                <!-- Featured Articles -->
-                <hr>
-                <p class="section-title">You May Also Like</p>
-                <div class="suggested-posts">
-                    {{$siteUrl := .SiteUrl}}
-                    {{range .FeaturedPosts}}
-                        <div>
-                            <a href="{{$siteUrl}}/{{.Slug}}/">
-                                <img width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{$siteUrl}}{{.Image.Url}}" alt="{{.Image.Alt}}">
-                                <p class="title">{{.Heading}}</p>
-                            </a>
-                        </div>
-                    {{end}}
-                </div>
-            </article>
+            <!-- Article Lead Image -->
+            <img class="rounded drop-shadow" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.SiteUrl}}{{.Image.Url}}" alt="{{.Image.Alt}}" />
+        {{end}}
+
+
+        <!-- Article Content -->
+        <div class="pt-8 a26">
+            {{safe .Post.Body}}
         </div>
-    </div>
+
+
+        <!-- Latest Articles -->
+        <hr class="my-11">
+        <p class="text-xl font-semibold text-black mb-6">Latest Posts</p>
+        <div class="flex flex-col space-y-4">
+            {{range .LatestPosts}}
+                <p><a class="text-lg text-blue-600 hover:text-blue-700 hover:underline" href="{{$siteUrl}}/{{.Slug}}/">{{.Heading}}</a></p>
+            {{end}}
+        </div>
+
+
+        <!-- Featured Articles -->
+        <hr class="my-11">
+        <p class="text-xl font-semibold text-black mb-6">You May Also Like</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5   hide-last">
+            {{range .FeaturedPosts}}
+                <div>
+                    <a class="space-y-2" href="{{$siteUrl}}/{{.Slug}}/">
+                        <img class="rounded" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{$siteUrl}}{{.Image.Url}}" alt="{{.Image.Alt}}">
+                        <p class="text-base leading-relaxed text-black font-medium">{{.Heading}}</p>
+                    </a>
+                </div>
+            {{end}}
+        </div>
+    </article>
 </div>
 {{template "endpage" .}}
 {{end}}

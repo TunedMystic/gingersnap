@@ -4,30 +4,30 @@
     {{$siteUrl := .SiteUrl}}
 
     {{if .FeaturedPosts}}
-    <h2 class="font-bold text-3xl text-slate-800 underline decoration-indigo-600 leading-relaxed mb-7">Featured</h2>
+    <h2 class="font-bold text-4xl text-slate-800 underline decoration-indigo-600 leading-relaxed mb-7">Featured</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12 mb-20 hide-last">
         {{range .FeaturedPosts}}
         <div>
             <a class="flex flex-col space-y-3" href="{{$siteUrl}}/{{.Slug}}">
                 <img class="rounded drop-shadow" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{$siteUrl}}{{.Image.Url}}" alt="{{.Image.Alt}}">
-                <p class="text-lg leading-relaxed text-slate-800 font-semibold pt-1">{{.Heading}}</p>
+                <p class="text-lg leading-relaxed text-black font-semibold pt-1">{{.Heading}}</p>
             </a>
-            <p class="text-sm leading-relaxed text-slate-700 mt-4">{{.Description}}</p>
+            <p class="text-sm leading-relaxed text-slate-700 mt-2">{{.Description}}</p>
         </div>
         {{end}}
     </div>
     {{end}}
 
     {{if .LatestPosts}}
-    <h2 class="font-bold text-3xl text-slate-800 underline decoration-indigo-600 leading-relaxed mb-7">Latest Posts</h2>
+    <h2 class="font-bold text-4xl text-slate-800 underline decoration-indigo-600 leading-relaxed mb-7">Latest Posts</h2>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12 mb-20 hide-last">
         {{range .LatestPosts}}
         <div>
             <a class="flex flex-col space-y-3" href="{{$siteUrl}}/{{.Slug}}">
                 <img class="rounded drop-shadow" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{$siteUrl}}{{.Image.Url}}" alt="{{.Image.Alt}}">
-                <p class="text-lg leading-relaxed text-slate-800 font-semibold pt-1">{{.Heading}}</p>
+                <p class="text-lg leading-relaxed text-black font-semibold pt-1">{{.Heading}}</p>
             </a>
-            <p class="text-sm leading-relaxed text-slate-700 mt-4">{{.Description}}</p>
+            <p class="text-sm leading-relaxed text-slate-700 mt-2">{{.Description}}</p>
         </div>
         {{end}}
     </div>
