@@ -17,32 +17,5 @@
         {{end}}
     </div>
 </div>
-
-
-
-
-
-
-
-<div class="hidden container">
-    <div class="row">
-        <div class="primary-full">
-            <h1>{{.Heading}}</h1>
-            {{$siteUrl := .SiteUrl}}
-
-            <div class="results-grid">
-                {{range .Posts}}
-                <div>
-                    <a href="{{$siteUrl}}/{{.Slug}}/">
-                        <img width="{{.Image.Width}}" height="{{.Image.Height}}" class="drop-shadow" src="{{$siteUrl}}{{.Image.Url}}" alt="{{.Image.Alt}}">
-                        <p class="title">{{.Heading}}</p>
-                    </a>
-                    <p class="subhead text-dark-gray">{{.Description}}</p>
-                </div>
-                {{end}}
-            </div>
-        </div>
-    </div>
-</div>
 {{template "endpage" .}}
 {{end}}
