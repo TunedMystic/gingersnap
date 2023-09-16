@@ -1,6 +1,30 @@
 {{define "category"}}
 {{template "page" .}}
-<div class="container">
+<div class="w-full mx-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl px-5">
+    {{$siteUrl := .SiteUrl}}
+
+    <h1 class="font-bold text-3xl text-slate-800 leading-relaxed mb-7">{{.Heading}}</h1>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12 mb-20 hide-last">
+        {{range .Posts}}
+        <div>
+            <a class="flex flex-col space-y-3" href="{{$siteUrl}}/{{.Slug}}">
+                <img class="rounded drop-shadow" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{$siteUrl}}{{.Image.Url}}" alt="{{.Image.Alt}}">
+                <p class="text-lg leading-relaxed text-slate-800 font-semibold pt-1">{{.Heading}}</p>
+            </a>
+            <p class="text-sm leading-relaxed text-slate-700 mt-4">{{.Description}}</p>
+        </div>
+        {{end}}
+    </div>
+</div>
+
+
+
+
+
+
+
+<div class="hidden container">
     <div class="row">
         <div class="primary-full">
             <h1>{{.Heading}}</h1>

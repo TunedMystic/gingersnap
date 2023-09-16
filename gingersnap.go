@@ -832,7 +832,7 @@ func (c *Category) IsEmpty() bool {
 	return c.Slug == ""
 }
 
-// Route returns the url path for the Post.
+// Route returns the url path for the Category.
 //
 // ex: "/category/some-slug/"
 // .

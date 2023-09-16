@@ -1,10 +1,13 @@
 package main
 
 import (
-	"gingersnap"
+	htmlTemplate "html/template"
 	"log"
+	"os"
 
 	"github.com/fsnotify/fsnotify"
+
+	"gingersnap"
 )
 
 func main() {
@@ -18,16 +21,16 @@ func main() {
 	g := gingersnap.New()
 	g.Configure(s)
 
-	go RunServerWithWatcher(g, s)
+	go runServerWithWatcher(g, s)
 
 	// Block main goroutine forever.
 	<-make(chan struct{})
 }
 
-// RunServerWithWatcher runs the server and and watches for file changes.
+// runServerWithWatcher runs the server and and watches for file changes.
 // On file change, it resets the gingersnap engine and restarts the server.
 // .
-func RunServerWithWatcher(g *gingersnap.Gingersnap, s gingersnap.Settings) {
+func runServerWithWatcher(g *gingersnap.Gingersnap, s gingersnap.Settings) {
 	// Create new watcher.
 	w, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -63,6 +66,7 @@ func RunServerWithWatcher(g *gingersnap.Gingersnap, s gingersnap.Settings) {
 				g.Logger.Println("Files changed. Restarting server")
 
 				g.Configure(s)
+				loadTemplates(g)
 				go g.RunServer()
 			}
 		case err, ok := <-w.Errors:
@@ -72,4 +76,24 @@ func RunServerWithWatcher(g *gingersnap.Gingersnap, s gingersnap.Settings) {
 			g.Logger.Println("error:", err)
 		}
 	}
+}
+
+// loadTemplates constructs the server templates from the filsystem,
+// instead of from the embedded FS. This way, the refreshed templates
+// will reflect the file changes.
+// .
+func loadTemplates(g *gingersnap.Gingersnap) {
+	templateFS := os.DirFS("assets/templates")
+
+	funcs := htmlTemplate.FuncMap{
+		"safe": func(content string) htmlTemplate.HTML {
+			return htmlTemplate.HTML(content)
+		},
+	}
+
+	tmpl, err := htmlTemplate.New("").Funcs(funcs).ParseFS(templateFS, "*.html")
+	if err != nil {
+		g.Logger.Println("error:", err)
+	}
+	g.Templates = tmpl
 }

@@ -1,19 +1,15 @@
 {{define "footer"}}
-<footer>
-    <div class="container">
-        <hr>
+<footer class="w-full mx-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl px-5      py-8 border-t border-slate-200">
+    <div class="flex flex-col justify-center items-center space-y-6 text-slate-500">
 
-        <div class="row footer text-gray">
-            <nav class="site-nav">
-                {{$siteUrl := .SiteUrl}}
-                {{range .FooterLinks}}
-                    <p><a class="plain" href="{{$siteUrl}}{{.Route}}">{{.Text}}</a></p>
-                    <span>&sdot;</span>
-                {{end}}
-            </nav>
+        <nav class="flex flex-wrap justify-center space-x-7">
+            {{$siteUrl := .SiteUrl}}
+            {{range .FooterLinks}}
+                <p class="py-1 pb-1.5 hover:underline"><a href="{{$siteUrl}}{{.Route}}">{{.Text}}</a></p>
+            {{end}}
+        </nav>
 
-            <p>Copyright &copy; {{.Copyright}} All Rights Reserved</p>
-        </div>
+        <p>Copyright &copy; {{.Copyright}} All Rights Reserved</p>
     </div>
 </footer>
 {{end}}

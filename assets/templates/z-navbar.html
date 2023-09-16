@@ -1,20 +1,23 @@
 {{define "navbar"}}
-<header>
-    <div class="container">
-        <div class="row header">
-            <div class="header-first">
-                <h3 class="text-theme"><a class="plain" href="{{.SiteUrl}}/">{{.SiteName}}</a></h3>
-            </div>
-            <div class="header-second">
-                <nav class="site-nav text-dark-gray">
-                    {{$siteUrl := .SiteUrl}}
-                    {{range .NavbarLinks}}
-                        <p><a class="plain" href="{{$siteUrl}}{{.Route}}">{{.Text}}</a></p>
-                        <span>&sdot;</span>
-                    {{end}}
-                </nav>
-            </div>
-        </div>
+<header class="w-full mx-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl px-5      py-4 mb-8">
+    <div class="flex flex-col justify-center items-center space-y-3 pb-4 border-b border-slate-200">
+
+        <h3 class="font-bold text-2xl text-indigo-600">
+            <a href="{{.SiteUrl}}">{{.SiteName}}</a>
+        </h3>
+
+        <nav class="flex flex-wrap justify-center space-x-7 text-slate-700">
+            {{$siteUrl := .SiteUrl}}
+            {{range .NavbarLinks}}
+                <p class="py-1 pb-1.5 hover:underline"><a href="{{$siteUrl}}{{.Route}}">{{.Text}}</a></p>
+            {{end}}
+        </nav>
     </div>
 </header>
+<style>
+    .hide-last > div:last-child{display:block}
+    @media (min-width: 1024px) {
+        .hide-last > div:last-child{display:none}
+    }
+</style>
 {{end}}
