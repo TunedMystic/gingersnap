@@ -4,37 +4,59 @@
 
 {{define "error"}}
 {{template "page" .}}
-<div class="container">
-    <div class="row">
-        <div class="primary-full">
-            <div class="app-error">
-                <h1>{{.AppError}}</h1>
-                {{if eq .AppError "404"}}
-                    <h2>Oops! We couldn't find the page you are looking for.</h2>
-                {{else if eq .AppError "500"}}
-                    <h2>Oops! Something unexpected happened.</h2>
-                {{end}}
+<style>
+    .narrow-width{width:100%}
 
-                {{if .AppTrace}}
-                    <pre style="text-align:left">{{.AppTrace}}</pre>
-                {{end}}
+    @media (min-width: 768px) {
+        .narrow-width {-ms-flex:0 0 94%;flex:0 0 94%;max-width:94%}
+    }
+
+    @media (min-width: 1024px) {
+        .narrow-width {-ms-flex:0 0 72%;flex:0 0 72%;max-width:72%}
+    }
+
+    @media (min-width: 1280px) {
+        .narrow-width {-ms-flex:0 0 65%;flex:0 0 65%;max-width:65%}
+    }
+</style>
+<div class="w-full mx-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl px-5">
+    {{$siteUrl := .SiteUrl}}
+
+
+    <!-- Error Heading -->
+    <div class="narrow-width mx-auto flex flex-col items-center space-y-4 py-5">
+        <h1 class="font-black text-8xl text-pink-600">{{.AppError}}</h1>
+
+        {{if eq .AppError "404"}}
+            <h2 class="font-bold text-2xl text-slate-700">Oops! We couldn't find the page you are looking for.</h2>
+            <div class="flex flex-col leading-relaxed  text-base text-slate-700">
+                <p>The page you are looking for either does not exist or has been moved. Please check the URL again to ensure that you are visiting the correct page. Alternatively, you can go back to the <a class="font-medium underline" href="{{$siteUrl}}">home page</a> to check out some of our featured items and latest posts.</p>
             </div>
+        {{else if eq .AppError "500"}}
+            <h2 class="font-bold text-2xl text-slate-700">Oops! Something unexpected happened.</h2>
+        {{end}}
+    </div>
 
-            <hr><br>
 
-            {{$siteUrl := .SiteUrl}}
-            <div class="results-grid hide-last">
-                {{range .LatestPosts}}
-                <div>
-                    <a href="{{$siteUrl}}/{{.Slug}}/">
-                        <img width="{{.Image.Width}}" height="{{.Image.Height}}" class="drop-shadow" src="{{$siteUrl}}{{.Image.Url}}" alt="{{.Image.Alt}}">
-                        <p class="title">{{.Heading}}</p>
-                    </a>
-                    <p class="subhead text-dark-gray">{{.Description}}</p>
-                </div>
-                {{end}}
-            </div>
+    {{if .AppTrace}}
+        <!-- Error Trace -->
+        <hr class="my-12">
+        <pre class="text-sm text-slate-700">{{.AppTrace}}</pre>
+    {{end}}
+
+
+    <!-- Latest Articles -->
+    <hr class="my-12">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12 mb-20 hide-last">
+        {{range .LatestPosts}}
+        <div>
+            <a class="flex flex-col space-y-3" href="{{$siteUrl}}/{{.Slug}}">
+                <img class="rounded drop-shadow" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{$siteUrl}}{{.Image.Url}}" alt="{{.Image.Alt}}">
+                <p class="text-lg leading-relaxed text-black font-semibold pt-1">{{.Heading}}</p>
+            </a>
+            <p class="text-sm leading-relaxed text-slate-700 mt-2">{{.Description}}</p>
         </div>
+        {{end}}
     </div>
 </div>
 {{template "endpage" .}}

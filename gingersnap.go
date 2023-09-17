@@ -358,7 +358,7 @@ func (g *Gingersnap) render404(w http.ResponseWriter, status int) {
 	rd := g.NewRenderData(nil)
 	rd.AppError = "404"
 	rd.Title = fmt.Sprintf("Page Not Found - %s", g.Config.Site.Name)
-	rd.LatestPosts = g.Posts.Latest()
+	rd.LatestPosts = LimitSlice(g.Posts.Latest(), 12)
 
 	g.Render(w, status, "error", &rd)
 }
@@ -374,7 +374,7 @@ func (g *Gingersnap) ErrInternalServer(w http.ResponseWriter, err error) {
 	rd := g.NewRenderData(nil)
 	rd.AppError = "500"
 	rd.Title = fmt.Sprintf("Internal Server Error - %s", g.Config.Site.Name)
-	rd.LatestPosts = g.Posts.Latest()
+	rd.LatestPosts = LimitSlice(g.Posts.Latest(), 12)
 
 	if g.Config.Debug {
 		rd.AppTrace = trace
