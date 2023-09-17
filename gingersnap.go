@@ -66,7 +66,8 @@ func (g *Gingersnap) Routes() http.Handler {
 
 	r.Handle("/", g.HandleIndex())
 	r.Handle("/styles.css", g.ServeFile(g.Assets, "assets/css/styles.css"))
-	r.Handle("/sitemap.xml", g.HandleSitemap())
+	r.Handle("/sitemap/", g.HandleSitemapHtml())
+	r.Handle("/sitemap.xml", g.HandleSitemapXml())
 	r.Handle("/robots.txt", g.HandleRobotsTxt())
 	r.Handle("/CNAME", g.HandleCname())
 	r.Handle("/404/", g.Handle404())
@@ -247,7 +248,7 @@ const SitemapTemplate = `
 </urlset>
 `
 
-func (g *Gingersnap) HandleSitemap() http.HandlerFunc {
+func (g *Gingersnap) HandleSitemapXml() http.HandlerFunc {
 
 	// Prepare the sitemap template.
 	tmpl, err := textTemplate.New("").Parse(strings.TrimPrefix(SitemapTemplate, "\n"))
@@ -297,6 +298,19 @@ func (g *Gingersnap) HandleSitemap() http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/xml; charset=utf-8")
 		w.WriteHeader(http.StatusOK)
 		w.Write(buf.Bytes())
+	}
+}
+
+func (g *Gingersnap) HandleSitemapHtml() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		rd := g.NewRenderData(r)
+		rd.Title = fmt.Sprintf("Sitemap - Browse through all Posts on %s", g.Config.Site.Name)
+		rd.Description = fmt.Sprintf("Browse through the sitemap on %s and take a look at our posts.", g.Config.Site.Name)
+		rd.Heading = "Posts"
+		rd.Posts = g.Posts.Articles()
+
+		g.Render(w, http.StatusOK, "sitemap", &rd)
 	}
 }
 
@@ -852,6 +866,7 @@ func (c *Category) Route() string {
 // .
 type PostModel struct {
 	posts           []Post
+	articles        []Post
 	postsLatest     []Post
 	postsFeatured   []Post
 	postsBySlug     map[string]Post
@@ -860,9 +875,10 @@ type PostModel struct {
 
 func NewPostModel(postsBySlug map[string]Post) *PostModel {
 	m := &PostModel{
-		posts:           []Post{},
-		postsLatest:     []Post{},
-		postsFeatured:   []Post{},
+		posts:           nil,
+		articles:        nil,
+		postsLatest:     nil,
+		postsFeatured:   nil,
 		postsBySlug:     postsBySlug,
 		postsByCategory: make(map[Category][]Post),
 	}
@@ -892,12 +908,13 @@ func NewPostModel(postsBySlug map[string]Post) *PostModel {
 			articles = append(articles, post)
 		}
 	}
+	m.articles = articles
 
 	// Prepare the latest posts.
-	m.postsLatest = LimitSlice(articles, LimitLatestLg)
+	m.postsLatest = LimitSlice(m.articles, LimitLatestLg)
 
 	// Prepare the featured posts.
-	for _, post := range articles {
+	for _, post := range m.articles {
 		if post.Featured {
 			m.postsFeatured = append(m.postsFeatured, post)
 		}
@@ -910,12 +927,8 @@ func (m *PostModel) All() []Post {
 	return m.posts
 }
 
-func (m *PostModel) Slugs() []string {
-	var slugs []string
-	for _, post := range m.posts {
-		slugs = append(slugs, post.Slug)
-	}
-	return slugs
+func (m *PostModel) Articles() []Post {
+	return m.articles
 }
 
 func (m *PostModel) Latest() []Post {
@@ -934,6 +947,14 @@ func (m *PostModel) ByCategory(c Category) ([]Post, bool) {
 func (m *PostModel) BySlug(s string) (Post, bool) {
 	post, ok := m.postsBySlug[s]
 	return post, ok
+}
+
+func (m *PostModel) Slugs() []string {
+	var slugs []string
+	for _, post := range m.posts {
+		slugs = append(slugs, post.Slug)
+	}
+	return slugs
 }
 
 // ------------------------------------------------------------------

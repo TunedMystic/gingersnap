@@ -18,5 +18,19 @@
     @media (min-width: 1024px) {
         .hide-last > div:last-child{display:none}
     }
+
+    .narrow-width{width:100%}
+
+    @media (min-width: 768px) {
+        .narrow-width {-ms-flex:0 0 94%;flex:0 0 94%;max-width:94%}
+    }
+
+    @media (min-width: 1024px) {
+        .narrow-width {-ms-flex:0 0 72%;flex:0 0 72%;max-width:72%}
+    }
+
+    @media (min-width: 1280px) {
+        .narrow-width {-ms-flex:0 0 65%;flex:0 0 65%;max-width:65%}
+    }
 </style>
 {{end}}

@@ -1,22 +1,20 @@
 {{define "sitemap"}}
 {{template "page" .}}
-<div class="container">
-    <div class="row">
-        <div class="primary">
-            <h1>{{.Heading}}</h1>
-            {{$siteUrl := .SiteUrl}}
+<div class="w-full mx-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl px-5">
 
-            <div class="sitemap">
-                {{range .Posts}}
-                    <div>
-                        <p><a href="{{$siteUrl}}/{{.Slug}}/">{{.Heading}}</a></p>
-                        <span class="text-dark-gray">{{.Pubdate}}</span>
-                    </div>
-                {{end}}
+    <div class="narrow-width mx-auto flex-col space-y-7">
+
+        <h1 class="font-bold text-3xl text-black mb-3">{{.Heading}}</h1>
+
+        {{range .Posts}}
+            <div class="flex items-center justify-between text-lg">
+                <p><a class="text-blue-600 hover:text-blue-800 hover:underline" href="{{.Route}}">{{.Heading}}</a></p>
+                <span class="text-slate-700">{{.Pubdate}}</span>
             </div>
+        {{end}}
 
-            <p class="text-xs text-dark-gray">Total {{.Text}} Posts</p>
-        </div>
+        <p class="text-base text-slate-700">Total {{len .Posts}} Posts</p>
+
     </div>
 </div>
 {{template "endpage" .}}
