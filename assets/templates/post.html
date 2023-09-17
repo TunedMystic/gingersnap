@@ -117,29 +117,31 @@ article.copy{width:100%;margin-left:auto;margin-right:auto}
         </div>
 
 
-        <!-- Latest Articles -->
-        <hr class="my-11">
-        <p class="text-xl font-semibold text-black mb-6">Latest Posts</p>
-        <div class="flex flex-col space-y-4">
-            {{range .LatestPosts}}
-                <p><a class="text-lg text-blue-600 hover:text-blue-700 hover:underline" href="{{$siteUrl}}/{{.Slug}}/">{{.Heading}}</a></p>
-            {{end}}
-        </div>
+        {{if not .Post.IsStandalone}}
+            <!-- Latest Articles -->
+            <hr class="my-11">
+            <p class="text-xl font-semibold text-black mb-6">Latest Posts</p>
+            <div class="flex flex-col space-y-4">
+                {{range .LatestPosts}}
+                    <p><a class="text-lg text-blue-600 hover:text-blue-700 hover:underline" href="{{$siteUrl}}/{{.Slug}}/">{{.Heading}}</a></p>
+                {{end}}
+            </div>
 
 
-        <!-- Featured Articles -->
-        <hr class="my-11">
-        <p class="text-xl font-semibold text-black mb-6">You May Also Like</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-5  hide-last">
-            {{range .FeaturedPosts}}
-                <div>
-                    <a class="space-y-2" href="{{$siteUrl}}/{{.Slug}}/">
-                        <img class="rounded" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{$siteUrl}}{{.Image.Url}}" alt="{{.Image.Alt}}">
-                        <p class="text-base leading-relaxed text-black font-medium">{{.Heading}}</p>
-                    </a>
-                </div>
-            {{end}}
-        </div>
+            <!-- Featured Articles -->
+            <hr class="my-11">
+            <p class="text-xl font-semibold text-black mb-6">You May Also Like</p>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-5  hide-last">
+                {{range .FeaturedPosts}}
+                    <div>
+                        <a class="space-y-2" href="{{$siteUrl}}/{{.Slug}}/">
+                            <img class="rounded" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{$siteUrl}}{{.Image.Url}}" alt="{{.Image.Alt}}">
+                            <p class="text-base leading-relaxed text-black font-medium">{{.Heading}}</p>
+                        </a>
+                    </div>
+                {{end}}
+            </div>
+        {{end}}
     </article>
 </div>
 {{template "endpage" .}}
