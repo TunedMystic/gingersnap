@@ -867,20 +867,23 @@ func NewPostModel(postsBySlug map[string]Post) *PostModel {
 		postsByCategory: make(map[Category][]Post),
 	}
 
-	// Prepare the Post structures.
+	// Gather the posts from the map.
 	for _, post := range m.postsBySlug {
 		m.posts = append(m.posts, post)
-
-		if !post.Category.IsEmpty() {
-			cat := post.Category
-			m.postsByCategory[cat] = append(m.postsByCategory[cat], post)
-		}
 	}
 
 	// Sort the posts by latest timestamp.
 	sort.SliceStable(m.posts, func(i, j int) bool {
 		return m.posts[i].PubdateTS > m.posts[j].PubdateTS
 	})
+
+	// Prepare the posts by category.
+	for _, post := range m.posts {
+		if !post.Category.IsEmpty() {
+			cat := post.Category
+			m.postsByCategory[cat] = append(m.postsByCategory[cat], post)
+		}
+	}
 
 	// Filter out the standalone posts.
 	var articles []Post

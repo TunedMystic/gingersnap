@@ -1,0 +1,14 @@
+{{define "post-grid"}}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12 mb-20 {{if ne (len .) 1}}hide-last{{end}}">
+        {{range .}}
+            <div>
+                <a class="flex flex-col space-y-3" href="/{{.Slug}}">
+                    <img class="rounded drop-shadow" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" alt="{{.Image.Alt}}">
+                    <p class="text-lg leading-relaxed text-black font-semibold pt-1">{{.Heading}}</p>
+                </a>
+                <p class="text-sm leading-relaxed text-slate-700 mt-2">{{.Description}}</p>
+            </div>
+        {{end}}
+    </div>
+{{end}}
+
