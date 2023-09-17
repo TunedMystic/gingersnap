@@ -123,7 +123,7 @@ article.copy{width:100%;margin-left:auto;margin-right:auto}
             <p class="text-xl font-semibold text-black mb-6">Latest Posts</p>
             <div class="flex flex-col space-y-4">
                 {{range .LatestPosts}}
-                    <p><a class="text-lg text-blue-600 hover:text-blue-700 hover:underline" href="{{$siteUrl}}/{{.Slug}}/">{{.Heading}}</a></p>
+                    <p><a class="font-medium text-lg text-blue-600 hover:text-blue-700 hover:underline" href="{{$siteUrl}}/{{.Slug}}/">{{.Heading}}</a></p>
                 {{end}}
             </div>
 

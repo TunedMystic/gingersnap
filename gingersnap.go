@@ -155,7 +155,7 @@ func (g *Gingersnap) HandlePost(post Post) http.HandlerFunc {
 		rd.Description = post.Description
 		rd.Heading = post.Heading
 		rd.Post = post
-		rd.LatestPosts = LimitSlice(g.Posts.Latest(), 4)
+		rd.LatestPosts = LimitSlice(g.Posts.Latest(), LimitLatestPostDetail)
 		rd.FeaturedPosts = g.Posts.Featured()
 
 		if post.Image.IsEmpty() {
@@ -358,7 +358,7 @@ func (g *Gingersnap) render404(w http.ResponseWriter, status int) {
 	rd := g.NewRenderData(nil)
 	rd.AppError = "404"
 	rd.Title = fmt.Sprintf("Page Not Found - %s", g.Config.Site.Name)
-	rd.LatestPosts = LimitSlice(g.Posts.Latest(), 12)
+	rd.LatestPosts = LimitSlice(g.Posts.Latest(), LimitLatestSm)
 
 	g.Render(w, status, "error", &rd)
 }
@@ -374,7 +374,7 @@ func (g *Gingersnap) ErrInternalServer(w http.ResponseWriter, err error) {
 	rd := g.NewRenderData(nil)
 	rd.AppError = "500"
 	rd.Title = fmt.Sprintf("Internal Server Error - %s", g.Config.Site.Name)
-	rd.LatestPosts = LimitSlice(g.Posts.Latest(), 12)
+	rd.LatestPosts = LimitSlice(g.Posts.Latest(), LimitLatestSm)
 
 	if g.Config.Debug {
 		rd.AppTrace = trace
@@ -882,16 +882,24 @@ func NewPostModel(postsBySlug map[string]Post) *PostModel {
 		return m.posts[i].PubdateTS > m.posts[j].PubdateTS
 	})
 
+	// Filter out the standalone posts.
+	var articles []Post
+	for _, post := range m.posts {
+		if !post.IsStandalone() {
+			articles = append(articles, post)
+		}
+	}
+
 	// Prepare the latest posts.
-	m.postsLatest = LimitSlice(m.posts, PostLatestLimit)
+	m.postsLatest = LimitSlice(articles, LimitLatestLg)
 
 	// Prepare the featured posts.
-	for _, post := range m.posts {
+	for _, post := range articles {
 		if post.Featured {
 			m.postsFeatured = append(m.postsFeatured, post)
 		}
 	}
-	m.postsFeatured = LimitSlice(m.postsFeatured, PostFeaturedLimit)
+	m.postsFeatured = LimitSlice(m.postsFeatured, LimitFeatured)
 	return m
 }
 
@@ -1455,8 +1463,10 @@ const ImageWidth = "800"
 const ImageHeight = "450"
 const ImageType = "webp"
 
-const PostFeaturedLimit = 4
-const PostLatestLimit = 20
+const LimitFeatured = 4
+const LimitLatestLg = 20
+const LimitLatestSm = 12
+const LimitLatestPostDetail = 4
 
 // The directory where the static site will be exported to.
 // This is only a temporary directory. To fully deploy the site,
