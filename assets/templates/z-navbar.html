@@ -7,9 +7,8 @@
         </h3>
 
         <nav class="flex flex-wrap justify-center space-x-7 text-slate-700">
-            {{$siteUrl := .SiteUrl}}
             {{range .NavbarLinks}}
-                <p class="py-1 pb-1.5 hover:underline"><a href="{{$siteUrl}}{{.Route}}">{{.Text}}</a></p>
+                <p class="py-1 pb-1.5 hover:underline"><a href="{{.Route}}">{{.Text}}</a></p>
             {{end}}
         </nav>
     </div>
