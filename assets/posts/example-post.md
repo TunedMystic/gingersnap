@@ -6,7 +6,7 @@ description: In this guide, you'll learn all about SQLite's Full-Text Search fea
 category: SQL
 image_url: /media/big-computer.webp
 image_alt: SQLite Full-Text Search
-pubdate: 2022-01-21
+pubdate: 2023-01-21
 featured: true
 ---
 
@@ -54,9 +54,16 @@ Integer ultrices velit sit amet molestie ultricies. Integer condimentum aliquet 
 
 Nullam pulvinar velit eleifend porta fringilla. Aliquam tempus neque sit amet lobortis consequat. Curabitur quam nisl, lobortis at tortor at, rhoncus consequat nibh.
 
+![something](/media/golang-error-handling.webp)
+
+
 #### Pellentesque ut quam
 
-Pellentesque ut quam viverra, auctor turpis ut, euismod dui. Phasellus luctus ullamcorper diam quis feugiat. Fusce urna dolor, sagittis et cursus in, sagittis sed nibh. Nulla malesuada mi ex, non vestibulum metus pharetra at.
+Pellentesque ut quam viverra, auctor <mark>turpis ut, euismod dui</mark>. Phasellus luctus ullamcorper diam quis feugiat. Fusce urna dolor, sagittis et cursus in, sagittis sed nibh. Nulla malesuada mi ex, non vestibulum metus pharetra at.
+
+> Quote here.
+>
+> -- <cite>Benjamin Franklin</cite>
 
 
 ## Sem vitae venenatis
@@ -76,9 +83,16 @@ Pellentesque non felis scelerisque, rutrum tellus in, tempor nulla. Nulla ultric
 
 Praesent sed sem eu ante tempus mattis sed in urna. Quisque dictum dapibus diam et tempus.
 
-Donec blandit rhoncus est in placerat. Proin sed odio vitae metus egestas sollicitudin eget quis dui. Donec at consequat arcu, vel aliquet eros. Aenean a odio enim. Praesent nec tortor quam.
+- Rhoncus est in placerat
+- Proin sed odio vitae metus egestas
+- Sollicitudin eget quis dui
+    - Donec at consequat arcu
+    - vel aliquet eros. Aenean a odio enim
+    - Praesent nec [tortor](https://github.com) quam.
 
-Phasellus auctor non velit quis lacinia.
+Phasellus auctor non velit quis lacinia. Curabitur pharetra, massa vitae tristique mattis, urna risus sodales libero, vel faucibus nunc leo a erat.
+
+Nulla facilisi. Aliquam luctus tortor turpis, non accumsan velit lacinia vitae.
 
 
 ## Aenean quis enim massa
@@ -101,6 +115,9 @@ Etiam et enim euismod, interdum dui ac, sodales tellus. Aenean a pellentesque ne
 
 ## Quam viverra
 
+<img width="800" height="450" src="/media/food.webp" alt="Organic Food"/>
+<!-- <img width="800" height="450" src="" alt=""/> -->
+
 Cras lorem purus, ullamcorper ac lobortis sit amet, ullamcorper in augue. Vivamus posuere faucibus augue, consectetur eleifend mi mollis et. In hac habitasse platea dictumst. Ut scelerisque nulla nec tortor ultrices porta.
 
 Nullam pulvinar velit eleifend porta fringilla. Aliquam tempus neque sit amet lobortis consequat. Curabitur quam nisl, lobortis at tortor at, rhoncus consequat nibh. Pellentesque ut quam viverra, auctor turpis ut, euismod dui. Phasellus luctus ullamcorper diam quis feugiat. Fusce urna dolor, sagittis et cursus in, sagittis sed nibh. Nulla malesuada mi ex, non vestibulum metus pharetra at.
@@ -117,6 +134,8 @@ Curabitur pharetra, massa vitae tristique mattis, urna risus sodales libero, vel
 Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Nam sodales nibh ultrices mauris posuere, eget consequat sapien rutrum. Curabitur id ultrices enim.
 
 ### Etiam sollicitudin, quam a aliquet sodales
+
+Vivamus in tellus hendrerit, blandit turpis sed, bibendum orci.
 
 #### Justo dolor efficitur velit, eu tristique odio ligula quis eros
 

@@ -155,7 +155,7 @@ func (g *Gingersnap) HandlePost(post Post) http.HandlerFunc {
 		rd.Description = post.Description
 		rd.Heading = post.Heading
 		rd.Post = post
-		rd.LatestPosts = g.Posts.Latest()
+		rd.LatestPosts = LimitSlice(g.Posts.Latest(), 4)
 		rd.FeaturedPosts = g.Posts.Featured()
 
 		if post.Image.IsEmpty() {
@@ -883,24 +883,15 @@ func NewPostModel(postsBySlug map[string]Post) *PostModel {
 	})
 
 	// Prepare the latest posts.
-	for i, post := range m.posts {
-		if i == PostLatestLimit {
-			break
-		}
-		m.postsLatest = append(m.postsLatest, post)
-	}
+	m.postsLatest = LimitSlice(m.posts, PostLatestLimit)
 
 	// Prepare the featured posts.
 	for _, post := range m.posts {
-		if len(m.postsFeatured) == PostFeaturedLimit {
-			break
-		}
-
 		if post.Featured {
 			m.postsFeatured = append(m.postsFeatured, post)
 		}
 	}
-
+	m.postsFeatured = LimitSlice(m.postsFeatured, PostFeaturedLimit)
 	return m
 }
 
@@ -1336,6 +1327,19 @@ func Exists(source string) bool {
 		return false
 	}
 	return true
+}
+
+func LimitSlice[V any](items []V, limit int) []V {
+	var newItems []V
+
+	for i, item := range items {
+		if i == limit {
+			break
+		}
+		newItems = append(newItems, item)
+	}
+
+	return newItems
 }
 
 func OpenFile(fs fs.FS, source string) (fs.File, error) {

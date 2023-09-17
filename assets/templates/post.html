@@ -16,22 +16,23 @@
     --link-color:#2563eb;
     --link-color-hov:#1e40af;
     --theme-color: #4f46e5;
-    --code-color: #075985;
+    --code-color: #0c4a6e;
     --margin-size: 1.8rem;
     --font-size: 1.2rem;
     --font-size-sm: 1.15rem;
-    --line-height: 2.1rem;
+    /* --line-height: 2.1rem; */
+    --line-height: 2.025rem;
     --width-small: 750px;
     --width: 1200px;
     --padding: 1.2rem;
 }
-.a26 {margin:0 auto;border-radius:6px;overflow-x:hidden;word-break:break-word;overflow-wrap:break-word;color:var(--nc-tx-2);font-size:var(--font-size);line-height:var(--line-height)}
+.a26 {margin:0 auto;border-radius:6px;overflow-x:hidden;word-break:break-word;overflow-wrap:break-word;color:var(--nc-tx-2);font-size:var(--font-size-sm);line-height:var(--line-height)}
 .a26 address, .a26 area, .a26 article, .a26 aside, .a26 audio, .a26 blockquote, .a26 datalist, .a26 details, .a26 dl, .a26 fieldset, .a26 figure, .a26 form, .a26 iframe, .a26 img, .a26 input, .a26 meter, .a26 nav, .a26 ol, .a26 optgroup, .a26 option, .a26 output, .a26 p, .a26 pre, .a26 progress, .a26 ruby, .a26 section, .a26 table, .a26 textarea, .a26 ul, .a26 video{margin-bottom:var(--margin-size)}
 .a26 a{color:var(--link-color);text-decoration:none}
 .a26 a:hover{color:var(--link-color-hov);text-decoration:underline}
 .a26 abbr:hover{cursor:help}
 .a26 blockquote{padding:1.5rem;background:var(--nc-bg-2);border-left:5px solid var(--nc-bg-3)}
-.a26 blockquote:last-child{padding-bottom:0;margin-bottom:0}
+.a26 blockquote :last-child{padding-bottom:0;margin-bottom:0}
 .a26 abbr{cursor:help}
 .a26 a code{color: inherit !important;background:none;padding:0 1px}
 .a26 code, .a26 kbd, .a26 pre, .a26 samp{font-family:var(--nc-font-mono);background:var(--nc-bg-2);color:var(--code-color);padding:2px 6px;font-size:1.1rem;border-radius:3px}
@@ -56,7 +57,10 @@
 .a26 ol, .a26 ul{padding-left:2rem}
 .a26 li{margin-top:.4rem}
 .a26 ol ol, .a26 ol ul, .a26 ul ol, .a26 ul ul{margin-bottom:0}
-.a26 mark{padding:3px 6px;background:var(--nc-ac-2);color:var(--nc-ac-tx)}
+.a26 ul {list-style-type:square}
+.a26 ul > li > ul {list-style-type:circle}
+.a26 ul > li > ul > li > ul {list-style-type:square}
+.a26 mark{padding:3px 6px;background:var(--nc-ac-2);color:var(--nc-tx-1)}
 .a26 input, .a26 select, .a26 textarea{padding:9px 12px;margin-bottom:.5rem;background:var(--nc-bg-2);color:var(--nc-tx-2);border:1px solid var(--nc-bg-3);border-radius:4px;box-shadow:none;box-sizing:border-box;font-size:1.125rem}
 .a26 img{max-width:100%;height:auto;width:auto;border-radius:4px}
 .a26 h1{line-height:1;color:var(--nc-tx-1);margin-bottom:var(--margin-size);font-weight:700;letter-spacing:0.2px;font-size:2rem}
@@ -126,7 +130,7 @@ article.copy{width:100%;margin-left:auto;margin-right:auto}
         <!-- Featured Articles -->
         <hr class="my-11">
         <p class="text-xl font-semibold text-black mb-6">You May Also Like</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5   hide-last">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-5  hide-last">
             {{range .FeaturedPosts}}
                 <div>
                     <a class="space-y-2" href="{{$siteUrl}}/{{.Slug}}/">
