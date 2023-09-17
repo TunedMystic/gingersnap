@@ -27,6 +27,7 @@
     --padding: 1.2rem;
 }
 .a26 {margin:0 auto;border-radius:6px;overflow-x:hidden;word-break:break-word;overflow-wrap:break-word;color:var(--nc-tx-2);font-size:var(--font-size-sm);line-height:var(--line-height)}
+.a26 :last-child{padding-bottom:0;margin-bottom:0}
 .a26 address, .a26 area, .a26 article, .a26 aside, .a26 audio, .a26 blockquote, .a26 datalist, .a26 details, .a26 dl, .a26 fieldset, .a26 figure, .a26 form, .a26 iframe, .a26 img, .a26 input, .a26 meter, .a26 nav, .a26 ol, .a26 optgroup, .a26 option, .a26 output, .a26 p, .a26 pre, .a26 progress, .a26 ruby, .a26 section, .a26 table, .a26 textarea, .a26 ul, .a26 video{margin-bottom:var(--margin-size)}
 .a26 a{color:var(--link-color);text-decoration:none}
 .a26 a:hover{color:var(--link-color-hov);text-decoration:underline}
@@ -88,7 +89,6 @@ article.copy{width:100%;margin-left:auto;margin-right:auto}
 </style>
 
 <div class="w-full mx-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl px-5">
-    {{$siteUrl := .SiteUrl}}
 
     <!-- Article Copy -->
     <article class="copy">
@@ -103,11 +103,11 @@ article.copy{width:100%;margin-left:auto;margin-right:auto}
             <div class="flex text-slate-500 space-x-2.5 pt-1 mb-9">
                 <p class="publish-date">{{.Post.Pubdate}}</p>
                 <span>&sdot;</span>
-                <p class="text-indigo-600 font-medium tracking-wide uppercase underline"><a href="{{.SiteUrl}}/category/{{.Post.Category.Slug}}/">{{.Post.Category.Title}}</a></p>
+                <p class="text-indigo-600 font-medium tracking-wide uppercase underline"><a href="/category/{{.Post.Category.Slug}}/">{{.Post.Category.Title}}</a></p>
             </div>
 
             <!-- Article Lead Image -->
-            <img class="rounded drop-shadow" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.SiteUrl}}{{.Image.Url}}" alt="{{.Image.Alt}}" />
+            <img class="rounded drop-shadow" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" alt="{{.Image.Alt}}" />
         {{end}}
 
 
@@ -118,29 +118,33 @@ article.copy{width:100%;margin-left:auto;margin-right:auto}
 
 
         {{if not .Post.IsStandalone}}
-            <!-- Latest Articles -->
-            <hr class="my-11">
-            <p class="text-xl font-semibold text-black mb-6">Latest Posts</p>
-            <div class="flex flex-col space-y-4">
-                {{range .LatestPosts}}
-                    <p><a class="font-medium text-lg text-blue-600 hover:text-blue-700 hover:underline" href="{{$siteUrl}}/{{.Slug}}/">{{.Heading}}</a></p>
-                {{end}}
-            </div>
+            {{if .LatestPosts}}
+                <!-- Latest Articles -->
+                <hr class="my-11">
+                <p class="text-xl font-bold text-black mb-6">Latest Posts</p>
+                <div class="flex flex-col space-y-4">
+                    {{range .LatestPosts}}
+                        <p><a class="font-medium text-lg text-blue-600 hover:text-blue-700 hover:underline" href="{{.Route}}">{{.Heading}}</a></p>
+                    {{end}}
+                </div>
+            {{end}}
 
 
-            <!-- Featured Articles -->
-            <hr class="my-11">
-            <p class="text-xl font-semibold text-black mb-6">You May Also Like</p>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-5  hide-last">
-                {{range .FeaturedPosts}}
-                    <div>
-                        <a class="space-y-2" href="{{$siteUrl}}/{{.Slug}}/">
-                            <img class="rounded" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{$siteUrl}}{{.Image.Url}}" alt="{{.Image.Alt}}">
-                            <p class="text-base leading-relaxed text-black font-medium">{{.Heading}}</p>
-                        </a>
-                    </div>
-                {{end}}
-            </div>
+            {{if .FeaturedPosts}}
+                <!-- Featured Articles -->
+                <hr class="my-11">
+                <p class="text-xl font-bold text-black mb-6">You May Also Like</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-5 {{if ne (len .FeaturedPosts) 1}}hide-last{{end}}">
+                    {{range .FeaturedPosts}}
+                        <div>
+                            <a class="space-y-2" href="{{.Route}}">
+                                <img class="rounded" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" alt="{{.Image.Alt}}">
+                                <p class="text-sm leading-relaxed text-black font-medium">{{.Heading}}</p>
+                            </a>
+                        </div>
+                    {{end}}
+                </div>
+            {{end}}
         {{end}}
     </article>
 </div>
