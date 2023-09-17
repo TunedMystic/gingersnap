@@ -101,7 +101,11 @@ article.copy{width:100%;margin-left:auto;margin-right:auto}
         {{if not .Post.IsStandalone}}
             <!-- Article Metadata -->
             <div class="flex text-slate-500 space-x-2.5 pt-1 mb-9">
-                <p class="publish-date">{{.Post.Pubdate}}</p>
+                {{if .Post.Updated}}
+                    <p class="updated-date">Updated on {{.Post.Updated}}</p>
+                {{else}}
+                    <p class="publish-date">Published on {{.Post.Pubdate}}</p>
+                {{end}}
                 <span>&sdot;</span>
                 <p class="text-indigo-600 font-medium tracking-wide uppercase underline"><a href="/category/{{.Post.Category.Slug}}/">{{.Post.Category.Title}}</a></p>
             </div>

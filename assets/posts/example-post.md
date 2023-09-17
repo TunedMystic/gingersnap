@@ -7,6 +7,7 @@ category: SQL
 image_url: /media/big-computer.webp
 image_alt: SQLite Full-Text Search
 pubdate: 2023-01-21
+updated: 2023-01-23
 featured: true
 ---
 
