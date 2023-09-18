@@ -141,7 +141,49 @@ func (g *Gingersnap) AllUrls() ([]string, error) {
 //
 // ------------------------------------------------------------------
 
+type PostSection struct {
+	Title    string
+	Posts    []Post
+	Category Category
+}
+
 func (g *Gingersnap) HandleIndex() http.HandlerFunc {
+	var sections []PostSection
+
+	for _, slug := range g.Config.Homepage {
+
+		// If specified, then gather the "latest" posts.
+
+		if slug == SectionLatest {
+			section := PostSection{
+				Posts: g.Posts.Latest(),
+			}
+			sections = append(sections, section)
+			continue
+		}
+
+		// Gather the posts for the specified category.
+		// Raise error if category is not found.
+
+		cat, ok := g.Categories.BySlug(slug)
+		if !ok {
+			panic(fmt.Sprintf("homepage section error: cannot find category [%s]", slug))
+		}
+
+		posts, ok := g.Posts.ByCategory(cat)
+		if !ok {
+			panic(fmt.Sprintf("homepage section error: no posts found for category [%s]", slug))
+		}
+
+		section := PostSection{
+			Title:    cat.Title,
+			Posts:    LimitSlice(posts, LimitSection),
+			Category: cat,
+		}
+		sections = append(sections, section)
+
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// Handle 404
@@ -151,8 +193,7 @@ func (g *Gingersnap) HandleIndex() http.HandlerFunc {
 		}
 
 		rd := g.NewRenderData(r)
-		rd.FeaturedPosts = g.Posts.Featured()
-		rd.LatestPosts = g.Posts.Latest()
+		rd.PostSections = sections
 
 		g.Render(w, http.StatusOK, "index", &rd)
 	}
@@ -399,7 +440,7 @@ func (g *Gingersnap) render404(w http.ResponseWriter, status int) {
 	rd := g.NewRenderData(nil)
 	rd.AppError = "404"
 	rd.Title = fmt.Sprintf("Page Not Found - %s", g.Config.Site.Name)
-	rd.LatestPosts = LimitSlice(g.Posts.Latest(), LimitLatestSm)
+	rd.LatestPosts = LimitSlice(g.Posts.Latest(), LimitLatest)
 
 	g.Render(w, status, "error", &rd)
 }
@@ -415,7 +456,7 @@ func (g *Gingersnap) ErrInternalServer(w http.ResponseWriter, err error) {
 	rd := g.NewRenderData(nil)
 	rd.AppError = "500"
 	rd.Title = fmt.Sprintf("Internal Server Error - %s", g.Config.Site.Name)
-	rd.LatestPosts = LimitSlice(g.Posts.Latest(), LimitLatestSm)
+	rd.LatestPosts = LimitSlice(g.Posts.Latest(), LimitLatest)
 
 	if g.Config.Debug {
 		rd.AppTrace = trace
@@ -605,6 +646,9 @@ type Config struct {
 	// Site-specific settings
 	Site Site `json:"site"`
 
+	// Homepage sections
+	Homepage []string `json:"homepage"`
+
 	// Anchor links for the navbar
 	NavbarLinks []Link `json:"navbarLinks"`
 
@@ -665,6 +709,12 @@ func NewConfig(configBytes []byte, debug bool) (*Config, error) {
 		config.Site.Host = fmt.Sprintf("localhost%s", config.ListenAddr)
 		config.Site.Url = fmt.Sprintf("http://%s", config.Site.Host)
 		config.Site.Email = fmt.Sprintf("admin@%s", config.Site.Host)
+	}
+
+	// If no Homepage sections are defined, then create
+	// a default setup with the "$latest" posts only.
+	if config.Homepage == nil {
+		config.Homepage = []string{SectionLatest}
 	}
 
 	return config, nil
@@ -734,6 +784,7 @@ type RenderData struct {
 	LatestPosts   []Post
 	RelatedPosts  []Post
 	FeaturedPosts []Post
+	PostSections  []PostSection
 
 	// Category data
 	Category   Category
@@ -945,7 +996,7 @@ func NewPostModel(postsBySlug map[string]Post) *PostModel {
 	}
 
 	// Prepare the latest posts.
-	m.postsLatest = LimitSlice(m.posts, LimitLatestLg)
+	m.postsLatest = LimitSlice(m.posts, LimitLatest)
 
 	// Prepare the featured posts.
 	for _, post := range m.posts {
@@ -1597,34 +1648,6 @@ func CopyFile(fsys fs.FS, src, dst string) error {
 // ------------------------------------------------------------------
 //
 //
-// Constants and embedded assets
-//
-//
-// ------------------------------------------------------------------
-
-//go:embed "assets"
-var Assets embed.FS
-
-//go:embed "assets/templates"
-var Templates embed.FS
-
-const ImageWidth = "800"
-const ImageHeight = "450"
-const ImageType = "webp"
-
-const LimitFeatured = 3
-const LimitLatestLg = 20
-const LimitLatestSm = 12
-const LimitLatestPostDetail = 4
-
-// The directory where the static site will be exported to.
-// This is only a temporary directory. To fully deploy the site,
-// the exported site must be moved to the production site repository.
-const ExportDir = "dist"
-
-// ------------------------------------------------------------------
-//
-//
 // External config and utilities
 //
 //
@@ -1815,3 +1838,33 @@ func (g *Gingersnap) Export() error {
 
 	return exporter.Export()
 }
+
+// ------------------------------------------------------------------
+//
+//
+// Constants and embedded assets
+//
+//
+// ------------------------------------------------------------------
+
+//go:embed "assets"
+var Assets embed.FS
+
+//go:embed "assets/templates"
+var Templates embed.FS
+
+const ImageWidth = "800"
+const ImageHeight = "450"
+const ImageType = "webp"
+
+const LimitFeatured = 3
+const LimitLatest = 9
+const LimitSection = 6
+const LimitLatestPostDetail = 4
+
+// The directory where the static site will be exported to.
+// This is only a temporary directory. To fully deploy the site,
+// the exported site must be moved to the production site repository.
+const ExportDir = "dist"
+
+const SectionLatest = "$latest"

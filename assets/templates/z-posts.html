@@ -2,9 +2,9 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12 mb-20">
         {{range .}}
             <div>
-                <a class="flex flex-col space-y-3" href="/{{.Slug}}">
+                <a class="flex flex-col space-y-2.5" href="/{{.Slug}}">
                     <img class="rounded drop-shadow" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" alt="{{.Image.Alt}}">
-                    <p class="text-lg leading-relaxed text-black font-semibold pt-1">{{.Heading}}</p>
+                    <p class="text-lg leading-snug text-black font-semibold pt-2">{{.Heading}}</p>
                 </a>
                 <p class="text-sm leading-relaxed text-slate-700 mt-2">{{.Description}}</p>
             </div>

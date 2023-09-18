@@ -2,15 +2,17 @@
 {{template "page" .}}
 <div class="w-full mx-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl px-5">
 
-    {{if .FeaturedPosts}}
-        <h2 class="font-bold text-4xl text-slate-800 underline decoration-indigo-600 leading-relaxed mb-7">Featured</h2>
-        {{template "post-grid" .FeaturedPosts}}
-    {{end}}
+    {{range .PostSections}}
 
-
-    {{if .LatestPosts}}
-        <h2 class="font-bold text-4xl text-slate-800 underline decoration-indigo-600 leading-relaxed mb-7">Latest Posts</h2>
-        {{template "post-grid" .LatestPosts}}
+        <div class="flex items-center justify-between mb-7">
+            {{if .Category.IsEmpty}}
+                <h2 class="font-bold text-3xl text-slate-800 underline decoration-indigo-600 leading-relaxed">Latest Posts</h2>
+            {{else}}
+                <h2 class="font-bold text-3xl text-slate-800 underline decoration-indigo-600 leading-relaxed">{{.Category.Title}}</h2>
+                <p class="text-sm text-slate-500">See all in <a class="text-blue-600 underline" href="{{.Category.Route}}">{{.Category.Title}} &raquo;</a></p>
+            {{end}}
+        </div>
+        {{template "post-grid" .Posts}}
     {{end}}
 
 </div>

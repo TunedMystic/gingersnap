@@ -95,13 +95,12 @@ article.copy{width:100%;margin-left:auto;margin-right:auto}
 
 
         <!-- Article Heading -->
-        <!-- <h1 class="font-bold text-3xl text-black mb-3">{{.Heading}}</h1> -->
-        <h1 class="font-bold text-black mb-3" style="font-size: 2.1rem; line-height: 2.8rem;">{{.Title}}</h1>
+        <h1 class="font-bold text-3xl text-black mb-3">{{.Heading}}</h1>
 
 
         {{if .Post.IsBlog}}
             <!-- Article Metadata -->
-            <div class="flex text-slate-500 space-x-2.5 pt-1 mb-9">
+            <div class="flex text-slate-500 space-x-2.5 pt-1 mb-8">
                 {{if .Post.Updated}}
                     <p class="updated-date">Updated on {{.Post.Updated}}</p>
                 {{else}}
@@ -131,7 +130,7 @@ article.copy{width:100%;margin-left:auto;margin-right:auto}
                 <p class="text-xl font-bold text-black mb-6">Latest Posts</p>
                 <div class="flex flex-col space-y-4">
                     {{range .LatestPosts}}
-                        <p><a class="font-medium text-lg text-blue-600 hover:text-blue-700 hover:underline" href="{{.Route}}">{{.Heading}}</a></p>
+                        <p><a class="font-medium text-lg text-blue-600 hover:text-blue-700 hover:underline" href="{{.Route}}">{{.Title}}</a></p>
                     {{end}}
                 </div>
             {{end}}

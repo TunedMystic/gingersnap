@@ -5,6 +5,11 @@
 		"tagline": "The snappy starter project with Go and SQLite!",
 		"description": "The snappy starter project, built with Go and SQLite. Get up and running with only one command. Dockerize and deploy when you're ready to ship!"
 	},
+	"homepage": [
+		"python",
+		"golang",
+		"$latest"
+	],
 	"navbarLinks": [
 		{"text": "Golang", "route": "/category/golang/"},
 		{"text": "Python", "route": "/category/python/"},
