@@ -7,9 +7,16 @@
         <h1 class="font-bold text-3xl text-black mb-3">{{.Heading}}</h1>
 
         {{range .Posts}}
-            <div class="flex items-center justify-between text-lg">
-                <p><a class="text-blue-600 hover:text-blue-800 hover:underline" href="{{.Route}}">{{.Heading}}</a></p>
-                <span class="text-slate-700">{{.Pubdate}}</span>
+            <div class="w-full flex items-center justify-between border-b border-slate-100">
+
+                <p class="w-9/12">
+                    <a class="font-medium text-blue-600 hover:text-blue-800 hover:underline" href="{{.Route}}">{{.Heading}}</a>
+                </p>
+
+                <p class="w-3/12 flex justify-end text-slate-400">
+                    {{if .Updated}}{{.Updated}}{{else}}{{.Pubdate}}{{end}}
+                </p>
+
             </div>
         {{end}}
 

@@ -4,6 +4,7 @@ heading: About
 slug: about
 description: Hey there, welcome to Gingersnap! I'm Lisa Wong, the site's author and content creator.
 pubdate: 2023-03-14
+page: true
 ---
 
 <img width="800" height="450" src="/media/lisa.webp" alt="Lisa Wong"/>

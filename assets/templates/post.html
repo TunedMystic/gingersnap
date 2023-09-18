@@ -95,10 +95,11 @@ article.copy{width:100%;margin-left:auto;margin-right:auto}
 
 
         <!-- Article Heading -->
-        <h1 class="font-bold text-3xl text-black mb-3">{{.Heading}}</h1>
+        <!-- <h1 class="font-bold text-3xl text-black mb-3">{{.Heading}}</h1> -->
+        <h1 class="font-bold text-black mb-3" style="font-size: 2.1rem; line-height: 2.8rem;">{{.Title}}</h1>
 
 
-        {{if not .Post.IsStandalone}}
+        {{if .Post.IsBlog}}
             <!-- Article Metadata -->
             <div class="flex text-slate-500 space-x-2.5 pt-1 mb-9">
                 {{if .Post.Updated}}
@@ -111,17 +112,19 @@ article.copy{width:100%;margin-left:auto;margin-right:auto}
             </div>
 
             <!-- Article Lead Image -->
-            <img class="rounded drop-shadow" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" alt="{{.Image.Alt}}" />
+            {{if .Post.ShowLead}}
+                <img class="rounded drop-shadow mb-8" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" alt="{{.Image.Alt}}" />
+            {{end}}
         {{end}}
 
 
         <!-- Article Content -->
-        <div class="pt-8 a26">
+        <div class="a26">
             {{safe .Post.Body}}
         </div>
 
 
-        {{if not .Post.IsStandalone}}
+        {{if .Post.IsBlog}}
             {{if .LatestPosts}}
                 <!-- Latest Articles -->
                 <hr class="my-11">
@@ -138,7 +141,7 @@ article.copy{width:100%;margin-left:auto;margin-right:auto}
                 <!-- Featured Articles -->
                 <hr class="my-11">
                 <p class="text-xl font-bold text-black mb-6">You May Also Like</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-5 {{if ne (len .FeaturedPosts) 1}}hide-last{{end}}">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-5">
                     {{range .FeaturedPosts}}
                         <div>
                             <a class="space-y-2" href="{{.Route}}">

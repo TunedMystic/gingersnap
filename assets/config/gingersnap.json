@@ -15,6 +15,7 @@
 		{"text": "Home", "route": "/"},
 		{"text": "About Us", "route": "/about/"},
 		{"text": "Contact", "route": "/contact/"},
+		{"text": "Sitemap", "route": "/sitemap/"},
 		{"text": "Privacy Policy", "route": "/privacy-policy/"},
 		{"text": "Terms of Service", "route": "/terms-of-service/"}
 	],

@@ -78,8 +78,13 @@ func (g *Gingersnap) Routes() http.Handler {
 		r.Handle(cat.Route(), g.HandleCategory(cat))
 	}
 
-	// Build post routes
+	// Build routes for all blog posts.
 	for _, post := range g.Posts.All() {
+		r.Handle(post.Route(), g.HandlePost(post))
+	}
+
+	// Build routes for all standalone posts (pages).
+	for _, post := range g.Posts.Pages() {
 		r.Handle(post.Route(), g.HandlePost(post))
 	}
 
@@ -89,7 +94,7 @@ func (g *Gingersnap) Routes() http.Handler {
 // AllUrls returns all urls of the server.
 // .
 func (g *Gingersnap) AllUrls() ([]string, error) {
-	urls := []string{"/", "/styles.css", "/sitemap.xml", "/robots.txt", "/CNAME", "/404/"}
+	urls := []string{"/", "/styles.css", "/sitemap/", "/sitemap.xml", "/robots.txt", "/CNAME", "/404/"}
 
 	// Open the media directory.
 	f, err := g.Media.Open(".")
@@ -110,8 +115,13 @@ func (g *Gingersnap) AllUrls() ([]string, error) {
 		}
 	}
 
-	// Build routes for all posts.
+	// Build routes for all blog posts.
 	for _, post := range g.Posts.All() {
+		urls = append(urls, post.Route())
+	}
+
+	// Build routes for all standalone posts (pages).
+	for _, post := range g.Posts.Pages() {
 		urls = append(urls, post.Route())
 	}
 
@@ -274,7 +284,7 @@ func (g *Gingersnap) HandleSitemapXml() http.HandlerFunc {
 		urlSet[permalink(cat.Route())] = ""
 	}
 
-	// Add sitemap entries for all the posts.
+	// Add sitemap entries for all the blog posts.
 	for _, post := range g.Posts.All() {
 		lastMod := ""
 
@@ -283,6 +293,11 @@ func (g *Gingersnap) HandleSitemapXml() http.HandlerFunc {
 		}
 
 		urlSet[permalink(post.Route())] = lastMod
+	}
+
+	// Add sitemap entries for all the standalone posts (pages).
+	for _, post := range g.Posts.Pages() {
+		urlSet[permalink(post.Route())] = ""
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -302,13 +317,25 @@ func (g *Gingersnap) HandleSitemapXml() http.HandlerFunc {
 }
 
 func (g *Gingersnap) HandleSitemapHtml() http.HandlerFunc {
+
+	// Gather the posts.
+	var posts []Post
+	for _, post := range g.Posts.All() {
+		posts = append(posts, post)
+	}
+
+	// Sort the posts by latest timestamp.
+	sort.SliceStable(posts, func(i, j int) bool {
+		return posts[i].LatestTS() > posts[j].LatestTS()
+	})
+
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		rd := g.NewRenderData(r)
 		rd.Title = fmt.Sprintf("Sitemap - Browse through all Posts on %s", g.Config.Site.Name)
 		rd.Description = fmt.Sprintf("Browse through the sitemap on %s and take a look at our posts.", g.Config.Site.Name)
 		rd.Heading = "Posts"
-		rd.Posts = g.Posts.Articles()
+		rd.Posts = posts
 
 		g.Render(w, http.StatusOK, "sitemap", &rd)
 	}
@@ -761,6 +788,18 @@ func (g *Gingersnap) NewRenderData(r *http.Request) RenderData {
 // Post represents an article or a web page.
 // .
 type Post struct {
+	// If the Post is a standalone post (page)
+	IsPage bool
+
+	// If the Post is a blog post
+	IsBlog bool
+
+	// If the post is a featured post
+	IsFeatured bool
+
+	// If the lead image should be displayed
+	ShowLead bool
+
 	// An FNV-1a hash of the slug
 	Hash int
 
@@ -785,9 +824,6 @@ type Post struct {
 	// The post body
 	Body string
 
-	// Is the post featured on the homepage?
-	Featured bool
-
 	// The publish date - January 2, 2006
 	Pubdate string
 
@@ -799,13 +835,6 @@ type Post struct {
 
 	// The updated date, as a UNIX timestamp
 	UpdatedTS int
-}
-
-// IsStandalone reports if the Post should be rendered
-// as a standalone page, or as a blog post.
-// .
-func (p *Post) IsStandalone() bool {
-	return p.Image.IsEmpty() || p.Category.IsEmpty()
 }
 
 // LatestTS returns the Post's latest timestamped date.
@@ -866,7 +895,7 @@ func (c *Category) Route() string {
 // .
 type PostModel struct {
 	posts           []Post
-	articles        []Post
+	pages           []Post
 	postsLatest     []Post
 	postsFeatured   []Post
 	postsBySlug     map[string]Post
@@ -874,9 +903,13 @@ type PostModel struct {
 }
 
 func NewPostModel(postsBySlug map[string]Post) *PostModel {
+
+	// Note: the `postsBySlug` map contains
+	//       blog posts AND standalone posts (pages).
+
 	m := &PostModel{
 		posts:           nil,
-		articles:        nil,
+		pages:           nil,
 		postsLatest:     nil,
 		postsFeatured:   nil,
 		postsBySlug:     postsBySlug,
@@ -884,14 +917,24 @@ func NewPostModel(postsBySlug map[string]Post) *PostModel {
 	}
 
 	// Gather the posts from the map.
+	var posts []Post
 	for _, post := range m.postsBySlug {
-		m.posts = append(m.posts, post)
+		posts = append(posts, post)
 	}
 
-	// Sort the posts by latest timestamp.
-	sort.SliceStable(m.posts, func(i, j int) bool {
-		return m.posts[i].PubdateTS > m.posts[j].PubdateTS
+	// Sort the posts by pubdate timestamp.
+	sort.SliceStable(posts, func(i, j int) bool {
+		return posts[i].PubdateTS > posts[j].PubdateTS
 	})
+
+	// Separate the posts into blog posts and standalone posts (pages).
+	for _, post := range posts {
+		if post.IsBlog {
+			m.posts = append(m.posts, post)
+		} else {
+			m.pages = append(m.pages, post)
+		}
+	}
 
 	// Prepare the posts by category.
 	for _, post := range m.posts {
@@ -901,21 +944,12 @@ func NewPostModel(postsBySlug map[string]Post) *PostModel {
 		}
 	}
 
-	// Filter out the standalone posts.
-	var articles []Post
-	for _, post := range m.posts {
-		if !post.IsStandalone() {
-			articles = append(articles, post)
-		}
-	}
-	m.articles = articles
-
 	// Prepare the latest posts.
-	m.postsLatest = LimitSlice(m.articles, LimitLatestLg)
+	m.postsLatest = LimitSlice(m.posts, LimitLatestLg)
 
 	// Prepare the featured posts.
-	for _, post := range m.articles {
-		if post.Featured {
+	for _, post := range m.posts {
+		if post.IsFeatured {
 			m.postsFeatured = append(m.postsFeatured, post)
 		}
 	}
@@ -927,8 +961,8 @@ func (m *PostModel) All() []Post {
 	return m.posts
 }
 
-func (m *PostModel) Articles() []Post {
-	return m.articles
+func (m *PostModel) Pages() []Post {
+	return m.pages
 }
 
 func (m *PostModel) Latest() []Post {
@@ -947,14 +981,6 @@ func (m *PostModel) ByCategory(c Category) ([]Post, bool) {
 func (m *PostModel) BySlug(s string) (Post, bool) {
 	post, ok := m.postsBySlug[s]
 	return post, ok
-}
-
-func (m *PostModel) Slugs() []string {
-	var slugs []string
-	for _, post := range m.posts {
-		slugs = append(slugs, post.Slug)
-	}
-	return slugs
 }
 
 // ------------------------------------------------------------------
@@ -1072,30 +1098,54 @@ func (pr *Processor) processPost(mkdownBytes []byte) error {
 	// Parse the file contents.
 	doc := pr.Markdown.Parser().Parse(text.NewReader(mkdownBytes))
 
-	// Get the document metadata.
-	metadata := doc.OwnerDocument().Meta()
+	m := MetadataParser{}
 
-	// Render the markdown content to a buffer.
-	buf := new(bytes.Buffer)
-	if err := pr.Markdown.Renderer().Render(buf, mkdownBytes, doc); err != nil {
+	// Get the document metadata, and construct a metadata parser.
+	if metadata := doc.OwnerDocument().Meta(); metadata != nil {
+
+		m.label = "unknown post"
+		if slug, ok := metadata["slug"]; ok {
+			m.label = slug.(string)
+		}
+
+		m.metadata = metadata
+	}
+
+	// Skip processing if the document is marked as draft.
+	if isDraft := m.GetBool("draft", false); isDraft {
+		return nil
+	}
+
+	// Parse title from metadata --------------------------
+	title, err := m.GetRequiredString("title")
+	if err != nil {
 		return err
 	}
 
-	// Retrieve fields from the markdown metadata.
-	title := metadata["title"].(string)
-	heading := metadata["heading"].(string)
-	slug := metadata["slug"].(string)
-	description := metadata["description"].(string)
-
-	// Skip processing if the document is marked as draft.
-	draft := false
-	if _, ok := metadata["draft"]; ok {
-		draft = metadata["draft"].(bool)
-		if draft {
-			fmt.Printf("skipping draft: %s\n", title)
-			return nil
-		}
+	// Parse heading from metadata ------------------------
+	heading, err := m.GetRequiredString("heading")
+	if err != nil {
+		return err
 	}
+
+	// Parse slug from metadata ---------------------------
+	slug, err := m.GetRequiredString("slug")
+	if err != nil {
+		return err
+	}
+
+	// Parse description from metadata --------------------
+	description, err := m.GetRequiredString("description")
+	if err != nil {
+		return err
+	}
+
+	// Parse featured from metadata -----------------------
+	isFeatured := m.GetBool("featured", false)
+
+	// Parse page from metadata ---------------------------
+	isPage := m.GetBool("page", false)
+	isBlog := !isPage
 
 	// This check ensures that post slugs remain unique by guarding
 	// against slug collision.
@@ -1103,89 +1153,95 @@ func (pr *Processor) processPost(mkdownBytes []byte) error {
 		return fmt.Errorf("post collision [%s]\n", slug)
 	}
 
-	// Retrieve the featured field.
-	featured := false
-	if _, ok := metadata["featured"]; ok {
-		featured = metadata["featured"].(bool)
-	}
-
-	// Retrieve the pubdate field.
+	// Parse pubdate from metadata ------------------------
 	pubdate := ""
 	pubdateTs := 0
-	// check that the pubdate value is a valid date.
-	pd, err := time.Parse(time.DateOnly, metadata["pubdate"].(string))
 
-	if err != nil {
-		return fmt.Errorf("failed to parse pubdate %w", err)
-	} else {
-		pubdate = pd.Format("January 2, 2006")
-		pubdateTs = int(pd.Unix())
-	}
-
-	// Retrieve the updated field
 	updated := ""
 	updatedTs := 0
-	if _, ok := metadata["updated"]; ok {
-		// check that the updated value is a valid date.
-		ud, err := time.Parse(time.DateOnly, metadata["updated"].(string))
 
+	if isBlog {
+		pubdate, pubdateTs, err = m.GetRequiredDate("pubdate")
 		if err != nil {
-			return fmt.Errorf("failed to parse pubdate %w", err)
-		} else {
-			updated = ud.Format("January 2, 2006")
-			updatedTs = int(ud.Unix())
+			return err
+		}
+
+		updated, updatedTs, err = m.GetDate("updated")
+		if err != nil {
+			return err
 		}
 	}
 
-	// Retrieve the category field.
-	category := Category{}
-	if _, ok := metadata["category"]; ok {
-		categoryTitle := metadata["category"].(string)
-		categorySlug := Slugify(categoryTitle)
+	// Parse category from metadata -----------------------
+	cat := Category{}
 
-		// If multiple categories differ in case (ex 'Gardening Tips' and 'GarDENing TIPS'),
-		// then they produce unique categories with the SAME SLUG.
-		// This check ensures that category slugs remain unique by guarding
-		// against category collision.
-		if ct, exists := pr.CategoriesBySlug[categorySlug]; exists {
-			if ct.Title != categoryTitle {
-				return fmt.Errorf("category collision [%s] and [%s]\n", ct.Title, categoryTitle)
-			}
+	if isBlog {
+		cat.Title, err = m.GetRequiredString("category")
+		if err != nil {
+			return err
 		}
 
-		category = Category{
-			Title: categoryTitle,
-			Slug:  categorySlug,
+		cat.Slug = Slugify(cat.Title)
+
+		// If multiple categories differ in case (ex 'Gardening Tips' and 'GarDENing TIPS'),
+		// then they produce categories with the SAME SLUG, which is a problem.
+		// This check ensures that category slugs remain unique by guarding
+		// against category collision.
+		if existingCat, exists := pr.CategoriesBySlug[cat.Slug]; exists {
+			if existingCat.Title != cat.Title {
+				return fmt.Errorf("category collision [%s] and [%s]\n", existingCat.Title, cat.Title)
+			}
 		}
 
 		// Save the category.
 		//
 		// At this point, overwriting the category does not produce
 		// any negative effect because it is effectively the same.
-		pr.CategoriesBySlug[categorySlug] = category
+		pr.CategoriesBySlug[cat.Slug] = cat
 	}
 
-	// Retrieve the lead image fields.
-	image := Image{}
-	if _, ok := metadata["image_url"]; ok {
-		image.Url = metadata["image_url"].(string)
-		image.Alt = metadata["image_alt"].(string)
-		image.Type = ImageType
-		image.Width = ImageWidth
-		image.Height = ImageHeight
+	// Parse hide_image from metadata ---------------------
+	showLead := !m.GetBool("hide_image", false)
+
+	// Parse image from metadata --------------------------
+	img := Image{}
+
+	if isBlog {
+		img.Url, err = m.GetRequiredString("image_url")
+		if err != nil {
+			return err
+		}
+
+		img.Alt, err = m.GetRequiredString("image_alt")
+		if err != nil {
+			return err
+		}
+
+		img.Type = ImageType
+		img.Width = ImageWidth
+		img.Height = ImageHeight
+	}
+
+	// Render the markdown content to a buffer.
+	buf := new(bytes.Buffer)
+	if err := pr.Markdown.Renderer().Render(buf, mkdownBytes, doc); err != nil {
+		return fmt.Errorf("error when rendering body: %w", err)
 	}
 
 	// Construct a Post object.
 	post := Post{
+		IsPage:      isPage,
+		IsBlog:      isBlog,
+		IsFeatured:  isFeatured,
+		ShowLead:    showLead,
 		Hash:        HashSimple(slug),
 		Slug:        slug,
 		Title:       title,
 		Heading:     heading,
 		Description: description,
-		Category:    category,
-		Image:       image,
+		Category:    cat,
+		Image:       img,
 		Body:        buf.String(),
-		Featured:    featured,
 		Pubdate:     pubdate,
 		PubdateTS:   pubdateTs,
 		Updated:     updated,
@@ -1195,6 +1251,75 @@ func (pr *Processor) processPost(mkdownBytes []byte) error {
 	pr.PostsBySlug[slug] = post
 
 	return nil
+}
+
+// MetadataParser helps to parse markdown metadata.
+// .
+type MetadataParser struct {
+	label    string
+	metadata map[string]interface{}
+}
+
+// GetBool retrieves and converts a metadata value into a boolean.
+// .
+func (m *MetadataParser) GetBool(key string, defaultVal bool) bool {
+	if !m.exists(key) {
+		return defaultVal
+	}
+	return m.metadata[key].(bool)
+}
+
+// GetString retrieves and converts a metadata value into a string.
+// .
+func (m *MetadataParser) GetString(key string, defaultVal string) (string, error) {
+	if !m.exists(key) {
+		return defaultVal, nil
+	}
+	return m.metadata[key].(string), nil
+}
+
+// GetRequiredString retrieves and converts a metadata value into a string.
+// If not found, then an error is returned.
+// .
+func (m *MetadataParser) GetRequiredString(key string) (string, error) {
+	if !m.exists(key) {
+		return "", fmt.Errorf("%s is required [%s]", key, m.label)
+	}
+	return m.metadata[key].(string), nil
+}
+
+// GetDate retrieves and converts a metadata value into
+// a time-formatted string and a unix timestamp.
+// .
+func (m *MetadataParser) GetDate(key string) (string, int, error) {
+	if !m.exists(key) {
+		return "", 0, nil
+	}
+	return m.parseDate(key)
+}
+
+// GetRequiredDate retrieves and converts a metadata value into
+// a time-formatted string and a unix timestamp.
+// If not found, then an error is returned.
+// .
+func (m *MetadataParser) GetRequiredDate(key string) (string, int, error) {
+	if !m.exists(key) {
+		return "", 0, fmt.Errorf("%s is required [%s]", key, m.label)
+	}
+	return m.parseDate(key)
+}
+
+func (m *MetadataParser) parseDate(key string) (string, int, error) {
+	pd, err := time.Parse(time.DateOnly, m.metadata[key].(string))
+	if err != nil {
+		return "", 0, fmt.Errorf("failed to parse %s [%s] %w", key, m.label, err)
+	}
+	return pd.Format("January 2, 2006"), int(pd.Unix()), nil
+}
+
+func (m *MetadataParser) exists(key string) bool {
+	_, ok := m.metadata[key]
+	return ok
 }
 
 // ------------------------------------------------------------------
@@ -1487,7 +1612,7 @@ const ImageWidth = "800"
 const ImageHeight = "450"
 const ImageType = "webp"
 
-const LimitFeatured = 4
+const LimitFeatured = 3
 const LimitLatestLg = 20
 const LimitLatestSm = 12
 const LimitLatestPostDetail = 4
