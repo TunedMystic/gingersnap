@@ -2,8 +2,7 @@
 {{template "page" .}}
 <div class="w-full mx-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl px-5">
 
-    {{range .PostSections}}
-
+    {{range .Sections}}
         <div class="flex items-center justify-between mb-7">
             {{if .Category.IsEmpty}}
                 <h2 class="font-bold text-3xl text-slate-800 underline decoration-indigo-600 leading-relaxed">Latest Posts</h2>

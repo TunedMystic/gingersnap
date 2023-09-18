@@ -141,30 +141,37 @@ func (g *Gingersnap) AllUrls() ([]string, error) {
 //
 // ------------------------------------------------------------------
 
-type PostSection struct {
-	Title    string
-	Posts    []Post
+type Section struct {
 	Category Category
+	Posts    []Post
 }
 
 func (g *Gingersnap) HandleIndex() http.HandlerFunc {
-	var sections []PostSection
+	var sections []Section
 
 	for _, slug := range g.Config.Homepage {
 
 		// If specified, then gather the "latest" posts.
-
 		if slug == SectionLatest {
-			section := PostSection{
-				Posts: g.Posts.Latest(),
+
+			categoryLatest := Category{
+				Slug:  "",
+				Title: "Latest Posts",
 			}
+
+			// Create the section.
+			section := Section{
+				Category: categoryLatest,
+				Posts:    g.Posts.Latest(),
+			}
+
+			// Add the section.
 			sections = append(sections, section)
 			continue
 		}
 
 		// Gather the posts for the specified category.
 		// Raise error if category is not found.
-
 		cat, ok := g.Categories.BySlug(slug)
 		if !ok {
 			panic(fmt.Sprintf("homepage section error: cannot find category [%s]", slug))
@@ -175,11 +182,13 @@ func (g *Gingersnap) HandleIndex() http.HandlerFunc {
 			panic(fmt.Sprintf("homepage section error: no posts found for category [%s]", slug))
 		}
 
-		section := PostSection{
-			Title:    cat.Title,
-			Posts:    LimitSlice(posts, LimitSection),
+		// Create the section.
+		section := Section{
 			Category: cat,
+			Posts:    LimitSlice(posts, LimitSection),
 		}
+
+		// Add the section.
 		sections = append(sections, section)
 
 	}
@@ -193,7 +202,7 @@ func (g *Gingersnap) HandleIndex() http.HandlerFunc {
 		}
 
 		rd := g.NewRenderData(r)
-		rd.PostSections = sections
+		rd.Sections = sections
 
 		g.Render(w, http.StatusOK, "index", &rd)
 	}
@@ -784,11 +793,13 @@ type RenderData struct {
 	LatestPosts   []Post
 	RelatedPosts  []Post
 	FeaturedPosts []Post
-	PostSections  []PostSection
 
 	// Category data
 	Category   Category
 	Categories []Category
+
+	// Homepage layout
+	Sections []Section
 
 	// Anchor links
 	NavbarLinks []Link
