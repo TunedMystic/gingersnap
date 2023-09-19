@@ -94,7 +94,18 @@ func (g *Gingersnap) Routes() http.Handler {
 // AllUrls returns all urls of the server.
 // .
 func (g *Gingersnap) AllUrls() ([]string, error) {
-	urls := []string{"/", "/styles.css", "/sitemap/", "/sitemap.xml", "/robots.txt", "/CNAME", "/404/"}
+	urls := []string{
+		"/",
+		"/styles.css",
+		"/sitemap/",
+		"/sitemap.xml",
+		"/robots.txt",
+		"/CNAME",
+		"/404/",
+	}
+
+	// Note: for "/media/", we read media files
+	//       directly from the filesystem.
 
 	// Open the media directory.
 	f, err := g.Media.Open(".")
@@ -141,14 +152,10 @@ func (g *Gingersnap) AllUrls() ([]string, error) {
 //
 // ------------------------------------------------------------------
 
-type Section struct {
-	Category Category
-	Posts    []Post
-}
-
 func (g *Gingersnap) HandleIndex() http.HandlerFunc {
 	var sections []Section
 
+	// Create sections for rendering the homepage.
 	for _, slug := range g.Config.Homepage {
 
 		// If specified, then gather the "latest" posts.
@@ -185,7 +192,7 @@ func (g *Gingersnap) HandleIndex() http.HandlerFunc {
 		// Create the section.
 		section := Section{
 			Category: cat,
-			Posts:    LimitSlice(posts, LimitSection),
+			Posts:    posts[:min(LimitSection, len(posts))],
 		}
 
 		// Add the section.
@@ -194,6 +201,8 @@ func (g *Gingersnap) HandleIndex() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		g.Logger.Printf("latest posts: %v\n", g.Posts.Latest())
+		g.Logger.Printf("featured posts: %v\n", g.Posts.Featured())
 
 		// Handle 404
 		if r.URL.Path != "/" {
@@ -208,7 +217,7 @@ func (g *Gingersnap) HandleIndex() http.HandlerFunc {
 	}
 }
 
-func (g *Gingersnap) HandlePost(post Post) http.HandlerFunc {
+func (g *Gingersnap) HandlePost(post *Post) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		rd := g.NewRenderData(r)
@@ -216,7 +225,7 @@ func (g *Gingersnap) HandlePost(post Post) http.HandlerFunc {
 		rd.Description = post.Description
 		rd.Heading = post.Heading
 		rd.Post = post
-		rd.LatestPosts = LimitSlice(g.Posts.Latest(), LimitLatestPostDetail)
+		rd.LatestPosts = g.Posts.Latest()[:min(LimitLatestPostDetail, len(g.Posts.Latest()))]
 		rd.FeaturedPosts = g.Posts.Featured()
 
 		if post.Image.IsEmpty() {
@@ -318,7 +327,7 @@ func (g *Gingersnap) HandleSitemapXml() http.HandlerFunc {
 
 	// The urlSet is a map of urls to lastmod dates.
 	// It is used to render the sitemap.
-	urlSet := make(map[string]string)
+	urlSet := make(map[string]string, len(g.Posts.All())*2)
 
 	// permalink is a helper function which generates
 	// the permalink for a given path
@@ -334,20 +343,20 @@ func (g *Gingersnap) HandleSitemapXml() http.HandlerFunc {
 		urlSet[permalink(cat.Route())] = ""
 	}
 
+	// Add sitemap entries for all the standalone posts (pages).
+	for _, post := range g.Posts.Pages() {
+		urlSet[permalink(post.Route())] = ""
+	}
+
 	// Add sitemap entries for all the blog posts.
 	for _, post := range g.Posts.All() {
 		lastMod := ""
 
 		if ts := post.LatestTS(); ts > 0 {
-			lastMod = time.Unix(int64(ts), 0).Format("2006-01-02T00:00:00+00:00")
+			lastMod = time.Unix(int64(ts), 0).UTC().Format("2006-01-02T00:00:00+00:00")
 		}
 
 		urlSet[permalink(post.Route())] = lastMod
-	}
-
-	// Add sitemap entries for all the standalone posts (pages).
-	for _, post := range g.Posts.Pages() {
-		urlSet[permalink(post.Route())] = ""
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -368,24 +377,13 @@ func (g *Gingersnap) HandleSitemapXml() http.HandlerFunc {
 
 func (g *Gingersnap) HandleSitemapHtml() http.HandlerFunc {
 
-	// Gather the posts.
-	var posts []Post
-	for _, post := range g.Posts.All() {
-		posts = append(posts, post)
-	}
-
-	// Sort the posts by latest timestamp.
-	sort.SliceStable(posts, func(i, j int) bool {
-		return posts[i].LatestTS() > posts[j].LatestTS()
-	})
-
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		rd := g.NewRenderData(r)
 		rd.Title = fmt.Sprintf("Sitemap - Browse through all Posts on %s", g.Config.Site.Name)
 		rd.Description = fmt.Sprintf("Browse through the sitemap on %s and take a look at our posts.", g.Config.Site.Name)
 		rd.Heading = "Posts"
-		rd.Posts = posts
+		rd.Posts = g.Posts.All()
 
 		g.Render(w, http.StatusOK, "sitemap", &rd)
 	}
@@ -449,7 +447,7 @@ func (g *Gingersnap) render404(w http.ResponseWriter, status int) {
 	rd := g.NewRenderData(nil)
 	rd.AppError = "404"
 	rd.Title = fmt.Sprintf("Page Not Found - %s", g.Config.Site.Name)
-	rd.LatestPosts = LimitSlice(g.Posts.Latest(), LimitLatest)
+	rd.LatestPosts = g.Posts.Latest()
 
 	g.Render(w, status, "error", &rd)
 }
@@ -465,7 +463,7 @@ func (g *Gingersnap) ErrInternalServer(w http.ResponseWriter, err error) {
 	rd := g.NewRenderData(nil)
 	rd.AppError = "500"
 	rd.Title = fmt.Sprintf("Internal Server Error - %s", g.Config.Site.Name)
-	rd.LatestPosts = LimitSlice(g.Posts.Latest(), LimitLatest)
+	rd.LatestPosts = g.Posts.Latest()
 
 	if g.Config.Debug {
 		rd.AppTrace = trace
@@ -788,11 +786,11 @@ type RenderData struct {
 	Copyright string
 
 	// Post data
-	Post          Post
-	Posts         []Post
-	LatestPosts   []Post
-	RelatedPosts  []Post
-	FeaturedPosts []Post
+	Post          *Post
+	Posts         []*Post
+	LatestPosts   []*Post
+	RelatedPosts  []*Post
+	FeaturedPosts []*Post
 
 	// Category data
 	Category   Category
@@ -933,7 +931,7 @@ type Category struct {
 
 // IsEmpty reports if the category is empty.
 // .
-func (c *Category) IsEmpty() bool {
+func (c Category) IsEmpty() bool {
 	return c.Slug == ""
 }
 
@@ -941,8 +939,24 @@ func (c *Category) IsEmpty() bool {
 //
 // ex: "/category/some-slug/"
 // .
-func (c *Category) Route() string {
+func (c Category) Route() string {
 	return fmt.Sprintf("/category/%s/", c.Slug)
+}
+
+// ------------------------------------------------------------------
+//
+//
+// Type: Section
+//
+//
+// ------------------------------------------------------------------
+
+// Section represents a section of a web page.
+// It stores a collection of posts for a category.
+// .
+type Section struct {
+	Category Category
+	Posts    []*Post
 }
 
 // ------------------------------------------------------------------
@@ -956,41 +970,34 @@ func (c *Category) Route() string {
 // PostModel manages queries for Posts.
 // .
 type PostModel struct {
-	posts           []Post
-	pages           []Post
-	postsLatest     []Post
-	postsFeatured   []Post
-	postsBySlug     map[string]Post
-	postsByCategory map[Category][]Post
+	posts           []*Post
+	pages           []*Post
+	postsLatest     []*Post
+	postsFeatured   []*Post
+	postsBySlug     map[string]*Post
+	postsByCategory map[Category][]*Post
 }
 
-func NewPostModel(postsBySlug map[string]Post) *PostModel {
+func NewPostModel(postsBySlug map[string]*Post) *PostModel {
 
 	// Note: the `postsBySlug` map contains
 	//       blog posts AND standalone posts (pages).
 
+	postsLen := len(postsBySlug)
+
 	m := &PostModel{
-		posts:           nil,
-		pages:           nil,
-		postsLatest:     nil,
-		postsFeatured:   nil,
+		posts:           make([]*Post, 0, postsLen),
+		pages:           make([]*Post, 0, postsLen),
+		postsLatest:     make([]*Post, 0, postsLen),
+		postsFeatured:   make([]*Post, 0, postsLen),
+		postsByCategory: make(map[Category][]*Post, postsLen),
 		postsBySlug:     postsBySlug,
-		postsByCategory: make(map[Category][]Post),
 	}
 
-	// Gather the posts from the map.
-	var posts []Post
-	for _, post := range m.postsBySlug {
-		posts = append(posts, post)
-	}
+	// [1/5] Separate the posts into blog posts and standalone posts (pages).
+	for slug := range m.postsBySlug {
+		post := m.postsBySlug[slug]
 
-	// Sort the posts by pubdate timestamp.
-	sort.SliceStable(posts, func(i, j int) bool {
-		return posts[i].PubdateTS > posts[j].PubdateTS
-	})
-
-	// Separate the posts into blog posts and standalone posts (pages).
-	for _, post := range posts {
 		if post.IsBlog {
 			m.posts = append(m.posts, post)
 		} else {
@@ -998,49 +1005,66 @@ func NewPostModel(postsBySlug map[string]Post) *PostModel {
 		}
 	}
 
-	// Prepare the posts by category.
+	// [2/5] Sort the posts by pubdate timestamp.
+	sort.SliceStable(m.posts, func(i, j int) bool {
+		return m.posts[i].PubdateTS > m.posts[j].PubdateTS
+	})
+
+	// [3/5] Prepare the posts by category.
 	for _, post := range m.posts {
 		if !post.Category.IsEmpty() {
+
 			cat := post.Category
+
+			// Create slice if it does not exist.
+			if len(m.postsByCategory[cat]) == 0 {
+				m.postsByCategory[cat] = make([]*Post, 0, postsLen)
+			}
+
+			// Add post to the category slice.
 			m.postsByCategory[cat] = append(m.postsByCategory[cat], post)
 		}
 	}
 
-	// Prepare the latest posts.
-	m.postsLatest = LimitSlice(m.posts, LimitLatest)
+	// [4/5] Prepare the latest posts.
+	m.postsLatest = m.posts[:min(LimitLatest, len(m.posts))]
 
-	// Prepare the featured posts.
-	for _, post := range m.posts {
+	// [5/5] Prepare the featured posts.
+	for i := range m.posts {
+		post := m.posts[i]
+
 		if post.IsFeatured {
 			m.postsFeatured = append(m.postsFeatured, post)
 		}
 	}
-	m.postsFeatured = LimitSlice(m.postsFeatured, LimitFeatured)
+
+	m.postsFeatured = m.postsFeatured[:min(LimitFeatured, len(m.postsFeatured))]
+
 	return m
 }
 
-func (m *PostModel) All() []Post {
+func (m *PostModel) All() []*Post {
 	return m.posts
 }
 
-func (m *PostModel) Pages() []Post {
+func (m *PostModel) Pages() []*Post {
 	return m.pages
 }
 
-func (m *PostModel) Latest() []Post {
+func (m *PostModel) Latest() []*Post {
 	return m.postsLatest
 }
 
-func (m *PostModel) Featured() []Post {
+func (m *PostModel) Featured() []*Post {
 	return m.postsFeatured
 }
 
-func (m *PostModel) ByCategory(c Category) ([]Post, bool) {
+func (m *PostModel) ByCategory(c Category) ([]*Post, bool) {
 	posts, ok := m.postsByCategory[c]
 	return posts, ok
 }
 
-func (m *PostModel) BySlug(s string) (Post, bool) {
+func (m *PostModel) BySlug(s string) (*Post, bool) {
 	post, ok := m.postsBySlug[s]
 	return post, ok
 }
@@ -1061,13 +1085,17 @@ type CategoryModel struct {
 }
 
 func NewCategoryModel(categoriesBySlug map[string]Category) *CategoryModel {
+
+	catLen := len(categoriesBySlug)
+
 	m := &CategoryModel{
-		categories:       []Category{},
+		categories:       make([]Category, 0, catLen),
 		categoriesBySlug: categoriesBySlug,
 	}
 
-	for _, category := range m.categoriesBySlug {
-		m.categories = append(m.categories, category)
+	for slug := range m.categoriesBySlug {
+		cat := m.categoriesBySlug[slug]
+		m.categories = append(m.categories, cat)
 	}
 
 	return m
@@ -1103,7 +1131,7 @@ type Processor struct {
 	FilePaths []string
 
 	// The prepared Posts and Categories
-	PostsBySlug      map[string]Post
+	PostsBySlug      map[string]*Post
 	CategoriesBySlug map[string]Category
 }
 
@@ -1125,7 +1153,7 @@ func NewProcessor(filePaths []string) *Processor {
 		//
 		FilePaths: filePaths,
 		//
-		PostsBySlug: make(map[string]Post),
+		PostsBySlug: make(map[string]*Post),
 		//
 		CategoriesBySlug: make(map[string]Category),
 	}
@@ -1153,7 +1181,7 @@ func (pr *Processor) Process() error {
 	return nil
 }
 
-// processPost constructs a Post and optional Category struct
+// processPost constructs a Post and optional Category
 // from the given markdown file bytes.
 // .
 func (pr *Processor) processPost(mkdownBytes []byte) error {
@@ -1166,6 +1194,9 @@ func (pr *Processor) processPost(mkdownBytes []byte) error {
 	if metadata := doc.OwnerDocument().Meta(); metadata != nil {
 
 		m.label = "unknown post"
+
+		// Use the slug as the label.
+		// This is useful for error messages.
 		if slug, ok := metadata["slug"]; ok {
 			m.label = slug.(string)
 		}
@@ -1238,28 +1269,37 @@ func (pr *Processor) processPost(mkdownBytes []byte) error {
 	cat := Category{}
 
 	if isBlog {
-		cat.Title, err = m.GetRequiredString("category")
+		catTitle, err := m.GetRequiredString("category")
 		if err != nil {
 			return err
 		}
 
-		cat.Slug = Slugify(cat.Title)
+		catSlug := Slugify(catTitle)
 
-		// If multiple categories differ in case (ex 'Gardening Tips' and 'GarDENing TIPS'),
-		// then they produce categories with the SAME SLUG, which is a problem.
-		// This check ensures that category slugs remain unique by guarding
-		// against category collision.
-		if existingCat, exists := pr.CategoriesBySlug[cat.Slug]; exists {
-			if existingCat.Title != cat.Title {
-				return fmt.Errorf("category collision [%s] and [%s]\n", existingCat.Title, cat.Title)
+		existingCat, ok := pr.CategoriesBySlug[catSlug]
+		// Handle the case where the category exists.
+		if ok {
+			// If multiple categories differ in case (ex 'Gardening Tips' and 'GarDENing TIPS'),
+			// then they produce categories with the SAME SLUG, which is a problem.
+			// This check ensures that category slugs remain unique by guarding
+			// against category collision.
+			if catTitle != existingCat.Title {
+				return fmt.Errorf("category collision [%s] and [%s]\n", catTitle, existingCat.Title)
 			}
+
+			// Assign the existing category to `cat`, so that
+			// it can be referenced in the post construction.
+			cat = existingCat
 		}
 
-		// Save the category.
-		//
-		// At this point, overwriting the category does not produce
-		// any negative effect because it is effectively the same.
-		pr.CategoriesBySlug[cat.Slug] = cat
+		// Handle the case where the category does NOT exist.
+		if !ok {
+			cat.Title = catTitle
+			cat.Slug = catSlug
+
+			// Save the category.
+			pr.CategoriesBySlug[catSlug] = cat
+		}
 	}
 
 	// Parse hide_image from metadata ---------------------
@@ -1290,8 +1330,8 @@ func (pr *Processor) processPost(mkdownBytes []byte) error {
 		return fmt.Errorf("error when rendering body: %w", err)
 	}
 
-	// Construct a Post object.
-	post := Post{
+	// Save the post.
+	pr.PostsBySlug[slug] = &Post{
 		IsPage:      isPage,
 		IsBlog:      isBlog,
 		IsFeatured:  isFeatured,
@@ -1309,8 +1349,6 @@ func (pr *Processor) processPost(mkdownBytes []byte) error {
 		Updated:     updated,
 		UpdatedTS:   updatedTs,
 	}
-
-	pr.PostsBySlug[slug] = post
 
 	return nil
 }
@@ -1333,11 +1371,11 @@ func (m *MetadataParser) GetBool(key string, defaultVal bool) bool {
 
 // GetString retrieves and converts a metadata value into a string.
 // .
-func (m *MetadataParser) GetString(key string, defaultVal string) (string, error) {
+func (m *MetadataParser) GetString(key string, defaultVal string) string {
 	if !m.exists(key) {
-		return defaultVal, nil
+		return defaultVal
 	}
-	return m.metadata[key].(string), nil
+	return m.metadata[key].(string)
 }
 
 // GetRequiredString retrieves and converts a metadata value into a string.
@@ -1548,33 +1586,20 @@ func Exists(source string) bool {
 	return true
 }
 
-func LimitSlice[V any](items []V, limit int) []V {
-	var newItems []V
-
-	for i, item := range items {
-		if i == limit {
-			break
-		}
-		newItems = append(newItems, item)
-	}
-
-	return newItems
-}
-
 func OpenFile(fs fs.FS, source string) (fs.File, error) {
 	// Open source file.
 	f, err := fs.Open(source)
 	if err != nil {
-		return nil, fmt.Errorf("failed to open source file: %w", err)
+		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
 	return f, nil
 }
 
-func ReadFile(src string) ([]byte, error) {
+func ReadFile(source string) ([]byte, error) {
 	// Read the source file.
-	srcBytes, err := os.ReadFile(src)
+	srcBytes, err := os.ReadFile(source)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read source file: %w", err)
+		return nil, fmt.Errorf("failed to read file: %w", err)
 	}
 	return srcBytes, nil
 }
@@ -1595,7 +1620,7 @@ func CreateFile(source string) (*os.File, error) {
 	// Create destination file.
 	f, err := os.Create(source)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create destination file: %w", err)
+		return nil, fmt.Errorf("failed to create file: %w", err)
 	}
 
 	return f, nil
@@ -1608,7 +1633,7 @@ func WriteFile(source string, data []byte) error {
 
 	// Write the contents to the file.
 	if err := os.WriteFile(source, data, os.FileMode(0644)); err != nil {
-		return fmt.Errorf("failed to write destination file: %w", err)
+		return fmt.Errorf("failed to write file: %w", err)
 	}
 
 	return nil
@@ -1650,7 +1675,7 @@ func CopyFile(fsys fs.FS, src, dst string) error {
 
 	// Copy the source file to the destination.
 	if _, err := io.Copy(destFile, srcFile); err != nil {
-		return fmt.Errorf("failed to copy source file: %w", err)
+		return fmt.Errorf("failed to copy file: %w", err)
 	}
 
 	return nil
@@ -1757,7 +1782,7 @@ func (g *Gingersnap) Configure(s Settings) {
 
 	// ------------------------------------------
 	//
-	// [3/3] Construct the main gingersnap engine.
+	// [3/3] Construct the gingersnap engine.
 	//
 	// ------------------------------------------
 
@@ -1864,18 +1889,22 @@ var Assets embed.FS
 //go:embed "assets/templates"
 var Templates embed.FS
 
+// Image settings for all images in the site.
 const ImageWidth = "800"
 const ImageHeight = "450"
 const ImageType = "webp"
 
+// Cutoff values for different post lists.
 const LimitFeatured = 3
 const LimitLatest = 9
 const LimitSection = 6
 const LimitLatestPostDetail = 4
 
+// The default section for the homepage.
+// It will contain the latest posts.
+const SectionLatest = "$latest"
+
 // The directory where the static site will be exported to.
 // This is only a temporary directory. To fully deploy the site,
 // the exported site must be moved to the production site repository.
 const ExportDir = "dist"
-
-const SectionLatest = "$latest"

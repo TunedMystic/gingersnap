@@ -6,6 +6,8 @@
     --nc-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
     --nc-tx-1:#000000;
     --nc-tx-2:#263040;
+    --nc-tx-3:#1e293b; /* text-slate-800 */
+    --nc-tx-4:#0f172a; /* text-slate-900 */
     --nc-bg-1:#FFFFFF;
     --nc-bg-2:#F6F8FA;
     --nc-bg-3:#E5E7EB;
@@ -26,7 +28,7 @@
     --width: 1200px;
     --padding: 1.2rem;
 }
-.a26 {margin:0 auto;border-radius:6px;overflow-x:hidden;word-break:break-word;overflow-wrap:break-word;color:var(--nc-tx-2);font-size:var(--font-size-sm);line-height:var(--line-height)}
+.a26 {margin:0 auto;border-radius:6px;overflow-x:hidden;word-break:break-word;overflow-wrap:break-word;color:var(--nc-tx-3);font-size:var(--font-size);line-height:var(--line-height)}
 .a26 :last-child{padding-bottom:0;margin-bottom:0}
 .a26 address, .a26 area, .a26 article, .a26 aside, .a26 audio, .a26 blockquote, .a26 datalist, .a26 details, .a26 dl, .a26 fieldset, .a26 figure, .a26 form, .a26 iframe, .a26 img, .a26 input, .a26 meter, .a26 nav, .a26 ol, .a26 optgroup, .a26 option, .a26 output, .a26 p, .a26 pre, .a26 progress, .a26 ruby, .a26 section, .a26 table, .a26 textarea, .a26 ul, .a26 video{margin-bottom:var(--margin-size)}
 .a26 a{color:var(--link-color);text-decoration:none}
@@ -62,7 +64,7 @@
 .a26 ul > li > ul {list-style-type:circle}
 .a26 ul > li > ul > li > ul {list-style-type:square}
 .a26 mark{padding:3px 6px;background:var(--nc-ac-2);color:var(--nc-tx-1)}
-.a26 input, .a26 select, .a26 textarea{padding:9px 12px;margin-bottom:.5rem;background:var(--nc-bg-2);color:var(--nc-tx-2);border:1px solid var(--nc-bg-3);border-radius:4px;box-shadow:none;box-sizing:border-box;font-size:1.125rem}
+.a26 input, .a26 select, .a26 textarea{padding:9px 12px;margin-bottom:.5rem;background:var(--nc-bg-2);color:var(--nc-tx-3);border:1px solid var(--nc-bg-3);border-radius:4px;box-shadow:none;box-sizing:border-box;font-size:1.125rem}
 .a26 img{max-width:100%;height:auto;width:auto;border-radius:4px}
 .a26 h1{line-height:1;color:var(--nc-tx-1);margin-bottom:var(--margin-size);font-weight:700;letter-spacing:0.2px;font-size:2rem}
 .a26 h2{line-height:1;color:var(--nc-tx-1);margin-bottom:var(--margin-size);font-weight:700;letter-spacing:0.2px;padding-top:1.5rem;margin-bottom:1.4rem;font-size:1.85rem}
@@ -107,7 +109,7 @@ article.copy{width:100%;margin-left:auto;margin-right:auto}
                     <p class="publish-date">Published on {{.Post.Pubdate}}</p>
                 {{end}}
                 <span>&sdot;</span>
-                <p class="text-indigo-600 font-medium tracking-wide uppercase underline"><a href="/category/{{.Post.Category.Slug}}/">{{.Post.Category.Title}}</a></p>
+                <p class="text-indigo-600 font-medium tracking-wide underline"><a href="/category/{{.Post.Category.Slug}}/">{{.Post.Category.Title}}</a></p>
             </div>
 
             <!-- Article Lead Image -->
@@ -128,7 +130,7 @@ article.copy{width:100%;margin-left:auto;margin-right:auto}
                 <!-- Latest Articles -->
                 <hr class="my-11">
                 <p class="text-xl font-bold text-black mb-6">Latest Posts</p>
-                <div class="flex flex-col space-y-4">
+                <div class="flex flex-col space-y-5">
                     {{range .LatestPosts}}
                         <p><a class="font-medium text-lg text-blue-600 hover:text-blue-700 hover:underline" href="{{.Route}}">{{.Title}}</a></p>
                     {{end}}
@@ -140,12 +142,19 @@ article.copy{width:100%;margin-left:auto;margin-right:auto}
                 <!-- Featured Articles -->
                 <hr class="my-11">
                 <p class="text-xl font-bold text-black mb-6">You May Also Like</p>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-5">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-5">
                     {{range .FeaturedPosts}}
-                        <div>
-                            <a class="space-y-2" href="{{.Route}}">
+                        <div class="space-y-2.5">
+                            <a class="" href="{{.Route}}">
                                 <img class="rounded" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" alt="{{.Image.Alt}}">
-                                <p class="text-sm leading-relaxed text-black font-medium">{{.Heading}}</p>
+                            </a>
+
+                            <p class="underline xtext-center text-base md:text-sm text-indigo-600">
+                                <a href="{{.Category.Route}}">{{.Category.Title}}</a>
+                            </p>
+
+                            <a class="" href="{{.Route}}">
+                                <p class="pt-1.5 xtext-center text-lg md:text-base leading-normal text-black font-semibold lg:font-medium">{{.Heading}}</p>
                             </a>
                         </div>
                     {{end}}
