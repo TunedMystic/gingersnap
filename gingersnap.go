@@ -821,16 +821,6 @@ func NewTheme(themeStr string) (Theme, error) {
 	return Theme{}, fmt.Errorf("Could not load theme [%s]", themeStr)
 }
 
-func ThemeNames() string {
-	names := make([]string, 0, len(Themes))
-
-	for name := range Themes {
-		names = append(names, name)
-	}
-
-	return strings.Join(names, ", ")
-}
-
 // ------------------------------------------------------------------
 //
 //

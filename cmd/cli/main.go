@@ -5,6 +5,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"gingersnap"
@@ -197,7 +198,13 @@ func main() {
 		//
 		// ----------------------------------------------------------
 
-		Loginfo(configCmdText, gingersnap.ThemeNames())
+		names := []string{}
+
+		for name := range gingersnap.Themes {
+			names = append(names, name)
+		}
+
+		Loginfo(configCmdText, strings.Join(names, ", "))
 
 	default:
 		Logerr(unknownCmdText, os.Args[1])
