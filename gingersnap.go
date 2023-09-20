@@ -94,15 +94,10 @@ func (g *Gingersnap) Routes() http.Handler {
 // AllUrls returns all urls of the server.
 // .
 func (g *Gingersnap) AllUrls() ([]string, error) {
-	urls := []string{
-		"/",
-		"/styles.css",
-		"/sitemap/",
-		"/sitemap.xml",
-		"/robots.txt",
-		"/CNAME",
-		"/404/",
-	}
+
+	urls := make([]string, 0, max(len(g.Posts.All()), 20))
+	urls = append(urls, "/", "/styles.css", "/sitemap/", "/sitemap.xml")
+	urls = append(urls, "/robots.txt", "/CNAME", "/404/")
 
 	// Note: for "/media/", we read media files
 	//       directly from the filesystem.
