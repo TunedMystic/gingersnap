@@ -6,11 +6,13 @@
             <a href="{{.SiteUrl}}">{{.SiteName}}</a>
         </h3>
 
-        <nav class="flex flex-wrap justify-center space-x-7 text-slate-700">
-            {{range .NavbarLinks}}
-                <p class="py-1 pb-1.5 hover:underline"><a href="{{.Route}}">{{.Text}}</a></p>
-            {{end}}
-        </nav>
+        {{if .NavbarLinks}}
+            <nav class="flex flex-wrap justify-center space-x-7 text-slate-700">
+                {{range .NavbarLinks}}
+                    <p class="py-1 pb-1.5 hover:underline"><a href="{{.Route}}">{{.Text}}</a></p>
+                {{end}}
+            </nav>
+        {{end}}
     </div>
 </header>
 {{end}}
