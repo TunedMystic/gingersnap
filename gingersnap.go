@@ -153,7 +153,8 @@ func (g *Gingersnap) AllUrls() ([]string, error) {
 // ------------------------------------------------------------------
 
 func (g *Gingersnap) HandleIndex() http.HandlerFunc {
-	var sections []Section
+
+	sections := make([]Section, 0, len(g.Config.Homepage))
 
 	// Create sections for rendering the homepage.
 	for _, slug := range g.Config.Homepage {
@@ -201,8 +202,6 @@ func (g *Gingersnap) HandleIndex() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		g.Logger.Printf("latest posts: %v\n", g.Posts.Latest())
-		g.Logger.Printf("featured posts: %v\n", g.Posts.Featured())
 
 		// Handle 404
 		if r.URL.Path != "/" {
@@ -653,6 +652,9 @@ type Config struct {
 	// Site-specific settings
 	Site Site `json:"site"`
 
+	// Site styling
+	Theme Theme
+
 	// Homepage sections
 	Homepage []string `json:"homepage"`
 
@@ -666,7 +668,7 @@ type Config struct {
 	ProdRepo string `json:"staticRepository"`
 }
 
-// Site stores site-specific settings
+// Site stores site-specific settings.
 // .
 type Site struct {
 	Name        string `json:"name"`
@@ -677,9 +679,10 @@ type Site struct {
 	Url         string
 	Email       string
 	Image       Image
+	Theme       string `json:"theme"`
 }
 
-// Link stores data for an anchor link
+// Link stores data for an anchor link.
 // .
 type Link struct {
 	Text  string
@@ -724,7 +727,108 @@ func NewConfig(configBytes []byte, debug bool) (*Config, error) {
 		config.Homepage = []string{SectionLatest}
 	}
 
+	// Retrieve the theme.
+	theme, err := NewTheme(config.Site.Theme)
+	if err != nil {
+		return nil, err
+	}
+
+	config.Theme = theme
+
 	return config, nil
+}
+
+// ------------------------------------------------------------------
+//
+//
+// Type: Config
+//
+//
+// ------------------------------------------------------------------
+
+// Theme stores simple color profiles for the site.
+type Theme struct {
+	Heading   string
+	Primary   string
+	Secondary string
+	Link      string
+}
+
+var Themes = map[string]Theme{
+	"purple": {
+		Primary:   "#4f46e5", // indigo-600
+		Secondary: "#4338ca", // indigo-700
+		Link:      "#2563eb", // blue-600
+	},
+	"green": {
+		Primary:   "#0f766e", // teal-700
+		Secondary: "#0f766e", // teal-700
+		Link:      "#2563eb", // blue-600
+	},
+	"pink": {
+		Primary:   "#db2777", // pink-600
+		Secondary: "#be185d", // pink-700
+		Link:      "#4f46e5", // indigo-600
+	},
+	"red": {
+		Primary:   "#b91c1c", // red-700
+		Secondary: "#be123c", // rose-700
+		Link:      "#4f46e5", // indigo-600
+	},
+	"black": {
+		Primary:   "#0f172a", // slate-900
+		Secondary: "#0f172a", // slate-900
+		Link:      "#2563eb", // blue-600
+	},
+}
+
+var DefaultTheme = Theme{
+	Primary:   "#4338ca", // indigo-700
+	Secondary: "#0f172a", // slate-900
+	Link:      "#1d4ed8", // blue-700
+}
+
+func NewTheme(themeStr string) (Theme, error) {
+
+	// If no theme is given, then return the default.
+	if themeStr == "" {
+		return DefaultTheme, nil
+	}
+
+	// Determine if a "simple" theme is requested.
+	// With "simple" themes, the secondary color
+	// is modified to make it less colorful.
+	themeStr, isSimple := strings.CutSuffix(themeStr, "-simple")
+
+	// Retrieve the theme.
+	if t, ok := Themes[themeStr]; ok {
+
+		theme := Theme{
+			Primary:   t.Primary,
+			Secondary: t.Secondary,
+			Link:      t.Link,
+		}
+
+		// If a "simple" theme is requested,
+		// then change the secondary color to black.
+		if isSimple {
+			theme.Secondary = "#0f172a" // slate-900
+		}
+
+		return theme, nil
+	}
+
+	return Theme{}, fmt.Errorf("Could not load theme [%s]", themeStr)
+}
+
+func ThemeNames() string {
+	names := make([]string, 0, len(Themes))
+
+	for name := range Themes {
+		names = append(names, name)
+	}
+
+	return strings.Join(names, ", ")
 }
 
 // ------------------------------------------------------------------
@@ -796,12 +900,11 @@ type RenderData struct {
 	Category   Category
 	Categories []Category
 
-	// Homepage layout
-	Sections []Section
-
-	// Anchor links
+	// Layout and styling
+	Sections    []Section
 	NavbarLinks []Link
 	FooterLinks []Link
+	Theme       Theme
 
 	// Application info
 	AppDebug bool
@@ -831,8 +934,9 @@ func (g *Gingersnap) NewRenderData(r *http.Request) RenderData {
 
 		NavbarLinks: g.Config.NavbarLinks,
 		FooterLinks: g.Config.FooterLinks,
+		Theme:       g.Config.Theme,
 
-		Copyright: fmt.Sprintf("2022 - %d", time.Now().Year()),
+		Copyright: fmt.Sprintf("%d", time.Now().Year()),
 		AppDebug:  g.Config.Debug,
 	}
 }

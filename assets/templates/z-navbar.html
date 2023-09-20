@@ -2,7 +2,7 @@
 <header class="w-full mx-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl px-5      py-4 mb-8">
     <div class="flex flex-col justify-center items-center space-y-3 pb-4 border-b border-slate-200">
 
-        <h3 class="font-bold text-2xl text-indigo-600">
+        <h3 class="primary font-bold text-2xl">
             <a href="{{.SiteUrl}}">{{.SiteName}}</a>
         </h3>
 
@@ -13,19 +13,4 @@
         </nav>
     </div>
 </header>
-<style>
-    .narrow-width{width:100%}
-
-    @media (min-width: 768px) {
-        .narrow-width {-ms-flex:0 0 94%;flex:0 0 94%;max-width:94%}
-    }
-
-    @media (min-width: 1024px) {
-        .narrow-width {-ms-flex:0 0 72%;flex:0 0 72%;max-width:72%}
-    }
-
-    @media (min-width: 1280px) {
-        .narrow-width {-ms-flex:0 0 65%;flex:0 0 65%;max-width:65%}
-    }
-</style>
 {{end}}

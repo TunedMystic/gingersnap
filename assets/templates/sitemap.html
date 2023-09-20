@@ -2,7 +2,7 @@
 {{template "page" .}}
 <div class="w-full mx-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl px-5">
 
-    <div class="narrow-width mx-auto flex-col space-y-7">
+    <div class="main-section mx-auto flex-col space-y-7">
 
         <h1 class="font-bold text-3xl text-black mb-3">{{.Heading}}</h1>
 
@@ -10,7 +10,7 @@
             <div class="w-full flex items-center justify-between border-b border-slate-100">
 
                 <p class="w-9/12">
-                    <a class="font-medium text-blue-600 hover:text-blue-800 hover:underline" href="{{.Route}}">{{.Heading}}</a>
+                    <a class="link font-medium" href="{{.Route}}">{{.Heading}}</a>
                 </p>
 
                 <p class="w-3/12 flex justify-end text-slate-400">

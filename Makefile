@@ -8,7 +8,7 @@ APP="$$(basename -- $$(PWD))"
 ## @(app) - Run the Go app  --watch     ⭐️
 run: bin/watchexec
 	@echo "✨📦✨ Running the app server\n"
-	@./bin/watchexec -r -e go,css,js,html,md "go run ./cmd/server/"
+	@./bin/watchexec -r -e go,css,js,html,md,json "go run ./cmd/server/"
 
 
 ## @(app) - Run tailwindcss --watch     ⭐️

@@ -5,7 +5,7 @@ slug: sqlite-full-text-search
 description: In this guide, you'll learn all about SQLite's Full-Text Search feature and how to use it to efficiently search and retrieve data from your database.
 
 category: SQL
-image_url: /media/big-computer.webp
+image_url: /media/full-text-search.webp
 image_alt: SQLite Full-Text Search
 
 pubdate: 2023-01-21
@@ -25,10 +25,6 @@ Maecenas leo ex, ultricies non accumsan nec, [`egestas eget`](https://twitter.co
 - [Nulla ultrices](#nulla-ultrices)
 - [Aenean quis enim massa](#aenean-quis-enim-massa)
 - [Feugiat magna porta](#feugiat-magna-porta)
-- [Quam viverra](#quam-viverra)
-- [Vestibulum ante](#vestibulum-ante)
-- [Praesent aliquet nec](#praesent-aliquet-nec)
-- [Vitae vehicula sed](#vitae-vehicula-sed)
 </details>
 
 
@@ -43,15 +39,9 @@ Sed imperdiet nunc sed felis pharetra facilisis. Vestibulum consectetur eu arcu 
 
 #### Curabitur ornare
 
-Curabitur ornare, sem vitae venenatis ullamcorper, ante nisl hendrerit leo, et ullamcorper justo leo et massa.
+Curabitur ornare, sem vitae venenatis ullamcorper, ante nisl hendrerit leo, et ullamcorper justo leo et massa. Pellentesque non felis scelerisque, rutrum tellus in, tempor nulla. Nulla ultrices, nibh porttitor congue consectetur, libero purus fringilla magna
 
-#### Pellentesque non felis
-
-Pellentesque non felis scelerisque, rutrum tellus in, tempor nulla. Nulla ultrices, nibh porttitor congue consectetur, libero purus fringilla magna
-
-### Integer ultrices velit
-
-Integer ultrices velit sit amet molestie ultricies. Integer condimentum aliquet auctor. Duis eleifend elit in lectus mollis tincidunt. Pellentesque erat ipsum, tempus ut posuere eget, hendrerit a nulla. Aliquam tempor nulla vel turpis maximus consequat.
+Nullam elementum, lectus quis pellentesque placerat, sapien dui dictum enim, feugiat faucibus sem sapien eget felis. Praesent non metus nunc. Phasellus non lacus sapien. Nam id lacus nec sapien dapibus finibus. Sed sed iaculis massa.
 
 #### Nullam pulvinar velit eleifend
 
@@ -59,8 +49,9 @@ Nullam pulvinar velit eleifend porta fringilla. Aliquam tempus neque sit amet lo
 
 ![something](/media/golang-error-handling.webp)
 
+### Integer ultrices velit
 
-#### Pellentesque ut quam
+Integer ultrices velit sit amet molestie ultricies. Integer condimentum aliquet auctor. Duis eleifend elit in lectus mollis tincidunt. Pellentesque erat ipsum, tempus ut posuere eget, hendrerit a nulla. Aliquam tempor nulla vel turpis maximus consequat.
 
 Pellentesque ut quam viverra, auctor <mark>turpis ut, euismod dui</mark>. Phasellus luctus ullamcorper diam quis feugiat. Fusce urna dolor, sagittis et cursus in, sagittis sed nibh. Nulla malesuada mi ex, non vestibulum metus pharetra at.
 
@@ -96,6 +87,35 @@ Praesent sed sem eu ante tempus mattis sed in urna. Quisque dictum dapibus diam 
 Phasellus auctor non velit quis lacinia. Curabitur pharetra, massa vitae tristique mattis, urna risus sodales libero, vel faucibus nunc leo a erat.
 
 Nulla facilisi. Aliquam luctus tortor turpis, non accumsan velit lacinia vitae.
+
+
+## Star Wars Mixins Edition
+
+<img src="https://media.giphy.com/media/2tDQZuljhwHTi/giphy.gif">
+
+To illustrate another use of mixins, lets look at a Star Wars example for creating different types of Jedi and Sith instances.
+
+We have our ForceUser class which describes someone who is force sensitive. Then we define a couple of mixins; the `JediMixin` and `SithMixin` both define custom lightsaber color and the `LightsaberMixin` uses the predefined lightsaber colors to create a lightsaber for our force user.
+
+Finally we bring everything together by defining our `JediMaster` and `SithLord` classes. These two classes override some `ForceUser` methods to add their own custom logic.
+
+```python
+import random
+
+class ForceUser:
+    def __init__(self, name):
+        self.moves = ['force push']
+        self.name = name
+
+    def get_ability(self):
+        return random.choice(self.moves)
+
+    def ability(self):
+        print(f'Attacks with {self.get_ability()}')
+
+    def __repr__(self):
+        return f'I am {self.name}, a {self.__class__.__name__}!'
+```
 
 
 ## Aenean quis enim massa

@@ -4,28 +4,12 @@
 
 {{define "error"}}
 {{template "page" .}}
-<style>
-    .narrow-width{width:100%}
-
-    @media (min-width: 768px) {
-        .narrow-width {-ms-flex:0 0 94%;flex:0 0 94%;max-width:94%}
-    }
-
-    @media (min-width: 1024px) {
-        .narrow-width {-ms-flex:0 0 72%;flex:0 0 72%;max-width:72%}
-    }
-
-    @media (min-width: 1280px) {
-        .narrow-width {-ms-flex:0 0 65%;flex:0 0 65%;max-width:65%}
-    }
-</style>
 <div class="w-full mx-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl px-5">
 
 
     <!-- Error Heading -->
-    <div class="narrow-width mx-auto flex flex-col items-center space-y-4 py-5">
+    <div class="main-section mx-auto flex flex-col items-center space-y-4 py-5">
         <h1 class="font-black text-center text-8xl text-pink-600">{{.AppError}}</h1>
-
         {{if eq .AppError "404"}}
             <h2 class="font-bold text-center text-2xl text-slate-700">Oops! We couldn't find the page you are looking for.</h2>
             <div class="flex flex-col leading-relaxed  text-base text-slate-700">

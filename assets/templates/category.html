@@ -3,7 +3,7 @@
 <div class="w-full mx-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl px-5">
 
     {{if .Posts}}
-        <h1 class="font-bold text-3xl text-slate-800 leading-relaxed mb-7">{{.Heading}}</h1>
+        <h1 class="decorate-primary underline font-bold text-3xl text-slate-800 leading-relaxed mb-7">{{.Heading}}</h1>
         {{template "post-grid" .Posts}}
     {{end}}
 

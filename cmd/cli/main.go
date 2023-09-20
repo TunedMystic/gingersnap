@@ -10,30 +10,9 @@ import (
 	"gingersnap"
 )
 
-var helpText = `
-This is the command line interface for Gingersnap,
-a simple and opinionated static site generator.
-
-Usage:
-  gingersnap [command]
-
-Commands:
-  init        Create a new project, and scaffold the required assets
-  dev         Start the dev server, and reload on file changes
-  export      Export the project as a static site
-  deploy      Export the project, and push it to a dedicated repository
-`
-
-var unknownCmdText = `
-Unknown command "%s"
-
-Run 'gingersnap' for help with usage.
-
-`
-
 func main() {
 	if len(os.Args) < 2 {
-		fmt.Println(helpText)
+		Loginfo(helpText)
 		os.Exit(0)
 	}
 
@@ -208,9 +187,20 @@ func main() {
 
 		Loginfo("Site export and deploy complete ✅")
 
+	case "config":
+
+		// ----------------------------------------------------------
+		//
+		//
+		// Config - Explain the config settings
+		//
+		//
+		// ----------------------------------------------------------
+
+		Loginfo(configCmdText, gingersnap.ThemeNames())
+
 	default:
-		fmt.Printf(unknownCmdText, os.Args[1])
-		os.Exit(1)
+		Logerr(unknownCmdText, os.Args[1])
 	}
 }
 
@@ -262,14 +252,111 @@ func Remove(source string) {
 	}
 }
 
-func Loginfo(msg string) {
-	fmt.Printf("\n%s\n\n", msg)
+func Loginfo(msg string, args ...any) {
+	formattedMsg := fmt.Sprintf(msg, args...)
+	fmt.Printf("%s\n", formattedMsg)
 }
 
 func Logerr(msg string, args ...any) {
-	fmt.Println()
 	fmt.Printf(msg, args...)
-	fmt.Println()
 	fmt.Println()
 	os.Exit(1)
 }
+
+// ------------------------------------------------------------------
+//
+//
+// Help text
+//
+//
+// ------------------------------------------------------------------
+
+var helpText = `
+This is the command line interface for Gingersnap,
+a simple and opinionated static site generator.
+
+Usage:
+  gingersnap [command]
+
+Commands:
+  init        Create a new project, and scaffold the required assets
+  dev         Start the dev server, and reload on file changes
+  export      Export the project as a static site
+  deploy      Export the project, and push it to a dedicated repository
+  config      Explain the config settings
+`
+
+var configCmdText = `
+Gingersnap config settings
+
+
+-------------------------------------------------
+site - defines site-specific settings
+-------------------------------------------------
+
+  name         The name of the site (ex: MySite)
+  host         The host of the site (ex: mysite.com)
+  tagline      A short description of the site (50-70 characters)
+  description  A long description of the site  (70-155 characters)
+  theme        The color theme of the site (%s)
+
+  ex: {
+    "name": "MySite",
+    "host": "mysite.com",
+    "tagline": "short descr ...",
+    "description": "longer descr ...",
+    "theme": "pink"
+  }
+
+
+-------------------------------------------------
+homepage - defines sections for the homepage
+-------------------------------------------------
+
+  Contains a list of categories
+
+  The "$latest" represents a pseudo-category
+  that contains the latest posts on the site.
+
+  ex: ["category-slug", "$latest"]
+
+
+-------------------------------------------------
+navbarLinks - defines anchor links for the navbar
+-------------------------------------------------
+
+  Contains a list of objects
+
+  text         The anchor link text
+  route        The anchor link href
+
+  ex: [{"text": "About Us", "route": "/about/"}]
+
+
+-------------------------------------------------
+footerLinks - defines anchor links for the footer
+-------------------------------------------------
+
+  Contains a list of objects
+
+  text         The anchor link text
+  route        The anchor link href
+
+  ex: [{"text": "About Us", "route": "/about/"}]
+
+
+-------------------------------------------------
+staticRepository - defines the export destination
+-------------------------------------------------
+
+  Contains the git repository path
+  where the site will be exported to
+
+  ex: "/path/to/static/repo"
+`
+
+var unknownCmdText = `
+Unknown command "%s"
+
+Run 'gingersnap' for help with usage.
+`
