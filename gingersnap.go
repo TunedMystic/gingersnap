@@ -5,7 +5,6 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
-	"hash/fnv"
 	htmlTemplate "html/template"
 	"io"
 	"io/fs"
@@ -13,9 +12,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"path"
 	"path/filepath"
-	"runtime"
 	"runtime/debug"
 	"sort"
 	"strings"
@@ -929,9 +926,6 @@ type Post struct {
 	// If the lead image should be displayed
 	ShowLead bool
 
-	// An FNV-1a hash of the slug
-	Hash int
-
 	// The post slug
 	Slug string
 
@@ -1405,7 +1399,6 @@ func (pr *Processor) processPost(mkdownBytes []byte) error {
 		IsBlog:      isBlog,
 		IsFeatured:  isFeatured,
 		ShowLead:    showLead,
-		Hash:        HashSimple(slug),
 		Slug:        slug,
 		Title:       title,
 		Heading:     heading,
@@ -1421,6 +1414,14 @@ func (pr *Processor) processPost(mkdownBytes []byte) error {
 
 	return nil
 }
+
+// ------------------------------------------------------------------
+//
+//
+// Type: MetadataParser
+//
+//
+// ------------------------------------------------------------------
 
 // MetadataParser helps to parse markdown metadata.
 // .
@@ -1606,46 +1607,14 @@ func (e *Exporter) makePath(url string) string {
 //
 // ------------------------------------------------------------------
 
-// GetEnv retrieves an variable from the application environment.
-// If the variable is not found, the fallback is returned instead.
-// .
-func GetEnv(key, fallback string) string {
-	value, exists := os.LookupEnv(key)
-	if !exists {
-		return fallback
-	}
-	return value
-}
-
-// HashSimple converts a string into a FNV-1a hash.
-// .
-func HashSimple(s string) int {
-	h := fnv.New32a()
-	h.Write([]byte(s))
-	return int(h.Sum32())
-}
-
 // Slugify builds a slug from the given string.
 // .
 func Slugify(s string) string {
 	return strings.TrimSpace(strings.ToLower(strings.ReplaceAll(s, " ", "-")))
 }
 
-// Path builds filepaths from the project root.
+// Exists checks if a file/directory exists.
 // .
-func Path(p string) string {
-	return fmt.Sprintf("%s/%s", packageRoot(), p)
-}
-
-func projectRoot() string {
-	return path.Dir(packageRoot())
-}
-
-func packageRoot() string {
-	_, b, _, _ := runtime.Caller(0)
-	return path.Dir(b)
-}
-
 func Exists(source string) bool {
 	_, err := os.Stat(source)
 
@@ -1655,15 +1624,19 @@ func Exists(source string) bool {
 	return true
 }
 
-func OpenFile(fs fs.FS, source string) (fs.File, error) {
+// OpenFile opens and returns a file from a filesystem.
+// .
+func OpenFile(fsys fs.FS, source string) (fs.File, error) {
 	// Open source file.
-	f, err := fs.Open(source)
+	f, err := fsys.Open(source)
 	if err != nil {
 		return nil, fmt.Errorf("failed to open file: %w", err)
 	}
 	return f, nil
 }
 
+// ReadFile reads a file and returns the byte slice.
+// .
 func ReadFile(source string) ([]byte, error) {
 	// Read the source file.
 	srcBytes, err := os.ReadFile(source)
@@ -1673,6 +1646,8 @@ func ReadFile(source string) ([]byte, error) {
 	return srcBytes, nil
 }
 
+// EnsurePath creates the directory paths if they do not exist.
+// .
 func EnsurePath(source string) error {
 	// Create parent directories, if necessary.
 	if err := os.MkdirAll(filepath.Dir(source), os.ModePerm); err != nil {
@@ -1681,6 +1656,8 @@ func EnsurePath(source string) error {
 	return nil
 }
 
+// CreateFile creates and returns a file.
+// .
 func CreateFile(source string) (*os.File, error) {
 	if err := EnsurePath(source); err != nil {
 		return nil, err
@@ -1695,6 +1672,8 @@ func CreateFile(source string) (*os.File, error) {
 	return f, nil
 }
 
+// WriteFile writes data to the named file.
+// .
 func WriteFile(source string, data []byte) error {
 	if err := EnsurePath(source); err != nil {
 		return err
@@ -1708,6 +1687,8 @@ func WriteFile(source string, data []byte) error {
 	return nil
 }
 
+// CopyDir recursively copies a directory to a destination.
+// .
 func CopyDir(fsys fs.FS, root, dst string) error {
 	prefix, _ := filepath.Split(root)
 
@@ -1727,6 +1708,8 @@ func CopyDir(fsys fs.FS, root, dst string) error {
 	})
 }
 
+// CopyFile copies a file to a destination.
+// .
 func CopyFile(fsys fs.FS, src, dst string) error {
 	// Open the source file.
 	srcFile, err := OpenFile(fsys, src)
