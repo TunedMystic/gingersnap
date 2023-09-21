@@ -736,12 +736,13 @@ func NewConfig(configBytes []byte, debug bool) (*Config, error) {
 // ------------------------------------------------------------------
 //
 //
-// Type: Config
+// Type: Theme
 //
 //
 // ------------------------------------------------------------------
 
-// Theme stores simple color profiles for the site.
+// Theme represents a simple color profile for the site.
+// .
 type Theme struct {
 	Heading   string
 	Primary   string
@@ -749,40 +750,19 @@ type Theme struct {
 	Link      string
 }
 
-var Themes = map[string]Theme{
-	"purple": {
-		Primary:   "#4f46e5", // indigo-600
-		Secondary: "#4338ca", // indigo-700
-		Link:      "#2563eb", // blue-600
-	},
-	"green": {
-		Primary:   "#0f766e", // teal-700
-		Secondary: "#0f766e", // teal-700
-		Link:      "#2563eb", // blue-600
-	},
-	"pink": {
-		Primary:   "#db2777", // pink-600
-		Secondary: "#be185d", // pink-700
-		Link:      "#4f46e5", // indigo-600
-	},
-	"red": {
-		Primary:   "#b91c1c", // red-700
-		Secondary: "#be123c", // rose-700
-		Link:      "#4f46e5", // indigo-600
-	},
-	"black": {
-		Primary:   "#0f172a", // slate-900
-		Secondary: "#0f172a", // slate-900
-		Link:      "#2563eb", // blue-600
-	},
-}
-
-var DefaultTheme = Theme{
-	Primary:   "#4338ca", // indigo-700
-	Secondary: "#0f172a", // slate-900
-	Link:      "#1d4ed8", // blue-700
-}
-
+// NewTheme retrieves the requested theme.
+// Simplified themes can also be requested. A simplified theme
+// modifies the secondary color, which makes it less colorful.
+//
+// ex:
+//
+//	// will retrieve the pink theme
+//	NewTheme("pink")
+//
+//	// will retrieve the pink theme and modify it
+//	NewTheme("pink-simple")
+//
+// .
 func NewTheme(themeStr string) (Theme, error) {
 
 	// If no theme is given, then return the default.
@@ -1997,3 +1977,39 @@ const SectionLatest = "$latest"
 // This is only a temporary directory. To fully deploy the site,
 // the exported site must be moved to the production site repository.
 const ExportDir = "dist"
+
+// THe default color theme.
+var DefaultTheme = Theme{
+	Primary:   "#4338ca", // indigo-700
+	Secondary: "#0f172a", // slate-900
+	Link:      "#1d4ed8", // blue-700
+}
+
+// Color themes for the site.
+var Themes = map[string]Theme{
+	"purple": {
+		Primary:   "#4f46e5", // indigo-600
+		Secondary: "#4338ca", // indigo-700
+		Link:      "#2563eb", // blue-600
+	},
+	"green": {
+		Primary:   "#0f766e", // teal-700
+		Secondary: "#0f766e", // teal-700
+		Link:      "#2563eb", // blue-600
+	},
+	"pink": {
+		Primary:   "#db2777", // pink-600
+		Secondary: "#be185d", // pink-700
+		Link:      "#4f46e5", // indigo-600
+	},
+	"red": {
+		Primary:   "#b91c1c", // red-700
+		Secondary: "#be123c", // rose-700
+		Link:      "#4f46e5", // indigo-600
+	},
+	"black": {
+		Primary:   "#0f172a", // slate-900
+		Secondary: "#0f172a", // slate-900
+		Link:      "#2563eb", // blue-600
+	},
+}
