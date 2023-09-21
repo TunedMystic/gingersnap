@@ -70,11 +70,8 @@ func main() {
 		g := gingersnap.New()
 		g.Configure(s)
 
-		// Run the server.
-		go g.RunServerWithWatcher(s)
-
-		// Block main goroutine forever.
-		<-make(chan struct{})
+		// Run the server with file watcher.
+		g.RunServerWithWatcher(s)
 
 	case "export":
 
