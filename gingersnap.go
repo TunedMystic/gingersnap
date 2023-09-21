@@ -1985,6 +1985,11 @@ var Themes = map[string]Theme{
 		Secondary: "#be185d", // pink-700
 		Link:      "#4f46e5", // indigo-600
 	},
+	"blue": {
+		Primary:   "#0284c7", // sky-600
+		Secondary: "#0284c7", // sky-600
+		Link:      "#2563eb", // blue-600
+	},
 	"red": {
 		Primary:   "#b91c1c", // red-700
 		Secondary: "#be123c", // rose-700
