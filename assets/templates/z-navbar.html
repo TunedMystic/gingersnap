@@ -7,9 +7,9 @@
         </h3>
 
         {{if .NavbarLinks}}
-            <nav class="flex flex-wrap justify-center space-x-7 text-slate-700">
+            <nav class="flex flex-wrap justify-center text-slate-700">
                 {{range .NavbarLinks}}
-                    <p class="py-1 pb-1.5 hover:underline"><a href="{{.Route}}">{{.Text}}</a></p>
+                    <p class="px-3.5 py-1 pb-1.5 hover:underline"><a href="{{.Route}}">{{.Text}}</a></p>
                 {{end}}
             </nav>
         {{end}}
