@@ -2,7 +2,7 @@
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12 mb-20">
         {{range .}}
             <div>
-                <a class="flex flex-col space-y-2.5" href="/{{.Slug}}">
+                <a class="flex flex-col space-y-2.5" href="{{.Route}}">
                     <img class="rounded drop-shadow" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" alt="{{.Image.Alt}}">
                     <p class="text-lg leading-snug text-black font-semibold pt-2">{{.Heading}}</p>
                 </a>
