@@ -42,7 +42,7 @@
                 <p class="text-xl font-bold text-black mb-6">Latest Posts</p>
                 <div class="flex flex-col space-y-5">
                     {{range .LatestPosts}}
-                        <p><a class="link font-medium text-lg" href="{{.Route}}">{{.Title}}</a></p>
+                        <p><a class="link font-medium text-base md:text-lg" href="{{.Route}}">{{.Title}}</a></p>
                     {{end}}
                 </div>
             {{end}}
@@ -54,18 +54,18 @@
                 <p class="text-xl font-bold text-black mb-6">You May Also Like</p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-5">
                     {{range .FeaturedPosts}}
-                        <div class="space-y-2.5">
-                            <a class="" href="{{.Route}}">
+                        <div class="space-y-1 sm:space-y-1.5">
+                            <a href="{{.Route}}">
                                 <img class="rounded" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" alt="{{.Image.Alt}}">
                             </a>
 
-                            <p class="primary underline font-medium text-base md:text-sm">
+                            <p class="primary font-medium text-base sm:text-sm underline pt-1">
                                 <a href="{{.Category.Route}}">{{.Category.Title}}</a>
                             </p>
 
-                            <a class="" href="{{.Route}}">
-                                <p class="pt-1.5 text-lg md:text-base font-semibold lg:font-medium leading-normal text-black">{{.Heading}}</p>
-                            </a>
+                            <p class="text-black font-semibold text-lg sm:text-base lg:font-medium">
+                                <a href="{{.Route}}">{{.Heading}}</a>
+                            </p>
                         </div>
                     {{end}}
                 </div>
