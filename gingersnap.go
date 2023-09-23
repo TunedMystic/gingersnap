@@ -21,6 +21,7 @@ import (
 
 	"github.com/fsnotify/fsnotify"
 	"github.com/yuin/goldmark"
+	high "github.com/yuin/goldmark-highlighting/v2"
 	meta "github.com/yuin/goldmark-meta"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
@@ -1205,6 +1206,7 @@ func NewProcessor(filePaths []string) *Processor {
 		Markdown: goldmark.New(
 			goldmark.WithExtensions(
 				meta.New(meta.WithStoresInDocument()),
+				high.NewHighlighting(high.WithStyle("monokai")),
 			),
 			goldmark.WithParserOptions(
 				parser.WithAutoHeadingID(),
