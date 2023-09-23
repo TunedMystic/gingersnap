@@ -48,12 +48,12 @@
             {{end}}
 
 
-            {{if .FeaturedPosts}}
-                <!-- Featured Articles -->
+            {{if .RelatedPosts}}
+                <!-- Related Articles -->
                 <hr class="my-11">
                 <p class="text-xl font-bold text-black mb-6">You May Also Like</p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-5">
-                    {{range .FeaturedPosts}}
+                    {{range .RelatedPosts}}
                         <div class="space-y-1 sm:space-y-1.5">
                             <a href="{{.Route}}">
                                 <img class="rounded" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" alt="{{.Image.Alt}}">

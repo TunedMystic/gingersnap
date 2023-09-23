@@ -38,16 +38,26 @@ import (
 // Gingersnap is the main application engine.
 // .
 type Gingersnap struct {
-	Logger    *log.Logger
-	Assets    embed.FS
+	// The main logger
+	Logger *log.Logger
+
+	// Internal assets
+	Assets embed.FS
+
+	// Internal templates
 	Templates *htmlTemplate.Template
 
-	Config     *Config
-	Posts      *PostModel
-	Categories *CategoryModel
-	Media      http.FileSystem
-
+	// Internal HTTP server.
 	HttpServer *http.Server
+
+	// The user's config
+	Config *Config
+
+	// The user's content
+	Store *Store
+
+	// The user's media
+	Media http.FileSystem
 }
 
 // New returns an empty Gingernap engine.
@@ -70,19 +80,19 @@ func (g *Gingersnap) Routes() http.Handler {
 	r.Handle("/404/", g.Handle404())
 	r.Handle("/media/", g.CacheControl(http.StripPrefix("/media", http.FileServer(g.Media))))
 
-	// Build category routes
-	for _, cat := range g.Categories.All() {
-		r.Handle(cat.Route(), g.HandleCategory(cat))
-	}
-
 	// Build routes for all blog posts.
-	for _, post := range g.Posts.All() {
+	for _, post := range g.Store.Posts {
 		r.Handle(post.Route(), g.HandlePost(post))
 	}
 
 	// Build routes for all standalone posts (pages).
-	for _, post := range g.Posts.Pages() {
+	for _, post := range g.Store.Pages {
 		r.Handle(post.Route(), g.HandlePost(post))
+	}
+
+	// Build category routes
+	for _, cat := range g.Store.Categories {
+		r.Handle(cat.Route(), g.HandleCategory(cat))
 	}
 
 	return g.RecoverPanic(g.LogRequest(g.SecureHeaders(r)))
@@ -92,7 +102,7 @@ func (g *Gingersnap) Routes() http.Handler {
 // .
 func (g *Gingersnap) AllUrls() ([]string, error) {
 
-	urls := make([]string, 0, max(len(g.Posts.All()), 20))
+	urls := make([]string, 0, max(len(g.Store.Posts), 20))
 	urls = append(urls, "/", "/styles.css", "/sitemap/", "/sitemap.xml")
 	urls = append(urls, "/robots.txt", "/CNAME", "/404/")
 
@@ -119,17 +129,17 @@ func (g *Gingersnap) AllUrls() ([]string, error) {
 	}
 
 	// Build routes for all blog posts.
-	for _, post := range g.Posts.All() {
+	for _, post := range g.Store.Posts {
 		urls = append(urls, post.Route())
 	}
 
 	// Build routes for all standalone posts (pages).
-	for _, post := range g.Posts.Pages() {
+	for _, post := range g.Store.Pages {
 		urls = append(urls, post.Route())
 	}
 
 	// Build routes for all categories.
-	for _, cat := range g.Categories.All() {
+	for _, cat := range g.Store.Categories {
 		urls = append(urls, cat.Route())
 	}
 
@@ -145,7 +155,6 @@ func (g *Gingersnap) AllUrls() ([]string, error) {
 // ------------------------------------------------------------------
 
 func (g *Gingersnap) HandleIndex() http.HandlerFunc {
-
 	sections := make([]Section, 0, len(g.Config.Homepage))
 
 	// Create sections for rendering the homepage.
@@ -162,7 +171,7 @@ func (g *Gingersnap) HandleIndex() http.HandlerFunc {
 			// Create the section.
 			section := Section{
 				Category: categoryLatest,
-				Posts:    g.Posts.Latest(),
+				Posts:    g.Store.PostsLatest,
 			}
 
 			// Add the section.
@@ -172,12 +181,12 @@ func (g *Gingersnap) HandleIndex() http.HandlerFunc {
 
 		// Gather the posts for the specified category.
 		// Raise error if category is not found.
-		cat, ok := g.Categories.BySlug(slug)
+		cat, ok := g.Store.CategoriesBySlug[slug]
 		if !ok {
 			panic(fmt.Sprintf("homepage section error: cannot find category [%s]", slug))
 		}
 
-		posts, ok := g.Posts.ByCategory(cat)
+		posts, ok := g.Store.PostsByCategory[cat]
 		if !ok {
 			panic(fmt.Sprintf("homepage section error: no posts found for category [%s]", slug))
 		}
@@ -216,8 +225,8 @@ func (g *Gingersnap) HandlePost(post *Post) http.HandlerFunc {
 		rd.Description = post.Description
 		rd.Heading = post.Heading
 		rd.Post = post
-		rd.LatestPosts = g.Posts.Latest()[:min(LimitLatestPostDetail, len(g.Posts.Latest()))]
-		rd.FeaturedPosts = g.Posts.Featured()
+		rd.LatestPosts = g.Store.PostsLatest[:min(LimitLatestPostDetail, len(g.Store.PostsLatest))]
+		rd.RelatedPosts = g.Store.RelatedPosts(post)
 
 		if post.Image.IsEmpty() {
 			rd.Image = g.Config.Site.Image
@@ -233,7 +242,7 @@ func (g *Gingersnap) HandleCategory(cat Category) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		// Get the Posts by Category
-		posts, ok := g.Posts.ByCategory(cat)
+		posts, ok := g.Store.PostsByCategory[cat]
 		if !ok {
 			g.Logger.Printf("Cannot find Posts for Category '%s'", cat.Slug)
 			g.ErrNotFound(w)
@@ -318,7 +327,7 @@ func (g *Gingersnap) HandleSitemapXml() http.HandlerFunc {
 
 	// The urlSet is a map of urls to lastmod dates.
 	// It is used to render the sitemap.
-	urlSet := make(map[string]string, len(g.Posts.All())*2)
+	urlSet := make(map[string]string, len(g.Store.Posts)*2)
 
 	// permalink is a helper function which generates
 	// the permalink for a given path
@@ -329,18 +338,8 @@ func (g *Gingersnap) HandleSitemapXml() http.HandlerFunc {
 	// Add sitemap entries for the index page.
 	urlSet[permalink("/")] = ""
 
-	// Add sitemap entries for all the categories.
-	for _, cat := range g.Categories.All() {
-		urlSet[permalink(cat.Route())] = ""
-	}
-
-	// Add sitemap entries for all the standalone posts (pages).
-	for _, post := range g.Posts.Pages() {
-		urlSet[permalink(post.Route())] = ""
-	}
-
 	// Add sitemap entries for all the blog posts.
-	for _, post := range g.Posts.All() {
+	for _, post := range g.Store.Posts {
 		lastMod := ""
 
 		if ts := post.LatestTS(); ts > 0 {
@@ -348,6 +347,16 @@ func (g *Gingersnap) HandleSitemapXml() http.HandlerFunc {
 		}
 
 		urlSet[permalink(post.Route())] = lastMod
+	}
+
+	// Add sitemap entries for all the standalone posts (pages).
+	for _, post := range g.Store.Pages {
+		urlSet[permalink(post.Route())] = ""
+	}
+
+	// Add sitemap entries for all the categories.
+	for _, cat := range g.Store.Categories {
+		urlSet[permalink(cat.Route())] = ""
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -374,7 +383,7 @@ func (g *Gingersnap) HandleSitemapHtml() http.HandlerFunc {
 		rd.Title = fmt.Sprintf("Sitemap - Browse through all Posts on %s", g.Config.Site.Name)
 		rd.Description = fmt.Sprintf("Browse through the sitemap on %s and take a look at our posts.", g.Config.Site.Name)
 		rd.Heading = "Posts"
-		rd.Posts = g.Posts.All()
+		rd.Posts = g.Store.Posts
 
 		g.Render(w, http.StatusOK, "sitemap", &rd)
 	}
@@ -438,7 +447,7 @@ func (g *Gingersnap) render404(w http.ResponseWriter, status int) {
 	rd := g.NewRenderData(nil)
 	rd.AppError = "404"
 	rd.Title = fmt.Sprintf("Page Not Found - %s", g.Config.Site.Name)
-	rd.LatestPosts = g.Posts.Latest()
+	rd.LatestPosts = g.Store.PostsLatest
 
 	g.Render(w, status, "error", &rd)
 }
@@ -454,7 +463,7 @@ func (g *Gingersnap) ErrInternalServer(w http.ResponseWriter, err error) {
 	rd := g.NewRenderData(nil)
 	rd.AppError = "500"
 	rd.Title = fmt.Sprintf("Internal Server Error - %s", g.Config.Site.Name)
-	rd.LatestPosts = g.Posts.Latest()
+	rd.LatestPosts = g.Store.PostsLatest
 
 	if g.Config.Debug {
 		rd.AppTrace = trace
@@ -1025,152 +1034,144 @@ type Section struct {
 // ------------------------------------------------------------------
 //
 //
-// Type: PostModel
+// Type: Store
 //
 //
 // ------------------------------------------------------------------
 
-// PostModel manages queries for Posts.
+// Store is responsible for storing Posts and Categories
+// in an organized way, making easy to access.
 // .
-type PostModel struct {
-	posts           []*Post
-	pages           []*Post
-	postsLatest     []*Post
-	postsFeatured   []*Post
-	postsBySlug     map[string]*Post
-	postsByCategory map[Category][]*Post
+type Store struct {
+	Posts           []*Post
+	Pages           []*Post
+	PostsLatest     []*Post
+	PostsFeatured   []*Post
+	PostsBySlug     map[string]*Post
+	PostsByCategory map[Category][]*Post
+
+	Categories       []Category
+	CategoriesBySlug map[string]Category
 }
 
-func NewPostModel(postsBySlug map[string]*Post) *PostModel {
+func NewStore() *Store {
+	return &Store{}
+}
+
+func (s *Store) InitCategories(categoriesBySlug map[string]Category) {
+
+	s.CategoriesBySlug = categoriesBySlug
+
+	s.Categories = make([]Category, 0, len(s.CategoriesBySlug))
+
+	for slug := range s.CategoriesBySlug {
+		cat := s.CategoriesBySlug[slug]
+		s.Categories = append(s.Categories, cat)
+	}
+}
+
+func (s *Store) InitPosts(postsBySlug map[string]*Post) {
 
 	// Note: the `postsBySlug` map contains
 	//       blog posts AND standalone posts (pages).
 
-	postsLen := len(postsBySlug)
+	s.PostsBySlug = postsBySlug
 
-	m := &PostModel{
-		posts:           make([]*Post, 0, postsLen),
-		pages:           make([]*Post, 0, postsLen),
-		postsLatest:     make([]*Post, 0, postsLen),
-		postsFeatured:   make([]*Post, 0, postsLen),
-		postsByCategory: make(map[Category][]*Post, postsLen),
-		postsBySlug:     postsBySlug,
-	}
+	postsLen := len(s.PostsBySlug)
+
+	s.Posts = make([]*Post, 0, postsLen)
+	s.Pages = make([]*Post, 0, postsLen)
+	s.PostsLatest = make([]*Post, 0, postsLen)
+	s.PostsFeatured = make([]*Post, 0, postsLen)
+	s.PostsByCategory = make(map[Category][]*Post, postsLen)
 
 	// [1/5] Separate the posts into blog posts and standalone posts (pages).
-	for slug := range m.postsBySlug {
-		post := m.postsBySlug[slug]
+	for slug := range s.PostsBySlug {
+		post := s.PostsBySlug[slug]
 
 		if post.IsBlog {
-			m.posts = append(m.posts, post)
+			s.Posts = append(s.Posts, post)
 		} else {
-			m.pages = append(m.pages, post)
+			s.Pages = append(s.Pages, post)
 		}
 	}
 
 	// [2/5] Sort the posts by pubdate timestamp.
-	sort.SliceStable(m.posts, func(i, j int) bool {
-		return m.posts[i].PubdateTS > m.posts[j].PubdateTS
+	sort.SliceStable(s.Posts, func(i, j int) bool {
+		return s.Posts[i].PubdateTS > s.Posts[j].PubdateTS
 	})
 
 	// [3/5] Prepare the posts by category.
-	for _, post := range m.posts {
+	for _, post := range s.Posts {
 		if !post.Category.IsEmpty() {
 
 			cat := post.Category
 
 			// Create slice if it does not exist.
-			if len(m.postsByCategory[cat]) == 0 {
-				m.postsByCategory[cat] = make([]*Post, 0, postsLen)
+			if len(s.PostsByCategory[cat]) == 0 {
+				s.PostsByCategory[cat] = make([]*Post, 0, postsLen)
 			}
 
 			// Add post to the category slice.
-			m.postsByCategory[cat] = append(m.postsByCategory[cat], post)
+			s.PostsByCategory[cat] = append(s.PostsByCategory[cat], post)
 		}
 	}
 
 	// [4/5] Prepare the latest posts.
-	m.postsLatest = m.posts[:min(LimitLatest, len(m.posts))]
+	s.PostsLatest = s.Posts[:min(LimitLatest, len(s.Posts))]
 
 	// [5/5] Prepare the featured posts.
-	for i := range m.posts {
-		post := m.posts[i]
+	for i := range s.Posts {
+		post := s.Posts[i]
 
 		if post.IsFeatured {
-			m.postsFeatured = append(m.postsFeatured, post)
+			s.PostsFeatured = append(s.PostsFeatured, post)
 		}
 	}
 
-	m.postsFeatured = m.postsFeatured[:min(LimitFeatured, len(m.postsFeatured))]
-
-	return m
+	s.PostsFeatured = s.PostsFeatured[:min(LimitFeatured, len(s.PostsFeatured))]
 }
 
-func (m *PostModel) All() []*Post {
-	return m.posts
-}
-
-func (m *PostModel) Pages() []*Post {
-	return m.pages
-}
-
-func (m *PostModel) Latest() []*Post {
-	return m.postsLatest
-}
-
-func (m *PostModel) Featured() []*Post {
-	return m.postsFeatured
-}
-
-func (m *PostModel) ByCategory(c Category) ([]*Post, bool) {
-	posts, ok := m.postsByCategory[c]
-	return posts, ok
-}
-
-func (m *PostModel) BySlug(s string) (*Post, bool) {
-	post, ok := m.postsBySlug[s]
-	return post, ok
-}
-
-// ------------------------------------------------------------------
-//
-//
-// Type: CategoryModel
-//
-//
-// ------------------------------------------------------------------
-
-// CategoryModel manages queries for Categories.
-// .
-type CategoryModel struct {
-	categories       []Category
-	categoriesBySlug map[string]Category
-}
-
-func NewCategoryModel(categoriesBySlug map[string]Category) *CategoryModel {
-
-	catLen := len(categoriesBySlug)
-
-	m := &CategoryModel{
-		categories:       make([]Category, 0, catLen),
-		categoriesBySlug: categoriesBySlug,
+func (s *Store) RelatedPosts(post *Post) []*Post {
+	// If the post is a standalone post, then return nil.
+	if post.IsPage {
+		return nil
 	}
 
-	for slug := range m.categoriesBySlug {
-		cat := m.categoriesBySlug[slug]
-		m.categories = append(m.categories, cat)
+	// Retrieve the posts for the category.
+	cPosts, ok := s.PostsByCategory[post.Category]
+
+	// If there are no posts for the category,
+	// then return the featured posts.
+	if !ok {
+		return s.PostsFeatured
 	}
 
-	return m
-}
+	// If there is a small amount of posts for the category,
+	// then return the featured posts.
+	if len(cPosts) <= LimitFeatured {
+		return s.PostsFeatured
+	}
 
-func (m *CategoryModel) All() []Category {
-	return m.categories
-}
+	// Find the index of the given post.
+	idx := 0
+	for i, p := range cPosts {
+		if p.Slug == post.Slug {
+			idx = i
+			break
+		}
+	}
 
-func (m *CategoryModel) BySlug(s string) (Category, bool) {
-	category, ok := m.categoriesBySlug[s]
-	return category, ok
+	// Starting from the index of the current post,
+	// gather the next x number of posts for the category.
+	// Use modulo calculation to ensure the selection wraps
+	// around the category posts.
+	related := make([]*Post, 0, LimitFeatured)
+	for i := 0; i < LimitFeatured; i++ {
+		related = append(related, cPosts[(idx+i+1)%len(cPosts)])
+	}
+
+	return related
 }
 
 // ------------------------------------------------------------------
@@ -1787,8 +1788,7 @@ func (g *Gingersnap) Configure(s Settings) {
 	g.Logger = nil
 	g.Templates = nil
 	g.Config = nil
-	g.Posts = nil
-	g.Categories = nil
+	g.Store = nil
 
 	// ------------------------------------------
 	//
@@ -1817,14 +1817,15 @@ func (g *Gingersnap) Configure(s Settings) {
 	}
 
 	// Parse the markdown posts.
-	processor := NewProcessor(filePaths)
-	if err := processor.Process(); err != nil {
+	pr := NewProcessor(filePaths)
+	if err := pr.Process(); err != nil {
 		logger.Fatal(err)
 	}
 
-	// Construct the models from the processed markdown posts.
-	postModel := NewPostModel(processor.PostsBySlug)
-	categoryModel := NewCategoryModel(processor.CategoriesBySlug)
+	// Construct the store from the processed markdown posts.
+	store := NewStore()
+	store.InitPosts(pr.PostsBySlug)
+	store.InitCategories(pr.CategoriesBySlug)
 
 	// Construct the templates, using the embedded FS.
 	templates, err := NewTemplate(Templates)
@@ -1843,8 +1844,7 @@ func (g *Gingersnap) Configure(s Settings) {
 	g.Media = http.Dir(s.MediaDir)
 	g.Templates = templates
 	g.Config = config
-	g.Posts = postModel
-	g.Categories = categoryModel
+	g.Store = store
 	g.HttpServer = &http.Server{
 		Addr:         g.Config.ListenAddr,
 		Handler:      g.Routes(),
