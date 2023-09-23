@@ -1206,7 +1206,7 @@ func NewProcessor(filePaths []string) *Processor {
 		Markdown: goldmark.New(
 			goldmark.WithExtensions(
 				meta.New(meta.WithStoresInDocument()),
-				high.NewHighlighting(high.WithStyle("monokai")),
+				high.NewHighlighting(high.WithStyle("tango")),
 			),
 			goldmark.WithParserOptions(
 				parser.WithAutoHeadingID(),

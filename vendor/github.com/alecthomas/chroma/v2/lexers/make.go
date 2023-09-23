@@ -7,9 +7,9 @@ import (
 // Makefile lexer.
 var Makefile = Register(MustNewLexer(
 	&Config{
-		Name:      "Base Makefile",
+		Name:      "Makefile",
 		Aliases:   []string{"make", "makefile", "mf", "bsdmake"},
-		Filenames: []string{"*.mak", "*.mk", "Makefile", "makefile", "Makefile.*", "GNUmakefile"},
+		Filenames: []string{"*.mak", "*.mk", "Makefile", "makefile", "Makefile.*", "GNUmakefile", "BSDmakefile"},
 		MimeTypes: []string{"text/x-makefile"},
 		EnsureNL:  true,
 	},
