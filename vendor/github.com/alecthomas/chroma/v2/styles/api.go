@@ -1,44 +1,16 @@
 package styles
 
 import (
-	"embed"
-	"io/fs"
 	"sort"
 
 	"github.com/alecthomas/chroma/v2"
 )
 
-//go:embed *.xml
-var embedded embed.FS
-
 // Registry of Styles.
-var Registry = func() map[string]*chroma.Style {
-	registry := map[string]*chroma.Style{}
-	// Register all embedded styles.
-	files, err := fs.ReadDir(embedded, ".")
-	if err != nil {
-		panic(err)
-	}
-	for _, file := range files {
-		if file.IsDir() {
-			continue
-		}
-		r, err := embedded.Open(file.Name())
-		if err != nil {
-			panic(err)
-		}
-		style, err := chroma.NewXMLStyle(r)
-		if err != nil {
-			panic(err)
-		}
-		registry[style.Name] = style
-		_ = r.Close()
-	}
-	return registry
-}()
+var Registry = map[string]*chroma.Style{}
 
 // Fallback style. Reassign to change the default fallback style.
-var Fallback = Registry["swapoff"]
+var Fallback = SwapOff
 
 // Register a chroma.Style.
 func Register(style *chroma.Style) *chroma.Style {

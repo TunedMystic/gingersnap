@@ -22,10 +22,12 @@ import (
 	"github.com/fsnotify/fsnotify"
 	"github.com/yuin/goldmark"
 	high "github.com/yuin/goldmark-highlighting/v2"
-	meta "github.com/yuin/goldmark-meta"
+	"github.com/yuin/goldmark/extension"
 	"github.com/yuin/goldmark/parser"
 	"github.com/yuin/goldmark/renderer/html"
 	"github.com/yuin/goldmark/text"
+
+	"go.abhg.dev/goldmark/frontmatter"
 )
 
 // ------------------------------------------------------------------
@@ -1205,8 +1207,11 @@ func NewProcessor(filePaths []string) *Processor {
 		//
 		Markdown: goldmark.New(
 			goldmark.WithExtensions(
-				meta.New(meta.WithStoresInDocument()),
 				high.NewHighlighting(high.WithStyle("tango")),
+				&frontmatter.Extender{
+					Mode: frontmatter.SetMetadata,
+				},
+				extension.Table,
 			),
 			goldmark.WithParserOptions(
 				parser.WithAutoHeadingID(),
@@ -1483,11 +1488,8 @@ func (m *MetadataParser) GetRequiredDate(key string) (string, int, error) {
 }
 
 func (m *MetadataParser) parseDate(key string) (string, int, error) {
-	pd, err := time.Parse(time.DateOnly, m.metadata[key].(string))
-	if err != nil {
-		return "", 0, fmt.Errorf("failed to parse %s [%s] %w", key, m.label, err)
-	}
-	return pd.Format("January 2, 2006"), int(pd.Unix()), nil
+	d := m.metadata[key].(time.Time)
+	return d.Format("January 2, 2006"), int(d.Unix()), nil
 }
 
 func (m *MetadataParser) exists(key string) bool {

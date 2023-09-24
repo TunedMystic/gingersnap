@@ -19,18 +19,18 @@ var FortranFixed = Register(MustNewLexer(
 			"root": {
 				{`[C*].*\n`, Comment, nil},
 				{`#.*\n`, CommentPreproc, nil},
-				{` {0,4}!.*\n`, Comment, nil},
+				{`[\t ]*!.*\n`, Comment, nil},
 				{`(.{5})`, NameLabel, Push("cont-char")},
 				{`.*\n`, Using("Fortran"), nil},
 			},
 			"cont-char": {
-				{` `, TextWhitespace, Push("code")},
+				{` `, Text, Push("code")},
+				{`0`, Comment, Push("code")},
 				{`.`, GenericStrong, Push("code")},
 			},
 			"code": {
-				{`(.{66})(.*)(\n)`, ByGroups(Using("Fortran"), Comment, TextWhitespace), Push("root")},
-				{`(.*)(!.*)(\n)`, ByGroups(Using("Fortran"), Comment, TextWhitespace), Push("root")},
-				{`(.*)(\n)`, ByGroups(Using("Fortran"), TextWhitespace), Push("root")},
+				{`(.{66})(.*)(\n)`, ByGroups(Using("Fortran"), Comment, Text), Push("root")},
+				{`.*\n`, Using("Fortran"), Push("root")},
 				Default(Push("root")),
 			},
 		}

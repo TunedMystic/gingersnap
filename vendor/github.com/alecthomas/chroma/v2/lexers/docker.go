@@ -9,7 +9,7 @@ var Docker = Register(MustNewLexer(
 	&Config{
 		Name:            "Docker",
 		Aliases:         []string{"docker", "dockerfile"},
-		Filenames:       []string{"Dockerfile", "Dockerfile.*", "*.docker"},
+		Filenames:       []string{"Dockerfile", "*.docker"},
 		MimeTypes:       []string{"text/x-dockerfile-config"},
 		CaseInsensitive: true,
 	},
