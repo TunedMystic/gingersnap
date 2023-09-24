@@ -13,185 +13,258 @@ updated: 2023-01-23
 featured: true
 ---
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. [Fusce nec tincidunt](https://news.ycombinator.com/) ipsum, posuere hendrerit metus. Proin eu sapien ipsum. Fusce `posuere lectus ut ex` cursus, at maximus felis aliquet. Integer sodales orci non massa pulvinar lobortis.
+## Getting started
 
-Maecenas leo ex, ultricies non accumsan nec, [`egestas eget`](https://twitter.com/golang) nulla. Etiam sollicitudin dolor et libero tempor, sed scelerisque mauris blandit. Maecenas fringilla at nulla consequat aliquam. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere [cubilia curae](https://news.ycombinator.com/).
+Gingersnap is a static site generator built in Go. It converts markdown files into a fully functional website.
+
+With a single command, users can setup an entire project, allowing them to jump straight into editing and content creation.
+
+Projects have a limited set of features and configuration. This helps keep the blogging workflow streamlined and ensures a more straightforward experience for users.
 
 <details open>
     <summary>Table of Contents</summary>
 
-- [Morbi quis diam](#morbi-quis-diam)
-- [Sem vitae venenatis](#sem-vitae-venenatis)
-- [Nulla ultrices](#nulla-ultrices)
-- [Aenean quis enim massa](#aenean-quis-enim-massa)
-- [Feugiat magna porta](#feugiat-magna-porta)
+- [Quickstart](#quickstart)
+- [Project structure](#project-structure)
+- [Config](#config)
+- [Examples](#examples)
 </details>
 
+## Quickstart
 
-## Morbi quis diam
+First, create an empty directory and navigate to it.
 
-Donec commodo urna eu diam tristique, ut faucibus sapien hendrerit. Mauris semper risus sed nibh eleifend, et feugiat nibh cursus. Nullam dapibus justo a magna eleifend, at tristique eros blandit. Morbi quis diam pellentesque, auctor tortor ut, viverra elit. Ut eu dignissim quam. Nullam scelerisque tellus facilisis, vulputate lectus id, pretium turpis. In iaculis lorem suscipit dolor tincidunt porta.
-
-
-### Sed imperdiet nunc
-
-Sed imperdiet nunc sed felis pharetra facilisis. Vestibulum consectetur eu arcu vel gravida. Fusce fringilla, ipsum eu aliquet dignissim, diam augue laoreet magna, a mollis diam nunc et elit.
-
-#### Curabitur ornare
-
-Curabitur ornare, sem vitae venenatis ullamcorper, ante nisl hendrerit leo, et ullamcorper justo leo et massa. Pellentesque non felis scelerisque, rutrum tellus in, tempor nulla. Nulla ultrices, nibh porttitor congue consectetur, libero purus fringilla magna
-
-Nullam elementum, lectus quis pellentesque placerat, sapien dui dictum enim, feugiat faucibus sem sapien eget felis. Praesent non metus nunc. Phasellus non lacus sapien. Nam id lacus nec sapien dapibus finibus. Sed sed iaculis massa.
-
-#### Nullam pulvinar velit eleifend
-
-Nullam pulvinar velit eleifend porta fringilla. Aliquam tempus neque sit amet lobortis consequat. Curabitur quam nisl, lobortis at tortor at, rhoncus consequat nibh.
-
-![something](/media/golang-error-handling.webp)
-
-### Integer ultrices velit
-
-Integer ultrices velit sit amet molestie ultricies. Integer condimentum aliquet auctor. Duis eleifend elit in lectus mollis tincidunt. Pellentesque erat ipsum, tempus ut posuere eget, hendrerit a nulla. Aliquam tempor nulla vel turpis maximus consequat.
-
-Pellentesque ut quam viverra, auctor <mark>turpis ut, euismod dui</mark>. Phasellus luctus ullamcorper diam quis feugiat. Fusce urna dolor, sagittis et cursus in, sagittis sed nibh. Nulla malesuada mi ex, non vestibulum metus pharetra at.
-
-> Quote here.
->
-> -- <cite>Benjamin Franklin</cite>
-
-
-## Sem vitae venenatis
-
-Nulla imperdiet malesuada orci, a suscipit ex luctus sit amet. Nulla facilisi. Cras a justo euismod, suscipit lectus in, blandit turpis. Suspendisse mattis quis turpis quis congue. Nunc aliquam nisl at elit convallis iaculis.
-
-Curabitur ornare, sem vitae venenatis ullamcorper, ante nisl hendrerit leo, et ullamcorper justo leo et massa. Donec tincidunt rhoncus imperdiet. Cras vel finibus quam.
-
-Phasellus ac dolor sed odio euismod blandit tempor et tortor. Fusce commodo libero nec nisi viverra lacinia.
-
-Cras non dictum nisl, in imperdiet ligula.
-
-
-### Nulla ultrices
-
-Pellentesque non felis scelerisque, rutrum tellus in, tempor nulla. Nulla ultrices, nibh porttitor congue consectetur, libero purus fringilla magna, non viverra nisi sapien a orci.
-
-Praesent sed sem eu ante tempus mattis sed in urna. Quisque dictum dapibus diam et tempus.
-
-- Rhoncus est in placerat
-- Proin sed odio vitae metus egestas
-- Sollicitudin eget quis dui
-    - Donec at consequat arcu
-    - vel aliquet eros. Aenean a odio enim
-    - Praesent nec [tortor](https://github.com) quam.
-
-Phasellus auctor non velit quis lacinia. Curabitur pharetra, massa vitae tristique mattis, urna risus sodales libero, vel faucibus nunc leo a erat.
-
-Nulla facilisi. Aliquam luctus tortor turpis, non accumsan velit lacinia vitae.
-
-
-## Star Wars Mixins Edition
-
-<img src="https://media.giphy.com/media/2tDQZuljhwHTi/giphy.gif">
-
-To illustrate another use of mixins, lets look at a Star Wars example for creating different types of Jedi and Sith instances.
-
-We have our ForceUser class which describes someone who is force sensitive. Then we define a couple of mixins; the `JediMixin` and `SithMixin` both define custom lightsaber color and the `LightsaberMixin` uses the predefined lightsaber colors to create a lightsaber for our force user.
-
-Finally we bring everything together by defining our `JediMaster` and `SithLord` classes. These two classes override some `ForceUser` methods to add their own custom logic.
-
-```python
-import random
-
-class ForceUser:
-    def __init__(self, name):
-        self.moves = ['force push']
-        self.name = name
-
-    def get_ability(self):
-        return random.choice(self.moves)
-
-    def ability(self):
-        print(f'Attacks with {self.get_ability()}')
-
-    def __repr__(self):
-        return f'I am {self.name}, a {self.__class__.__name__}!'
+```shell
+mkdir mysite && cd mysite
 ```
 
 
-## Aenean quis enim massa
+Next, use gingersnap to initialize a project.
+A starter project will be scaffolded, complete with blog posts and media assets.
 
-Aenean quis enim massa. Donec vel turpis et lectus dictum laoreet. Nullam eleifend vel felis id pharetra. Sed mi ipsum, malesuada non leo ut, feugiat rhoncus elit. Nullam consectetur semper quam, aliquet ullamcorper leo condimentum ac.
-
-Nullam elementum, lectus quis pellentesque placerat, sapien dui dictum enim, feugiat faucibus sem sapien eget felis. Praesent non metus nunc. Phasellus non lacus sapien.
-
-Nam id lacus nec sapien dapibus finibus. Sed sed iaculis massa. Sed rutrum gravida dolor quis tristique. Fusce purus magna, congue ut ligula non, euismod luctus purus. Sed id ultricies ipsum.
-
-
-## Feugiat magna porta
-
-Quisque tristique egestas nunc, sed porta magna mollis at. Phasellus feugiat pellentesque enim nec molestie. Cras pretium eu lectus et placerat. Aenean malesuada turpis quis massa ullamcorper vestibulum. Vivamus feugiat vehicula elit, quis egestas ex hendrerit ac.
-
-Phasellus felis metus, iaculis in aliquet eu, gravida nec turpis. Cras consequat dolor justo, a feugiat magna porta a. Morbi molestie metus ac turpis pellentesque pulvinar. Nullam id suscipit libero.
-
-Etiam et enim euismod, interdum dui ac, sodales tellus. Aenean a pellentesque neque. In ex eros, porttitor id semper molestie, commodo a dolor.
+```shell
+gingersnap init
+```
 
 
-## Quam viverra
+Then, use gingersnap to start a development server on `localhost:4000`.
+You can add/edit content, and the server will restart to reflect the changes.
 
+```shell
+gingersnap dev
+```
+
+
+Finally, use gingersnap to export the project as a static site.
+The site will be exported to the `dist/` directory.
+
+```shell
+gingersnap export
+```
+
+---
+
+## Project structure
+
+A gingersnap project contains the following directory structure:
+
+```plaintext
+├─ posts/
+├─ media/
+├─ gingersnap.json
+```
+
+**Posts** - The `posts` directory contains all the site content as markdown files. Gingersnap uses the metadata within each markdown file to determine the post's title, slug, category etc.
+
+**Media** - The `media` directory contains all media assets that are used in the posts. These assets can be images, audio, video, etc.
+
+**Config** - The config file stores settings and layout configurations for the site. More details about the config file [below](#config).
+
+---
+
+## Config
+
+The `gingersnap.json` config file stores settings and layout configurations for the site. The config is separated into the following 5 sections.
+
+
+**Site** defines site-specific settings.
+
+| | |
+| ----------- | ----------- |
+| `name` | The name of the site |
+| `host` | The host of the site |
+| `tagline` | A short description of the site _(50-70 characters)_ |
+| `description` | A long description of the site _(70-155 characters)_ |
+| `theme` | The color theme of the site _([see available themes](#themes))_ |
+
+```json
+"site": {
+    "name": "MySite",
+    "host": "mysite.com",
+    "tagline": "short descr ...",
+    "description": "longer descr ...",
+    "theme": "pink"
+}
+```
+
+<br />
+
+**Homepage** defines sections for the homepage. This _(optional)_ setting requires a list of categories.
+
+The `"$latest"` tag is a pseudo category that represents the latest posts across the site. Gingersnap will then build the homepage based on this given list.
+
+```json
+"homepage": ["category-slug", "$latest"]
+```
+
+<br />
+
+**Navbar Links** defines anchor links for the top navbar. This _(optional)_ setting requires a list of anchor link objects.
+
+| | |
+| ----------- | ----------- |
+| Text | The anchor link text |
+| Route | The anchor link href |
+
+```json
+"navbarLinks": [
+    {"text": "About Us", "route": "/about/"},
+    {"text": "My Article", "route": "/abc/"}
+]
+```
+
+<br />
+
+**Footer Links** defines anchor links for the footer. This _(optional)_ setting requires a list of anchor link objects.
+
+| | |
+| ----------- | ----------- |
+| Text | The anchor link text |
+| Route | The anchor link href |
+
+```json
+"footerLinks": [
+    {"text": "About Us", "route": "/about/"},
+    {"text": "My Article", "route": "/abc/"}
+]
+```
+
+<br />
+
+**Static Repository** defines the export destination. This _(optional)_ setting requires a repository path where the site will be exported to.
+
+
+```json
+"staticRepository": "/path/to/static/repo"
+```
+
+---
+
+## Examples
+
+Here are some tips for working with Gingersnap projects.
+
+
+#### Draft Posts
+
+Any post marked as draft will never be processed or exported by Gingersnap.
+
+You can set a post as draft by adding `draft: true` in the markdown front matter.
+
+
+#### Featured Posts
+
+Featured posts are pinned posts that Gingersnap displays in specific areas of the site, such as the post detail page.
+
+You can set a post as featured by adding `featured: true` in the markdown front matter.
+
+
+#### Standalone Posts
+
+A standalone post has no relation to other content across the site. Examples of standalone posts are a "contact" page, an "about" page, or a "privacy-policy" page.
+
+When Gingersnap displays a standalone post, it will not include related or latest posts on the page. A standalone post does not need the following front matter fields: `category`, `image_url`, `pubdate` or `updated`.
+
+You can set a post as standalone by adding `page: true` to the markdown front matter.
+
+
+#### Lead Image
+
+Each post must contain a lead image. You can set the lead in the markdown front matter with the `image_url` and `image_alt` fields.
+
+To keep things simple, all lead images must be in `webp` format and must have a resolution of `1280x720`.
+
+Gingersnap will display the lead image in the post detail page. Alternatively, you can hide the lead image in the post detail page with `hide_image: true`.
+
+
+#### Themes
+
+Gingersnap comes with the following color themes, each with a primary _(left)_ and secondary _(right)_ color. The primary color is applied to the site header and the category links. The secondary color is applied to all heading tags, except `h1`.
+
+| | |
+| ----------- | ----------- |
+| Purple | <div style="display:flex;align-items:center;"><span style="border-radius:15px;width:20px;height:20px;background:#4f46e5;"></span><span style="margin-left:10px;border-radius:15px;width:20px;height:20px;background:#4338ca;"></span></div> |
+| Green | <div style="display:flex;align-items:center;"><span style="border-radius:15px;width:20px;height:20px;background:#0f766e;"></span><span style="margin-left:10px;border-radius:15px;width:20px;height:20px;background:#0f766e;"></span></div> |
+| Pink | <div style="display:flex;align-items:center;"><span style="border-radius:15px;width:20px;height:20px;background:#db2777;"></span><span style="margin-left:10px;border-radius:15px;width:20px;height:20px;background:#be185d;"></span></div> |
+| Blue | <div style="display:flex;align-items:center;"><span style="border-radius:15px;width:20px;height:20px;background:#0284c7;"></span><span style="margin-left:10px;border-radius:15px;width:20px;height:20px;background:#0284c7;"></span></div> |
+| Red | <div style="display:flex;align-items:center;"><span style="border-radius:15px;width:20px;height:20px;background:#b91c1c;"></span><span style="margin-left:10px;border-radius:15px;width:20px;height:20px;background:#be123c;"></span></div> |
+| Black | <div style="display:flex;align-items:center;"><span style="border-radius:15px;width:20px;height:20px;background:#0f172a;"></span><span style="margin-left:10px;border-radius:15px;width:20px;height:20px;background:#0f172a;"></span></div> |
+
+
+You can also simplify the themes by adding `"-simple"` to the theme name in the `gingersnap.json` file.
+
+```json
+// site settings
+{
+    "theme": "pink-simple"
+}
+```
+
+When you specify a simple theme, Gingersnap will use the primary color of the root theme, and will use black as the secondary color.
+
+| | |
+| ----------- | ----------- |
+| Purple | <div style="display:flex;align-items:center;"><span style="border-radius:15px;width:20px;height:20px;background:#4f46e5;"></span><span style="margin-left:10px;border-radius:15px;width:20px;height:20px;background:#0f172a;"></span></div> |
+| Green | <div style="display:flex;align-items:center;"><span style="border-radius:15px;width:20px;height:20px;background:#0f766e;"></span><span style="margin-left:10px;border-radius:15px;width:20px;height:20px;background:#0f172a;"></span></div> |
+| Pink | <div style="display:flex;align-items:center;"><span style="border-radius:15px;width:20px;height:20px;background:#db2777;"></span><span style="margin-left:10px;border-radius:15px;width:20px;height:20px;background:#0f172a;"></span></div> |
+| Blue | <div style="display:flex;align-items:center;"><span style="border-radius:15px;width:20px;height:20px;background:#0284c7;"></span><span style="margin-left:10px;border-radius:15px;width:20px;height:20px;background:#0f172a;"></span></div> |
+| Red | <div style="display:flex;align-items:center;"><span style="border-radius:15px;width:20px;height:20px;background:#b91c1c;"></span><span style="margin-left:10px;border-radius:15px;width:20px;height:20px;background:#0f172a;"></span></div> |
+| Black | <div style="display:flex;align-items:center;"><span style="border-radius:15px;width:20px;height:20px;background:#0f172a;"></span><span style="margin-left:10px;border-radius:15px;width:20px;height:20px;background:#0f172a;"></span></div> |
+
+
+#### Media Within Posts
+
+An image example
 <img width="800" height="450" src="/media/food.webp" alt="Organic Food"/>
-<!-- <img width="800" height="450" src="" alt=""/> -->
 
-Cras lorem purus, ullamcorper ac lobortis sit amet, ullamcorper in augue. Vivamus posuere faucibus augue, consectetur eleifend mi mollis et. In hac habitasse platea dictumst. Ut scelerisque nulla nec tortor ultrices porta.
-
-Nullam pulvinar velit eleifend porta fringilla. Aliquam tempus neque sit amet lobortis consequat. Curabitur quam nisl, lobortis at tortor at, rhoncus consequat nibh. Pellentesque ut quam viverra, auctor turpis ut, euismod dui. Phasellus luctus ullamcorper diam quis feugiat. Fusce urna dolor, sagittis et cursus in, sagittis sed nibh. Nulla malesuada mi ex, non vestibulum metus pharetra at.
-
-Fusce porttitor semper augue, at porta tortor imperdiet sit amet. Sed gravida porta pellentesque.
-
-Proin facilisis nisi molestie enim bibendum tincidunt.
+```html
+<img width="800" height="450" src="/media/food.webp" alt="Organic Food"/>
+```
 
 
-## Vestibulum ante
-
-Curabitur pharetra, massa vitae tristique mattis, urna risus sodales libero, vel faucibus nunc leo a erat. Nulla facilisi. Aliquam luctus tortor turpis, non accumsan velit lacinia vitae. Ut non ante felis. Aenean ut tempus dui, quis feugiat justo.
-
-Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Nam sodales nibh ultrices mauris posuere, eget consequat sapien rutrum. Curabitur id ultrices enim.
-
-### Etiam sollicitudin, quam a aliquet sodales
-
-Vivamus in tellus hendrerit, blandit turpis sed, bibendum orci.
-
-#### Justo dolor efficitur velit, eu tristique odio ligula quis eros
-
-Etiam sollicitudin, quam a aliquet sodales, justo dolor efficitur velit, eu tristique odio ligula quis eros. Nunc gravida metus tempor, faucibus nisl et, rutrum purus. Suspendisse condimentum, dui et molestie ultrices, leo lectus pharetra ipsum, eu lacinia elit elit sed ante.
-
-Sed vel lobortis orci. Sed id dignissim odio, sed viverra tortor. In aliquam cursus tortor, vel egestas nunc dictum et. Vivamus id commodo quam, quis aliquet ipsum. Etiam lobortis non ipsum ac vestibulum.
+<br />
 
 
-## Praesent aliquet nec
+A video example
+<video controls src="/media/mario-kart.mp4" alt="Mario Kart"></video>
 
-Maecenas et convallis ligula. Cras vestibulum dictum pulvinar. Phasellus ante diam, porttitor non ipsum venenatis, maximus lacinia leo. Nunc euismod ante eget massa sagittis sodales. Proin molestie maximus tempus. Sed aliquam lectus non lacus molestie lacinia.
-
-Vivamus in tellus hendrerit, blandit turpis sed, bibendum orci. Sed ultricies viverra luctus.
-
-Curabitur libero elit, lobortis a quam sit amet, molestie molestie urna. Etiam id porttitor elit, sed auctor quam. Curabitur dui enim, luctus nec lorem et, convallis ullamcorper risus. Praesent aliquet nec dui id tincidunt. Maecenas at est at dolor aliquam pulvinar non ut odio.
-
-Integer sed placerat erat, vestibulum venenatis nunc.
-
-Sed ultricies sem viverra enim egestas pulvinar. Integer id ullamcorper sapien. Quisque efficitur elit justo, eget tempus sem tincidunt ac. Morbi odio tellus, suscipit eu massa ac, tincidunt elementum felis. Etiam vel ligula a felis feugiat blandit.
-
-Sed quis elementum quam, at pretium ex. Fusce faucibus ut lorem et tristique.
+```html
+<video controls src="/media/mario-kart.mp4" alt="Mario Kart"></video>
+```
 
 
-## Vitae vehicula sed
+<br />
 
-Donec nisl metus, porttitor vitae vehicula sed, tincidunt eget massa. Vivamus dapibus ante turpis, non imperdiet quam rutrum sed.
 
-Vivamus mattis tempus ligula eu malesuada. Proin ipsum felis, varius ac rutrum et, fermentum sed nunc. Vestibulum pharetra porttitor enim id sagittis.
+An audio example
+<audio controls src="/media/drums.mp3" alt="Drums"></audio>
 
-Curabitur bibendum, sem vel lobortis fermentum, augue ante auctor risus, molestie aliquam nunc metus ut dolor. Sed ac porttitor ante, eu aliquet leo.
+```html
+<audio controls src="/media/drums.mp3" alt="Drums"></audio>
+```
 
-Morbi in mi tincidunt, tincidunt dolor id, scelerisque justo. Integer scelerisque metus nec magna pharetra vehicula. Mauris eu tempus eros, eu ultrices ex. Nullam et ultrices dui. Nam venenatis egestas semper.
 
-Morbi ut enim sollicitudin, pulvinar leo a, auctor eros. Interdum et malesuada fames ac ante ipsum primis in faucibus.
+<br />
 
-Nulla elit ante, lacinia sit amet lorem in, accumsan hendrerit orci. Curabitur rhoncus nunc nec scelerisque rutrum.
+
+Have fun building sites with Gingersnap! ❤️
