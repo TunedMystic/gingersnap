@@ -42,7 +42,7 @@
                 <p class="text-xl font-bold text-black mb-6">Latest Posts</p>
                 <div class="flex flex-col space-y-5">
                     {{range .LatestPosts}}
-                        <p><a class="link font-medium text-base md:text-lg" href="{{.Route}}">{{.Title}}</a></p>
+                        <p><a class="link font-medium text-base md:text-lg" href="{{.Route}}">{{.Heading}}</a></p>
                     {{end}}
                 </div>
             {{end}}

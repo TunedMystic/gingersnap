@@ -332,9 +332,9 @@ navbarLinks - defines anchor links for the navbar
   Contains a list of objects
 
   text         The anchor link text
-  route        The anchor link href
+  href         The anchor link href
 
-  ex: [{"text": "About Us", "route": "/about/"}]
+  ex: [{"text": "About Us", "href": "/about/"}]
 
 
 -------------------------------------------------
@@ -344,9 +344,9 @@ footerLinks - defines anchor links for the footer
   Contains a list of objects
 
   text         The anchor link text
-  route        The anchor link href
+  href         The anchor link href
 
-  ex: [{"text": "About Us", "route": "/about/"}]
+  ex: [{"text": "About Us", "href": "/about/"}]
 
 
 -------------------------------------------------

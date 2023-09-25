@@ -9,7 +9,7 @@
         {{if .NavbarLinks}}
             <nav class="flex flex-wrap justify-center text-slate-700">
                 {{range .NavbarLinks}}
-                    <p class="px-3.5 py-1 pb-1.5 hover:underline"><a href="{{.Route}}">{{.Text}}</a></p>
+                    <p class="px-3.5 py-1 pb-1.5 hover:underline"><a href="{{.Href}}">{{.Text}}</a></p>
                 {{end}}
             </nav>
         {{end}}

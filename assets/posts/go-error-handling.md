@@ -1,16 +1,14 @@
 ---
-title: Diving into SQLite Full-Text Search - The Complete Guide
-heading: SQLite Full-Text Search
-slug: sqlite-full-text-search
-description: In this guide, you'll learn all about SQLite's Full-Text Search feature and how to use it to efficiently search and retrieve data from your database.
+title: "Error Handling in Golang: Best Practices and Tips"
+heading: Error Handling in Go
+slug: golang-error-handling
+description: In this guide, you'll explore the nuances of error handling in Golang. Uncover best practices to ensure your Go applications are robust and user-friendly.
 
-category: SQL
-image_url: /media/full-text-search.webp
-image_alt: SQLite Full-Text Search
+category: Go
+image_url: /media/go-error-handling.webp
+image_alt: Error Handling in Go
 
-pubdate: 2023-01-21
-updated: 2023-01-23
-featured: true
+pubdate: 2022-10-03
 ---
 
 ## Getting started
@@ -84,7 +82,7 @@ A gingersnap project contains the following directory structure:
 
 ## Config
 
-The `gingersnap.json` config file stores settings and layout configurations for the site. The config is separated into the following 5 sections.
+The `gingersnap.json` config file stores settings and layout configurations for the site. Here is an overview of the config options.
 
 
 **Site** defines site-specific settings.
@@ -124,12 +122,12 @@ The `"$latest"` tag is a pseudo category that represents the latest posts across
 | | |
 | ----------- | ----------- |
 | Text | The anchor link text |
-| Route | The anchor link href |
+| Href | The anchor link href |
 
 ```json
 "navbarLinks": [
-    {"text": "About Us", "route": "/about/"},
-    {"text": "My Article", "route": "/abc/"}
+    {"text": "About Us", "href": "/about/"},
+	{"text": "My Article", "href": "/abc/"}
 ]
 ```
 
@@ -140,12 +138,12 @@ The `"$latest"` tag is a pseudo category that represents the latest posts across
 | | |
 | ----------- | ----------- |
 | Text | The anchor link text |
-| Route | The anchor link href |
+| Href | The anchor link href |
 
 ```json
 "footerLinks": [
-    {"text": "About Us", "route": "/about/"},
-    {"text": "My Article", "route": "/abc/"}
+    {"text": "About Us", "href": "/about/"},
+    {"text": "My Article", "href": "/abc/"}
 ]
 ```
 
@@ -158,6 +156,36 @@ The `"$latest"` tag is a pseudo category that represents the latest posts across
 "staticRepository": "/path/to/static/repo"
 ```
 
+### Example config
+
+```json
+{
+	"site": {
+		"name": "Gingersnap",
+		"host": "gingersnap.dev",
+		"tagline": "The Snappy Way to Build Static Sites.",
+		"description": "Gingersnap is a simple and effortless static site generator. Get up and running with one command, and export the site when you're ready to publish!"
+	},
+	"homepage": [
+		"go",
+		"$latest"
+	],
+	"navbarLinks": [
+		{"text": "Go", "href": "/category/go/"},
+		{"text": "Python", "href": "/category/python/"},
+		{"text": "SQL", "href": "/category/sql/"},
+		{"text": "About Us", "href": "/about/"}
+	],
+	"footerLinks": [
+		{"text": "Home", "href": "/"},
+		{"text": "About Us", "href": "/about/"},
+		{"text": "Sitemap", "href": "/sitemap/"},
+		{"text": "Privacy Policy", "href": "/privacy-policy/"}
+	],
+	"staticRepository": "/path/to/static/repo"
+}
+```
+
 ---
 
 ## Examples
@@ -167,16 +195,12 @@ Here are some tips for working with Gingersnap projects.
 
 #### Draft Posts
 
-Any post marked as draft will never be processed or exported by Gingersnap.
-
-You can set a post as draft by adding `draft: true` in the markdown front matter.
+Any post marked as draft will never be processed or exported by Gingersnap. You can set a post as draft by adding `draft: true` in the markdown front matter.
 
 
 #### Featured Posts
 
-Featured posts are pinned posts that Gingersnap displays in specific areas of the site, such as the post detail page.
-
-You can set a post as featured by adding `featured: true` in the markdown front matter.
+Featured posts are pinned posts that Gingersnap displays in specific areas of the site, such as the post detail page. You can set a post as featured by adding `featured: true` in the markdown front matter.
 
 
 #### Standalone Posts
@@ -234,37 +258,40 @@ When you specify a simple theme, Gingersnap will use the primary color of the ro
 
 #### Media Within Posts
 
-An image example
-<img width="800" height="450" src="/media/food.webp" alt="Organic Food"/>
+**1. An image example**
 
 ```html
-<img width="800" height="450" src="/media/food.webp" alt="Organic Food"/>
+<img width="800" height="450" src="/media/meta-img.webp" alt="Gingersnap - The Snappy Way to Build Static Sites"/>
 ```
+
+<img width="800" height="450" src="/media/meta-img.webp" alt="Gingersnap - The Snappy Way to Build Static Sites"/>
 
 
 <br />
 
 
-A video example
-<video controls src="/media/mario-kart.mp4" alt="Mario Kart"></video>
+**2. A video example**
 
 ```html
-<video controls src="/media/mario-kart.mp4" alt="Mario Kart"></video>
+<video controls src="/media/japanese-food.mp4" alt="Japanese Food"></video>
 ```
+
+<video controls src="/media/japanese-food.mp4" alt="Japanese Food"></video>
 
 
 <br />
 
 
-An audio example
+**3. An audio example**
+
+```html
+<audio controls src="/media/drums.mp3" alt="Drums"></audio>
+```
+
 <audio controls src="/media/drums.mp3" alt="Drums"></audio>
 
-```html
-<audio controls src="/media/drums.mp3" alt="Drums"></audio>
-```
-
 
 <br />
 
 
-Have fun building sites with Gingersnap! ❤️
+And that's it! Have fun building sites with Gingersnap! 🍪 ❤️

@@ -689,8 +689,8 @@ type Site struct {
 // Link stores data for an anchor link.
 // .
 type Link struct {
-	Text  string
-	Route string
+	Text string `json:"text"`
+	Href string `json:"href"`
 }
 
 // NewConfig parses the settings into a Config struct.

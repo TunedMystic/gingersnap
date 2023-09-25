@@ -1,16 +1,18 @@
 ---
-title: Lisa Wong - Author and content creator of Gingersnap
+title: Henry Lee - Author and creator of Gingersnap
 heading: About
 slug: about
-description: Hey there, welcome to Gingersnap! I'm Lisa Wong, the site's author and content creator.
+description: Hey there, welcome to Gingersnap! I'm Henry Lee, the site's author and content creator.
 pubdate: 2023-03-14
 page: true
 ---
 
-<img width="800" height="450" src="/media/lisa.webp" alt="Lisa Wong"/>
+<img width="800" height="450" src="/media/henry.webp" alt="Henry Lee - Creator of Gingersnap"/>
 
-Hey there, welcome to Gingersnap! My name is Lisa and I am a software engineer with a passion for programming. I am constantly learning and growing as a programmer, and I am always excited to share my knowledge and insights with others.
+Hello! I'm Henry Lee, a software engineer with a passion for building. My journey began in college, where I was first to the world of code. Since then, I found myself spending every free moment buried in side projects, always eager to hone my skills further.
 
-That's why I created this website - to share my passion for programming and help others become better programmers. Here, you'll find a range of programming tutorials, guides, and resources that are designed to help you learn, grow, and succeed as a programmer. Whether you're just starting out or you're an experienced developer, there is something here for everyone.
+Over the years, I've been fortunate to be a part of several amazing tech companies. I've had the privilege of leading their teams and shaping their products. Despite these experiences, my heart always drifted back to the basics – **Simple code, easy to read and easy to maintain**.
 
-Thank you for visiting my website and I hope you find the content here helpful and inspiring. Happy programming!
+That's why I started Gingersnap. It's my way to share the knowledge and experience I've gained over the years. Here, you'll find programming tutorials and guides for various languages like [Python](/category/python/) and [Go](/category/go/).
+
+My aim is to make programming accessible and understandable for all. My hope is for Gingersnap to be a valuable resource to support your programming journey. Thank you for being a part of this adventure. Here's to the exciting road ahead!

@@ -2,27 +2,24 @@
 	"site": {
 		"name": "Gingersnap",
 		"host": "gingersnap.dev",
-		"tagline": "The snappy starter project with Go and SQLite!",
-		"description": "The snappy starter project, built with Go and SQLite. Get up and running with only one command. Dockerize and deploy when you're ready to ship!"
+		"tagline": "The Snappy Way to Build Static Sites.",
+		"description": "Gingersnap is a simple and effortless static site generator. Get up and running with one command, and export the site when you're ready to publish!"
 	},
 	"homepage": [
-		"python",
-		"golang",
+		"go",
 		"$latest"
 	],
 	"navbarLinks": [
-		{"text": "Golang", "route": "/category/golang/"},
-		{"text": "Python", "route": "/category/python/"},
-		{"text": "SQL", "route": "/category/sql/"},
-		{"text": "About Us", "route": "/about/"}
+		{"text": "Go", "href": "/category/go/"},
+		{"text": "Python", "href": "/category/python/"},
+		{"text": "SQL", "href": "/category/sql/"},
+		{"text": "About Us", "href": "/about/"}
 	],
 	"footerLinks": [
-		{"text": "Home", "route": "/"},
-		{"text": "About Us", "route": "/about/"},
-		{"text": "Contact", "route": "/contact/"},
-		{"text": "Sitemap", "route": "/sitemap/"},
-		{"text": "Privacy Policy", "route": "/privacy-policy/"},
-		{"text": "Terms of Service", "route": "/terms-of-service/"}
+		{"text": "Home", "href": "/"},
+		{"text": "About Us", "href": "/about/"},
+		{"text": "Sitemap", "href": "/sitemap/"},
+		{"text": "Privacy Policy", "href": "/privacy-policy/"}
 	],
 	"staticRepository": "/path/to/static/repo"
 }
