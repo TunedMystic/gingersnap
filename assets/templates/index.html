@@ -4,12 +4,13 @@
 
     {{range .Sections}}
         <div class="flex items-center justify-between mb-7">
-            {{if .Category.IsEmpty}}
-                <h2 class="decorate-primary underline font-bold text-3xl text-slate-800 leading-relaxed">Latest Posts</h2>
-            {{else}}
-                <h2 class="decorate-primary underline font-bold text-3xl text-slate-800 leading-relaxed">{{.Category.Title}}</h2>
+
+            <h2 class="decorate-primary underline font-bold text-3xl text-slate-800 leading-relaxed">{{.Category.Title}}</h2>
+
+            {{if not .Category.IsEmpty}}
                 <p class="text-slate-500">See all in <a class="link underline" href="{{.Category.Route}}">{{.Category.Title}} &raquo;</a></p>
             {{end}}
+
         </div>
         {{template "post-grid" .Posts}}
     {{end}}

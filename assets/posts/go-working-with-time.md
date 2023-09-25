@@ -1,15 +1,14 @@
 ---
-title: "Handling Dates and Times in SQL: A Practical Guide"
-heading: Dates and Times in SQL
-slug: sql-dates-and-times
-description: Learn how to work with dates and times in SQL. This guide shows you the basic steps to manage and query time-based data in your database.
+title: "Working with Time in Golang: A Comprehensive Guide"
+heading: Working with Time in Go
+slug: golang-working-with-time
+description: This detailed guide covers the core functions and best practices to effectively manage and manipulate time-based data in your Golang applications.
 
-category: SQL
-image_url: /media/sql-dates-and-times.webp
-image_alt: Dates and Times in SQL
+category: Go
+image_url: /media/go-time.webp
+image_alt: Working with Time in Go
 
-pubdate: 2023-01-13
-updated: 2023-04-23
+pubdate: 2022-12-23
 ---
 
 ## Getting started

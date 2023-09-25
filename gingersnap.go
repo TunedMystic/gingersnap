@@ -182,6 +182,25 @@ func (g *Gingersnap) HandleIndex() http.HandlerFunc {
 			continue
 		}
 
+		// If specified, then gather the "featured" posts.
+		if slug == SectionFeatured {
+
+			categoryFeatured := Category{
+				Slug:  "",
+				Title: "Featured Posts",
+			}
+
+			// Create the section.
+			section := Section{
+				Category: categoryFeatured,
+				Posts:    g.Store.PostsFeatured,
+			}
+
+			// Add the section.
+			sections = append(sections, section)
+			continue
+		}
+
 		// Gather the posts for the specified category.
 		// Raise error if category is not found.
 		cat, ok := g.Store.CategoriesBySlug[slug]
@@ -1959,9 +1978,11 @@ const LimitLatest = 9
 const LimitSection = 6
 const LimitLatestPostDetail = 4
 
-// The default section for the homepage.
-// It will contain the latest posts.
+// A homepage section which represents all latest posts.
 const SectionLatest = "$latest"
+
+// A homepage section which represents all featured posts.
+const SectionFeatured = "$featured"
 
 // The directory where the static site will be exported to.
 // This is only a temporary directory. To fully deploy the site,
