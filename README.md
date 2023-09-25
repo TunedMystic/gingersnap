@@ -106,8 +106,8 @@ A gingersnap project contains the following directory structure:
 
 The `gingersnap.json` config file stores settings and layout configurations for the site. Here is an overview of the config options.
 
-
-**Site** defines site-specific settings.
+#### Site
+Defines site-specific settings.
 
 | | |
 | ----------- | ----------- |
@@ -129,9 +129,13 @@ The `gingersnap.json` config file stores settings and layout configurations for 
 
 <br />
 
-**Homepage** defines sections for the homepage. This _(optional)_ setting requires a list of categories.
+#### Homepage
+Defines sections for the homepage. This _(optional)_ setting requires a list of categories.
 
-The `"$latest"` tag is a pseudo category that represents the latest posts across the site. Gingersnap will then build the homepage based on this given list.
+The `"$latest"` tag is a custom section that represents all latest posts.
+The `"$featured"` tag is a custom section which represents all featured posts.
+
+Gingersnap will then build the homepage based on this given list.
 
 ```json
 "homepage": ["category-slug", "$latest"]
@@ -139,7 +143,8 @@ The `"$latest"` tag is a pseudo category that represents the latest posts across
 
 <br />
 
-**Navbar Links** defines anchor links for the top navbar. This _(optional)_ setting requires a list of anchor link objects.
+#### Navbar Links
+Defines anchor links for the top navbar. This _(optional)_ setting requires a list of anchor link objects.
 
 | | |
 | ----------- | ----------- |
@@ -155,7 +160,8 @@ The `"$latest"` tag is a pseudo category that represents the latest posts across
 
 <br />
 
-**Footer Links** defines anchor links for the footer. This _(optional)_ setting requires a list of anchor link objects.
+#### Footer Links
+Defines anchor links for the footer. This _(optional)_ setting requires a list of anchor link objects.
 
 | | |
 | ----------- | ----------- |
@@ -171,7 +177,8 @@ The `"$latest"` tag is a pseudo category that represents the latest posts across
 
 <br />
 
-**Static Repository** defines the export destination. This _(optional)_ setting requires a repository path where the site will be exported to.
+#### Static Repository
+Defines the export destination. This _(optional)_ setting requires a repository path where the site will be exported to.
 
 
 ```json
@@ -189,6 +196,7 @@ The `"$latest"` tag is a pseudo category that represents the latest posts across
 		"description": "Gingersnap is a simple and effortless static site generator. Get up and running with one command, and export the site when you're ready to publish!"
 	},
 	"homepage": [
+		"$featured",
 		"go",
 		"$latest"
 	],
@@ -217,12 +225,16 @@ Here are some tips for working with Gingersnap projects.
 
 #### Draft Posts
 
-Any post marked as draft will never be processed or exported by Gingersnap. You can set a post as draft by adding `draft: true` in the markdown front matter.
+Any post marked as draft will never be processed or exported by Gingersnap. You can make a post draft by adding `draft: true` in the markdown front matter.
 
 
 #### Featured Posts
 
-Featured posts are pinned posts that Gingersnap displays in specific areas of the site, such as the post detail page. You can set a post as featured by adding `featured: true` in the markdown front matter.
+Featured posts are pinned posts that Gingersnap displays on the homepage.
+
+You can make a post featured by adding `featured: true` in the markdown front matter.
+
+You can display featured posts on the homepage by adding the `"$featured"` section to the [homepage settings](#homepage).
 
 
 #### Standalone Posts
@@ -231,7 +243,7 @@ A standalone post has no relation to other content across the site. Examples of 
 
 When Gingersnap displays a standalone post, it will not include related or latest posts on the page. A standalone post does not need the following front matter fields: `category`, `image_url`, `pubdate` or `updated`.
 
-You can set a post as standalone by adding `page: true` to the markdown front matter.
+You can make a post standalone by adding `page: true` to the markdown front matter.
 
 
 #### Lead Image
