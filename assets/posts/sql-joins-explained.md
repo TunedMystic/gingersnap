@@ -9,7 +9,6 @@ image_url: /media/sql-joins.webp
 image_alt: SQL Joins Explained
 
 pubdate: 2023-05-07
-featured: true
 ---
 
 ## Getting started
@@ -22,5 +21,5 @@ Projects have a limited set of features and configuration. This helps keep the b
 
 ## Learn More
 
-Read the detailed guide here - [Gingersnap Documentation](/golang-middleware-patterns/)
+Read the detailed guide here - [Gingersnap Documentation](/docs/)
 Have fun building sites with Gingersnap! 🍪 ❤️

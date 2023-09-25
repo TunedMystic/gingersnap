@@ -36,13 +36,17 @@
 
 
         {{if .Post.IsBlog}}
+            {{$currentPostSlug := .Post.Slug}}
+
             {{if .LatestPosts}}
                 <!-- Latest Articles -->
                 <hr class="my-11">
                 <p class="text-xl font-bold text-black mb-6">Latest Posts</p>
                 <div class="flex flex-col space-y-5">
                     {{range .LatestPosts}}
-                        <p><a class="link font-medium text-base md:text-lg" href="{{.Route}}">{{.Heading}}</a></p>
+                        {{if ne .Slug $currentPostSlug}}
+                            <p><a class="link font-medium text-base md:text-lg" href="{{.Route}}">{{.Heading}}</a></p>
+                        {{end}}
                     {{end}}
                 </div>
             {{end}}

@@ -182,6 +182,25 @@ func (g *Gingersnap) HandleIndex() http.HandlerFunc {
 			continue
 		}
 
+		// If specified, then gather the "featured" posts.
+		if slug == SectionFeatured {
+
+			categoryFeatured := Category{
+				Slug:  "",
+				Title: "Featured Posts",
+			}
+
+			// Create the section.
+			section := Section{
+				Category: categoryFeatured,
+				Posts:    g.Store.PostsFeatured,
+			}
+
+			// Add the section.
+			sections = append(sections, section)
+			continue
+		}
+
 		// Gather the posts for the specified category.
 		// Raise error if category is not found.
 		cat, ok := g.Store.CategoriesBySlug[slug]
@@ -1145,15 +1164,17 @@ func (s *Store) RelatedPosts(post *Post) []*Post {
 	cPosts, ok := s.PostsByCategory[post.Category]
 
 	// If there are no posts for the category,
-	// then return the featured posts.
+	// then return nil.
 	if !ok {
-		return s.PostsFeatured
+		return nil
 	}
 
-	// If there is a small amount of posts for the category,
-	// then return the featured posts.
-	if len(cPosts) <= LimitFeatured {
-		return s.PostsFeatured
+	// If there are not enough posts in the category to gather,
+	// then return nil. This way, the number of category posts
+	// must cross the `LimitRelated` threshold before they start
+	// being recommended.
+	if len(cPosts) <= LimitRelated {
+		return nil
 	}
 
 	// Find the index of the given post.
@@ -1169,8 +1190,8 @@ func (s *Store) RelatedPosts(post *Post) []*Post {
 	// gather the next x number of posts for the category.
 	// Use modulo calculation to ensure the selection wraps
 	// around the category posts.
-	related := make([]*Post, 0, LimitFeatured)
-	for i := 0; i < LimitFeatured; i++ {
+	related := make([]*Post, 0, LimitRelated)
+	for i := 0; i < LimitRelated; i++ {
 		related = append(related, cPosts[(idx+i+1)%len(cPosts)])
 	}
 
@@ -1560,7 +1581,13 @@ func (e *Exporter) exportPage(url, dstPath string) error {
 
 	e.Handler.ServeHTTP(w, r)
 
-	if c := w.Result().StatusCode; c != http.StatusOK {
+	// For nested media assets like `/media/other/book.webp`
+	// the exporter will attempt to request `/media/other/`.
+	//
+	// However, partial paths return an http 301, so we have
+	// to account for those status codes and skip them.
+
+	if c := w.Result().StatusCode; c != http.StatusOK && c != http.StatusMovedPermanently {
 		return fmt.Errorf("expected URL %s to return %d, but it returned %d instead", url, http.StatusOK, c)
 	}
 
@@ -1952,13 +1979,16 @@ const ImageType = "webp"
 
 // Cutoff values for different post lists.
 const LimitFeatured = 3
+const LimitRelated = 3
 const LimitLatest = 9
 const LimitSection = 6
 const LimitLatestPostDetail = 4
 
-// The default section for the homepage.
-// It will contain the latest posts.
+// A homepage section which represents all latest posts.
 const SectionLatest = "$latest"
+
+// A homepage section which represents all featured posts.
+const SectionFeatured = "$featured"
 
 // The directory where the static site will be exported to.
 // This is only a temporary directory. To fully deploy the site,

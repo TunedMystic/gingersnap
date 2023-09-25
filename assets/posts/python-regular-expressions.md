@@ -8,7 +8,8 @@ category: Python
 image_url: /media/python-regular-expressions.webp
 image_alt: Regular Expressions in Python
 
-pubdate: 2023-04-15
+pubdate: 2022-04-04
+featured: true
 ---
 
 ## Getting started
@@ -21,5 +22,5 @@ Projects have a limited set of features and configuration. This helps keep the b
 
 ## Learn More
 
-Read the detailed guide here - [Gingersnap Documentation](/golang-middleware-patterns/)
+Read the detailed guide here - [Gingersnap Documentation](/docs/)
 Have fun building sites with Gingersnap! 🍪 ❤️

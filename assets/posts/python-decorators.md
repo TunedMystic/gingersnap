@@ -8,7 +8,7 @@ category: Python
 image_url: /media/python-decorators.webp
 image_alt: Decorators in Python
 
-pubdate: 2022-12-29
+pubdate: 2022-03-07
 featured: true
 ---
 
@@ -22,5 +22,5 @@ Projects have a limited set of features and configuration. This helps keep the b
 
 ## Learn More
 
-Read the detailed guide here - [Gingersnap Documentation](/golang-middleware-patterns/)
+Read the detailed guide here - [Gingersnap Documentation](/docs/)
 Have fun building sites with Gingersnap! 🍪 ❤️
