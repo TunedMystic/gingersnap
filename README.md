@@ -154,7 +154,7 @@ Defines anchor links for the top navbar. This _(optional)_ setting requires a li
 ```json
 "navbarLinks": [
     {"text": "About Us", "href": "/about/"},
-	{"text": "My Article", "href": "/abc/"}
+    {"text": "My Article", "href": "/abc/"}
 ]
 ```
 
@@ -189,30 +189,30 @@ Defines the export destination. This _(optional)_ setting requires a repository 
 
 ```json
 {
-	"site": {
-		"name": "Gingersnap",
-		"host": "gingersnap.dev",
-		"tagline": "The Snappy Way to Build Static Sites.",
-		"description": "Gingersnap is a simple and effortless static site generator. Get up and running with one command, and export the site when you're ready to publish!"
-	},
-	"homepage": [
-		"$featured",
-		"go",
-		"$latest"
-	],
-	"navbarLinks": [
-		{"text": "Go", "href": "/category/go/"},
-		{"text": "Python", "href": "/category/python/"},
-		{"text": "SQL", "href": "/category/sql/"},
-		{"text": "About Us", "href": "/about/"}
-	],
-	"footerLinks": [
-		{"text": "Home", "href": "/"},
-		{"text": "About Us", "href": "/about/"},
-		{"text": "Sitemap", "href": "/sitemap/"},
-		{"text": "Privacy Policy", "href": "/privacy-policy/"}
-	],
-	"staticRepository": "/path/to/static/repo"
+    "site": {
+        "name": "Gingersnap",
+        "host": "gingersnap.dev",
+        "tagline": "The Snappy Way to Build Static Sites.",
+        "description": "Gingersnap is a simple and effortless static site generator. Get up and running with one command, and export the site when you're ready to publish!"
+    },
+    "homepage": [
+        "$featured",
+        "go",
+        "$latest"
+    ],
+    "navbarLinks": [
+        {"text": "Go", "href": "/category/go/"},
+        {"text": "Python", "href": "/category/python/"},
+        {"text": "SQL", "href": "/category/sql/"},
+        {"text": "About Us", "href": "/about/"}
+    ],
+    "footerLinks": [
+        {"text": "Home", "href": "/"},
+        {"text": "About Us", "href": "/about/"},
+        {"text": "Sitemap", "href": "/sitemap/"},
+        {"text": "Privacy Policy", "href": "/privacy-policy/"}
+    ],
+    "staticRepository": "/path/to/static/repo"
 }
 ```
 

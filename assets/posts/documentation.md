@@ -21,7 +21,7 @@ With a single command, users can setup an entire project, allowing them to jump 
 Projects have a limited set of features and configuration. This helps keep the blogging workflow streamlined and ensures a more straightforward experience for users.
 
 <details open>
-    <summary>Table of Contents</summary>
+	<summary>Table of Contents</summary>
 
 - [Quickstart](#quickstart)
 - [Project structure](#project-structure)
@@ -98,11 +98,11 @@ Defines site-specific settings.
 
 ```json
 "site": {
-    "name": "MySite",
-    "host": "mysite.com",
-    "tagline": "short descr ...",
-    "description": "longer descr ...",
-    "theme": "pink"
+	"name": "MySite",
+	"host": "mysite.com",
+	"tagline": "short descr ...",
+	"description": "longer descr ...",
+	"theme": "pink"
 }
 ```
 
@@ -132,7 +132,7 @@ Defines anchor links for the top navbar. This _(optional)_ setting requires a li
 
 ```json
 "navbarLinks": [
-    {"text": "About Us", "href": "/about/"},
+	{"text": "About Us", "href": "/about/"},
 	{"text": "My Article", "href": "/abc/"}
 ]
 ```
@@ -149,8 +149,8 @@ Defines anchor links for the footer. This _(optional)_ setting requires a list o
 
 ```json
 "footerLinks": [
-    {"text": "About Us", "href": "/about/"},
-    {"text": "My Article", "href": "/abc/"}
+	{"text": "About Us", "href": "/about/"},
+	{"text": "My Article", "href": "/abc/"}
 ]
 ```
 
@@ -193,7 +193,6 @@ Defines the export destination. This _(optional)_ setting requires a repository 
 	],
 	"staticRepository": "/path/to/static/repo"
 }
-
 ```
 
 ---
@@ -253,7 +252,7 @@ You can also simplify the themes by adding `"-simple"` to the theme name in the 
 
 ```json
 {
-    "theme": "pink-simple"
+	"theme": "pink-simple"
 }
 ```
 
