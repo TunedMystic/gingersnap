@@ -1581,7 +1581,13 @@ func (e *Exporter) exportPage(url, dstPath string) error {
 
 	e.Handler.ServeHTTP(w, r)
 
-	if c := w.Result().StatusCode; c != http.StatusOK {
+	// For nested media assets like `/media/other/book.webp`
+	// the exporter will attempt to request `/media/other/`.
+	//
+	// However, partial paths return an http 301, so we have
+	// to account for those status codes and skip them.
+
+	if c := w.Result().StatusCode; c != http.StatusOK && c != http.StatusMovedPermanently {
 		return fmt.Errorf("expected URL %s to return %d, but it returned %d instead", url, http.StatusOK, c)
 	}
 
