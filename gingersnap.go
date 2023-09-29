@@ -989,6 +989,9 @@ type Post struct {
 
 	// The updated date, as a UNIX timestamp
 	UpdatedTS int
+
+	// The index of the post in the `PostsByCategory` map.
+	idxCategory int
 }
 
 // LatestTS returns the Post's latest timestamped date.
@@ -1124,7 +1127,9 @@ func (s *Store) InitPosts(postsBySlug map[string]*Post) {
 	})
 
 	// [3/5] Prepare the posts by category.
-	for _, post := range s.Posts {
+	for i := range s.Posts {
+		post := s.Posts[i]
+
 		if !post.Category.IsEmpty() {
 
 			cat := post.Category
@@ -1136,6 +1141,9 @@ func (s *Store) InitPosts(postsBySlug map[string]*Post) {
 
 			// Add post to the category slice.
 			s.PostsByCategory[cat] = append(s.PostsByCategory[cat], post)
+
+			// Update the index of the post, relative to the category it is in.
+			post.idxCategory = len(s.PostsByCategory[cat]) - 1
 		}
 	}
 
@@ -1177,22 +1185,13 @@ func (s *Store) RelatedPosts(post *Post) []*Post {
 		return nil
 	}
 
-	// Find the index of the given post.
-	idx := 0
-	for i, p := range cPosts {
-		if p.Slug == post.Slug {
-			idx = i
-			break
-		}
-	}
-
 	// Starting from the index of the current post,
 	// gather the next x number of posts for the category.
 	// Use modulo calculation to ensure the selection wraps
 	// around the category posts.
 	related := make([]*Post, 0, LimitRelated)
 	for i := 0; i < LimitRelated; i++ {
-		related = append(related, cPosts[(idx+i+1)%len(cPosts)])
+		related = append(related, cPosts[(post.idxCategory+i+1)%len(cPosts)])
 	}
 
 	return related
