@@ -20,11 +20,10 @@ func main() {
 	// Settings for gingersnap resources.
 	s := gingersnap.Settings{
 		ConfigPath: "gingersnap.json",
-		PostsGlob:  "posts/**/*.md",
+		PostsDir:   "posts",
 		MediaDir:   "media",
 		Debug:      true,
 	}
-
 	switch os.Args[1] {
 
 	case "init":

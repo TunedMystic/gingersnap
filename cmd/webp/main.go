@@ -45,13 +45,13 @@ func Convert(paths []string) error {
 func main() {
 	paths := make([]string, 0, 10)
 	globs := []string{
-		"assets/media/**/*.png",
-		"assets/media/**/*.jpg",
-		"assets/media/**/*.jpeg",
+		"**/*.png",
+		"**/*.jpg",
+		"**/*.jpeg",
 	}
 
 	for _, pattern := range globs {
-		names, err := gingersnap.Glob(os.DirFS("."), pattern)
+		names, err := gingersnap.Glob(os.DirFS("."), "assets/media", pattern)
 		if err != nil {
 			log.Fatal(err)
 		}

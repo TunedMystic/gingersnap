@@ -1770,7 +1770,7 @@ func CopyFile(fsys fs.FS, src, dst string) error {
 //
 // Ref: https://github.com/guillermo/doubleglob/blob/main/double_glob.go
 // .
-func Glob(inputFS fs.FS, glob string) ([]string, error) {
+func Glob(inputFS fs.FS, root, glob string) ([]string, error) {
 	files := make([]string, 0, 10)
 
 	// Convert the given glob into a regex.
@@ -1796,10 +1796,11 @@ func Glob(inputFS fs.FS, glob string) ([]string, error) {
 
 	// Walk the directory, and match each file against the regex.
 	// If it is a regex match, then collect the path.
-	err := fs.WalkDir(inputFS, ".", func(path string, d fs.DirEntry, err error) error {
+	err := fs.WalkDir(inputFS, root, func(path string, d fs.DirEntry, err error) error {
 		if d.IsDir() || err != nil {
 			return nil
 		}
+
 		if pathPattern.MatchString(path) {
 			files = append(files, path)
 		}
@@ -1829,8 +1830,8 @@ type Settings struct {
 	// The path to the json config file
 	ConfigPath string
 
-	// The glob pattern for the markdown posts
-	PostsGlob string
+	// The directory for the markdown posts
+	PostsDir string
 
 	// The directory for media resources
 	MediaDir string
@@ -1878,24 +1879,24 @@ func (g *Gingersnap) Configure(s Settings) {
 	// Construct the config
 	configBytes, err := ReadFile(s.ConfigPath)
 	if err != nil {
-		logger.Fatal(err)
+		logger.Fatalf("read config: %s\n", err)
 	}
 
 	config, err := NewConfig(configBytes, s.Debug)
 	if err != nil {
-		logger.Fatal(err)
+		logger.Fatalf("parse config: %s", err)
 	}
 
 	// Gather the markdown post files.
-	filePaths, err := Glob(os.DirFS("."), s.PostsGlob)
+	filePaths, err := Glob(os.DirFS("."), s.PostsDir, "**/*.md")
 	if err != nil {
-		logger.Fatal(err)
+		logger.Fatalf("gather posts: %s", err)
 	}
 
 	// Parse the markdown posts.
 	pr := NewProcessor(filePaths)
 	if err := pr.Process(); err != nil {
-		logger.Fatal(err)
+		logger.Fatalf("process posts: %s", err)
 	}
 
 	// Construct the store from the processed markdown posts.
@@ -1906,7 +1907,7 @@ func (g *Gingersnap) Configure(s Settings) {
 	// Construct the templates, using the embedded FS.
 	templates, err := NewTemplate(Templates)
 	if err != nil {
-		logger.Fatal(err)
+		logger.Fatalf("parse templates: %s", err)
 	}
 
 	// ------------------------------------------
@@ -1940,11 +1941,11 @@ func (g *Gingersnap) RunServerWithWatcher(s Settings) {
 		log.Fatal(err)
 	}
 
-	if err = w.Add(s.SafeDir(s.ConfigPath)); err != nil {
+	if err = w.Add(s.ConfigPath); err != nil {
 		log.Fatal(err)
 	}
 
-	if err = w.Add(s.SafeDir(s.PostsGlob)); err != nil {
+	if err = w.Add(s.SafeDir(s.PostsDir)); err != nil {
 		log.Fatal(err)
 	}
 

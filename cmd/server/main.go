@@ -7,7 +7,7 @@ import (
 func main() {
 	s := gingersnap.Settings{
 		ConfigPath: "assets/config/gingersnap.json",
-		PostsGlob:  "assets/posts/**/*.md",
+		PostsDir:   "assets/posts",
 		MediaDir:   "assets/media",
 		Debug:      true,
 	}
