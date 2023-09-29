@@ -14,11 +14,10 @@ import (
 func Convert(paths []string) error {
 
 	for _, path := range paths {
-		srcPath := path
-		dstPath := strings.ReplaceAll(srcPath, filepath.Ext(path), ".webp")
-		fmt.Printf("✨🏞️ ✨converting %s to webp\n", srcPath)
+		dstPath := strings.ReplaceAll(path, filepath.Ext(path), ".webp")
+		fmt.Printf("✨🏞️ ✨converting %s to webp\n", path)
 
-		cmd := []string{"./bin/cwebp", "-q", "85", srcPath, "-o", dstPath}
+		cmd := []string{"./bin/cwebp", "-q", "85", path, "-o", dstPath}
 
 		// Convert the image to webp.
 		if _, err := exec.Command(cmd[0], cmd[1:]...).Output(); err != nil {
@@ -26,7 +25,7 @@ func Convert(paths []string) error {
 		}
 
 		// Remove the non-webp image.
-		if err := os.Remove(srcPath); err != nil {
+		if err := os.Remove(path); err != nil {
 			return fmt.Errorf("failed to remove original image: %w", err)
 		}
 	}

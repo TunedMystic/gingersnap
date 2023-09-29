@@ -9,6 +9,7 @@ func main() {
 		ConfigPath: "assets/config/gingersnap.json",
 		PostsDir:   "assets/posts",
 		MediaDir:   "assets/media",
+		ExportDir:  "dist",
 		Debug:      true,
 	}
 

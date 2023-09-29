@@ -1835,6 +1835,9 @@ type Settings struct {
 
 	// The directory for media resources
 	MediaDir string
+
+	// The directory where the static site will be exported to
+	ExportDir string
 }
 
 // SafeDir returns a filepath directory.
@@ -1988,7 +1991,7 @@ func (g *Gingersnap) RunServer() {
 
 // Export exports the server as a static site.
 // .
-func (g *Gingersnap) Export() error {
+func (g *Gingersnap) Export(exportDir string) error {
 
 	urls, err := g.AllUrls()
 	if err != nil {
@@ -1998,7 +2001,7 @@ func (g *Gingersnap) Export() error {
 	exporter := &Exporter{
 		Handler:    g.Routes(),
 		Urls:       urls,
-		OutputPath: ExportDir,
+		OutputPath: exportDir,
 	}
 
 	return exporter.Export()
@@ -2036,10 +2039,13 @@ const SectionLatest = "$latest"
 // A homepage section which represents all featured posts.
 const SectionFeatured = "$featured"
 
-// The directory where the static site will be exported to.
-// This is only a temporary directory. To fully deploy the site,
-// the exported site must be moved to the production site repository.
-const ExportDir = "dist"
+// ------------------------------------------------------------------
+//
+//
+// Themes
+//
+//
+// ------------------------------------------------------------------
 
 // THe default color theme.
 var DefaultTheme = Theme{

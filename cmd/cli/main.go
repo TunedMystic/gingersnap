@@ -22,6 +22,7 @@ func main() {
 		ConfigPath: "gingersnap.json",
 		PostsDir:   "posts",
 		MediaDir:   "media",
+		ExportDir:  "dist",
 		Debug:      true,
 	}
 	switch os.Args[1] {
@@ -89,7 +90,7 @@ func main() {
 		g.Configure(s)
 
 		// Export the site.
-		if err := g.Export(); err != nil {
+		if err := g.Export(s.ExportDir); err != nil {
 			Logerr("export error: %s", err)
 		}
 
@@ -118,9 +119,6 @@ func main() {
 		// The gingersnap project directory.
 		ProjectDir := CurrentDir()
 
-		// The directory where the static site will be exported to.
-		ExportDir := gingersnap.ExportDir
-
 		// The git repository where the production static site will be stored.
 		ProdRepo := g.Config.ProdRepo
 
@@ -148,7 +146,7 @@ func main() {
 		// Export the site.
 		//
 		Loginfo("[1/5] Exporting the site")
-		if err := g.Export(); err != nil {
+		if err := g.Export(s.ExportDir); err != nil {
 			Logerr("export error: %s", err)
 		}
 
@@ -164,7 +162,7 @@ func main() {
 		// Copy the exported site to the prod repo directory.
 		//
 		Loginfo("[3/5] Copying into the static site directory")
-		gingersnap.CopyDir(os.DirFS(ExportDir), ".", ProdRepo)
+		gingersnap.CopyDir(os.DirFS(s.ExportDir), ".", ProdRepo)
 
 		//
 		// Navigate to the prod repo, commit the changes and push upstream.
@@ -180,7 +178,7 @@ func main() {
 		// Remove the exported site from the project directory.
 		//
 		Loginfo("[5/5] Cleaning up")
-		Remove(ExportDir)
+		Remove(s.ExportDir)
 
 		Loginfo("Site export and deploy complete ✅")
 
