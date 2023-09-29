@@ -20,7 +20,7 @@ func main() {
 	// Settings for gingersnap resources.
 	s := gingersnap.Settings{
 		ConfigPath: "gingersnap.json",
-		PostsGlob:  "posts/*.md",
+		PostsGlob:  "posts/**/*.md",
 		MediaDir:   "media",
 		Debug:      true,
 	}

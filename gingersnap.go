@@ -13,6 +13,7 @@ import (
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"regexp"
 	"runtime/debug"
 	"sort"
 	"strings"
@@ -1764,6 +1765,51 @@ func CopyFile(fsys fs.FS, src, dst string) error {
 	return nil
 }
 
+// Glob returns a list of files matching the pattern.
+// The pattern can include **/ to match any number of directories.
+//
+// Ref: https://github.com/guillermo/doubleglob/blob/main/double_glob.go
+// .
+func Glob(inputFS fs.FS, glob string) ([]string, error) {
+	files := make([]string, 0, 10)
+
+	// Convert the given glob into a regex.
+	// ex:  *.png  -->  [^/]*\.png
+	//
+	replPattern := regexp.MustCompile(`(\.)|(\*\*\/)|(\*)|([^\/\*]+)|(\/)`)
+	globPattern := replPattern.ReplaceAllStringFunc(glob, func(s string) string {
+		switch s {
+		case "/":
+			return "\\/"
+		case ".":
+			return "\\."
+		case "**/":
+			return ".*"
+		case "*":
+			return "[^/]*"
+		default:
+			return s
+		}
+	})
+
+	pathPattern := regexp.MustCompile("^" + globPattern + "$")
+
+	// Walk the directory, and match each file against the regex.
+	// If it is a regex match, then collect the path.
+	err := fs.WalkDir(inputFS, ".", func(path string, d fs.DirEntry, err error) error {
+		if d.IsDir() || err != nil {
+			return nil
+		}
+		if pathPattern.MatchString(path) {
+			files = append(files, path)
+		}
+		return nil
+	})
+
+	// Return all collected paths.
+	return files, err
+}
+
 // ------------------------------------------------------------------
 //
 //
@@ -1841,7 +1887,7 @@ func (g *Gingersnap) Configure(s Settings) {
 	}
 
 	// Gather the markdown post files.
-	filePaths, err := filepath.Glob(s.PostsGlob)
+	filePaths, err := Glob(os.DirFS("."), s.PostsGlob)
 	if err != nil {
 		logger.Fatal(err)
 	}
