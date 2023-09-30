@@ -243,6 +243,36 @@ func main() {
 
 		Loginfo(configCmdText, strings.Join(names, ", "))
 
+	case "clean":
+
+		// ----------------------------------------------------------
+		//
+		//
+		// Clean - Remove any cached and temp directories
+		//
+		//
+		// ----------------------------------------------------------
+
+		Loginfo("[1/2] Remove temp directories")
+		Remove(s.ExportDir)
+
+		Loginfo("[2/2] Remove cached directories")
+
+		// The user cache dir, used for user-specific cached data.
+		dir, err := os.UserCacheDir()
+		if err != nil {
+			Logerr("webp error: %s", err)
+		}
+
+		// Construct a new Webp, with the user cache dir
+		// as the root directory.
+		w := gingersnap.NewWebp(dir)
+
+		// Remove the `cwebp` binary.
+		if err := w.RemoveBinary(); err != nil {
+			Logerr("webp error: %s", err)
+		}
+
 	default:
 		Logerr(unknownCmdText, os.Args[1])
 	}
@@ -329,6 +359,7 @@ Commands:
   export      Export the project as a static site
   deploy      Export the project, and push it to a dedicated repository
   config      Explain the config settings
+  clean       Remove any cached and temp directories
 `
 
 var configCmdText = `
