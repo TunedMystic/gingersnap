@@ -5,7 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"gingersnap"
@@ -225,24 +224,6 @@ func main() {
 
 		Loginfo("Site export and deploy complete ✅")
 
-	case "config":
-
-		// ----------------------------------------------------------
-		//
-		//
-		// Config - Explain the config settings
-		//
-		//
-		// ----------------------------------------------------------
-
-		names := []string{}
-
-		for name := range gingersnap.Themes {
-			names = append(names, name)
-		}
-
-		Loginfo(configCmdText, strings.Join(names, ", "))
-
 	case "clean":
 
 		// ----------------------------------------------------------
@@ -274,7 +255,9 @@ func main() {
 		}
 
 	default:
-		Logerr(unknownCmdText, os.Args[1])
+		Loginfo("Unknown command '%s'", os.Args[1])
+		Loginfo("Run 'gingersnap' for help with usage")
+		Loginfo("")
 	}
 }
 
@@ -358,81 +341,5 @@ Commands:
   webp        Convert images to webp format
   export      Export the project as a static site
   deploy      Export the project, and push it to a dedicated repository
-  config      Explain the config settings
   clean       Remove temp files and dirs
-`
-
-var configCmdText = `
-Gingersnap config settings
-
-
--------------------------------------------------
-site - defines site-specific settings
--------------------------------------------------
-
-  name         The name of the site (ex: MySite)
-  host         The host of the site (ex: mysite.com)
-  tagline      A short description of the site (50-70 characters)
-  description  A long description of the site  (70-155 characters)
-  theme        The color theme of the site (%s)
-
-  ex: {
-    "name": "MySite",
-    "host": "mysite.com",
-    "tagline": "short descr ...",
-    "description": "longer descr ...",
-    "theme": "pink"
-  }
-
-
--------------------------------------------------
-homepage - defines sections for the homepage
--------------------------------------------------
-
-  Contains a list of categories
-
-  The "$latest" represents a pseudo-category
-  that contains the latest posts on the site.
-
-  ex: ["category-slug", "$latest"]
-
-
--------------------------------------------------
-navbarLinks - defines anchor links for the navbar
--------------------------------------------------
-
-  Contains a list of objects
-
-  text         The anchor link text
-  href         The anchor link href
-
-  ex: [{"text": "About Us", "href": "/about/"}]
-
-
--------------------------------------------------
-footerLinks - defines anchor links for the footer
--------------------------------------------------
-
-  Contains a list of objects
-
-  text         The anchor link text
-  href         The anchor link href
-
-  ex: [{"text": "About Us", "href": "/about/"}]
-
-
--------------------------------------------------
-staticRepository - defines the export destination
--------------------------------------------------
-
-  Contains the git repository path
-  where the site will be exported to
-
-  ex: "/path/to/static/repo"
-`
-
-var unknownCmdText = `
-Unknown command "%s"
-
-Run 'gingersnap' for help with usage.
 `
