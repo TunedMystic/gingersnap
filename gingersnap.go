@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"runtime/debug"
@@ -1634,6 +1635,132 @@ func (e *Exporter) makePath(url string) string {
 // ------------------------------------------------------------------
 //
 //
+// WebP Conversion
+//
+//
+// ------------------------------------------------------------------
+
+// Webp is responsible for converting images to the `.webp` format.
+//
+// Webp is a thin wrapper which manages storage and execution of
+// the `cwebp` binary. It is constructed with a given root dir,
+// which is typically set to the user cache dir.
+// .
+type Webp struct {
+	// The location of the cwebp binary.
+	Path string
+
+	// The function to execute the webp conversion.
+	Exec func(string) error
+}
+
+// NewWebp returns a new Webp object with a root directory.
+// The root directory is where the `cwebp` binary will be stored.
+// Typically, the root directory should be the user cache dir:
+//
+//	rootDir, err := os.UserCacheDir()
+//
+// .
+func NewWebp(rootDir string) Webp {
+	w := Webp{}
+	w.Path = filepath.Join(rootDir, "gingersnap", "cwebp")
+	w.Exec = w.convertFunc
+	return w
+}
+
+// Convert takes the src image and converts it to a
+// webp image in the same location.
+// .
+func (w Webp) Convert(src string) error {
+
+	// If the `cwebp` binary does not exist,
+	// then unpack it from the embedded assets.
+	if !Exists(w.Path) {
+		if err := w.UnpackBinary(); err != nil {
+			return fmt.Errorf("convert: %w", err)
+		}
+	}
+
+	// Execute the convert command.
+	if err := w.Exec(src); err != nil {
+		return fmt.Errorf("convert: %w", err)
+	}
+
+	return nil
+}
+
+// ConvertMany takes a slice of image paths and converts
+// them all to webp format.
+// .
+func (w Webp) ConvertMany(paths []string) error {
+	for _, path := range paths {
+		if err := w.Convert(path); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// Args computes the arguments for the convert command.
+// .
+func (w Webp) Args(src string) []string {
+	return []string{
+		"-q", "85", src,
+		"-o", strings.ReplaceAll(src, filepath.Ext(src), ".webp"),
+	}
+}
+
+// UnpackBinary writes the `cwebp` binary to root dir.
+//
+//	$rootDir/gingersnap/cwebp
+//
+// .
+func (w Webp) UnpackBinary() error {
+	if err := EnsurePath(w.Path); err != nil {
+		return err
+	}
+
+	mode := os.FileMode(0755)
+
+	if err := os.WriteFile(w.Path, WebpBinary, mode); err != nil {
+		// return err
+		return fmt.Errorf("unpack: %w", err)
+	}
+
+	if err := os.Chmod(w.Path, mode); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// RemoveBinary deletes the `cwebp` binary from the user cache dir.
+// .
+func (w Webp) RemoveBinary() error {
+	dir := filepath.Dir(w.Path)
+	return os.RemoveAll(dir)
+}
+
+// convertFunc executes the `cwebp` binary to convert
+// the `src` image into webp format.
+// .
+func (w Webp) convertFunc(src string) error {
+	// Execute the `cwebp` binary.
+	if _, err := exec.Command(w.Path, w.Args(src)...).Output(); err != nil {
+		return fmt.Errorf("failed webp conversion: %w", err)
+	}
+
+	// Remove the non-webp image.
+	if err := os.Remove(src); err != nil {
+		return fmt.Errorf("failed to remove original image: %w", err)
+	}
+
+	return nil
+}
+
+// ------------------------------------------------------------------
+//
+//
 // Utility functions
 //
 //
@@ -1811,6 +1938,23 @@ func Glob(inputFS fs.FS, root, glob string) ([]string, error) {
 	return files, err
 }
 
+// LocalGlob returns a list of files matching the given extensions,
+// starting from the root directory.
+// .
+func LocalGlob(root string, ext ...string) ([]string, error) {
+	ret := make([]string, 0, 10)
+
+	for _, ext := range ext {
+		paths, err := Glob(os.DirFS("."), root, "**/*."+ext)
+		if err != nil {
+			return nil, err
+		}
+		ret = append(ret, paths...)
+	}
+
+	return ret, nil
+}
+
 // ------------------------------------------------------------------
 //
 //
@@ -1891,7 +2035,7 @@ func (g *Gingersnap) Configure(s Settings) {
 	}
 
 	// Gather the markdown post files.
-	filePaths, err := Glob(os.DirFS("."), s.PostsDir, "**/*.md")
+	filePaths, err := LocalGlob(s.PostsDir, "md")
 	if err != nil {
 		logger.Fatalf("gather posts: %s", err)
 	}
@@ -2020,6 +2164,9 @@ var Assets embed.FS
 
 //go:embed "assets/templates"
 var Templates embed.FS
+
+//go:embed "assets/bin/cwebp"
+var WebpBinary []byte
 
 // Image settings for all images in the site.
 const ImageWidth = "800"

@@ -73,6 +73,49 @@ func main() {
 		// Run the server with file watcher.
 		g.RunServerWithWatcher(s)
 
+	case "webp":
+
+		// ----------------------------------------------------------
+		//
+		//
+		// Webp - Convert images to webp format.
+		//
+		//
+		// ----------------------------------------------------------
+
+		// If gingersnap.json does not exist in the current directory,
+		// then do not start the server
+		if !Exists(s.ConfigPath) {
+			Logerr("No gingersnap.json config detected. Skipping.")
+		}
+
+		// If gingersnap.json does not exist in the current directory,
+		// then do not start the server
+		if !Exists(s.MediaDir) {
+			Logerr("No media directory detected. Skipping.")
+		}
+
+		// The user cache dir, used for user-specific cached data.
+		dir, err := os.UserCacheDir()
+		if err != nil {
+			Logerr("webp error: %s", err)
+		}
+
+		// Construct a new Webp, with the user cache dir
+		// as the root directory.
+		w := gingersnap.NewWebp(dir)
+
+		// Gather the images in the media directory.
+		imgPaths, err := gingersnap.LocalGlob(s.MediaDir, "png", "jpg", "jpeg")
+		if err != nil {
+			Logerr("webp error: %s", err)
+		}
+
+		// Convert all the images in the media directory to webp.
+		if err := w.ConvertMany(imgPaths); err != nil {
+			Logerr("webp error: %s", err)
+		}
+
 	case "export":
 
 		// ----------------------------------------------------------
@@ -282,6 +325,7 @@ Usage:
 Commands:
   init        Create a new project, and scaffold the required assets
   dev         Start the dev server, and reload on file changes
+  webp        Convert images to webp format
   export      Export the project as a static site
   deploy      Export the project, and push it to a dedicated repository
   config      Explain the config settings

@@ -47,7 +47,7 @@ bin/cwebp:
 	@echo "✨📦✨ Downloading cwebp binary\n"
 	curl -sL https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.3.1-mac-x86-64.tar.gz | tar -xz
 	mkdir -p bin
-	mv ./libwebp-1.3.1-mac-x86-64/bin/cwebp ./bin/cwebp
+	mv ./libwebp-1.3.1-mac-x86-64/bin/cwebp ./assets/bin/cwebp
 	rm -rf libwebp-1.3.1-mac-x86-64
 	@echo ""
 
