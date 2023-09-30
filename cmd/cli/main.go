@@ -248,7 +248,7 @@ func main() {
 		// ----------------------------------------------------------
 		//
 		//
-		// Clean - Remove any cached and temp directories
+		// Clean - Remove temp files and dirs
 		//
 		//
 		// ----------------------------------------------------------
@@ -359,7 +359,7 @@ Commands:
   export      Export the project as a static site
   deploy      Export the project, and push it to a dedicated repository
   config      Explain the config settings
-  clean       Remove any cached and temp directories
+  clean       Remove temp files and dirs
 `
 
 var configCmdText = `

@@ -1,6 +1,6 @@
 ![gingersnap](https://github.com/TunedMystic/gingersnap-cli/assets/6523726/97927bb9-1ccb-49c1-9daf-33a0a1365810)
 
-Gingersnap is a simple and static site generator built in Go.
+Gingersnap is a static site generator built in Go.
 
 
 
@@ -15,16 +15,9 @@ Gingersnap is a simple and static site generator built in Go.
 git clone https://github.com/tunedmystic/gingersnap-cli && cd gingersnap-cli
 ```
 
-**Build the app binary**
+**Build and install the app binary**
 ```shell
-make build
-```
-
-**Copy the binary to a location in your `$PATH`**
-```shell
-# Assuming you have `~/go/bin` in your `$PATH`
-
-cp bin/gingersnap ~/go/bin/
+make install
 ```
 
 

@@ -22,6 +22,12 @@ build: clean
 	@go build -ldflags="-s -w" -o bin/gingersnap ./cmd/cli/
 
 
+## @(app) - Build the app binary and copy it to $GOPATH
+install: build
+	@echo "✨📦✨ Copying to \$$GOPATH\n"
+	@cp bin/gingersnap $$GOPATH/bin/
+
+
 ## @(app) - Remove temp files and dirs
 clean:
 	@rm -f coverage.out
@@ -32,6 +38,7 @@ clean:
 	@rm -f gingersnap.json
 	@rm -rf posts
 	@rm -rf media
+	@rm -f $$GOPATH/bin/gingersnap
 
 
 bin/watchexec:
