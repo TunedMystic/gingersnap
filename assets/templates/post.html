@@ -7,7 +7,7 @@
 
 
         <!-- Article Heading -->
-        <h1 class="font-bold text-3xl text-black mb-3">{{.Heading}}</h1>
+        <h1 class="font-bold text-3xl text-slate-900 mb-3">{{.Heading}}</h1>
 
 
         {{if .Post.IsBlog}}
@@ -41,7 +41,7 @@
             {{if .LatestPosts}}
                 <!-- Latest Articles -->
                 <hr class="my-11">
-                <p class="text-xl font-bold text-black mb-6">Latest Posts</p>
+                <p class="text-xl font-bold text-slate-900 mb-6">Latest Posts</p>
                 <div class="flex flex-col space-y-5">
                     {{range .LatestPosts}}
                         {{if ne .Slug $currentPostSlug}}
@@ -55,7 +55,7 @@
             {{if .RelatedPosts}}
                 <!-- Related Articles -->
                 <hr class="my-11">
-                <p class="text-xl font-bold text-black mb-6">You May Also Like</p>
+                <p class="text-xl font-bold text-slate-900 mb-6">You May Also Like</p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-5">
                     {{range .RelatedPosts}}
                         <div class="space-y-1 sm:space-y-1.5">
@@ -67,7 +67,7 @@
                                 <a href="{{.Category.Route}}">{{.Category.Title}}</a>
                             </p>
 
-                            <p class="text-black font-semibold text-lg sm:text-base lg:font-medium">
+                            <p class="text-slate-900 font-semibold text-lg sm:text-base lg:font-medium">
                                 <a href="{{.Route}}">{{.Heading}}</a>
                             </p>
                         </div>
