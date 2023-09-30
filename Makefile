@@ -6,7 +6,7 @@ APP="$$(basename -- $$(PWD))"
 # -------------------------------------------------------------------
 
 ## @(app) - Run the Go app  --watch     ⭐️
-run: bin/watchexec
+run: bin/watchexec assets/bin/cwebp
 	@echo "✨📦✨ Running the app server\n"
 	@./bin/watchexec -r -e go,css,js,html,md,json "go run ./cmd/server/"
 
@@ -43,10 +43,10 @@ bin/watchexec:
 	@echo ""
 
 
-bin/cwebp:
+assets/bin/cwebp:
 	@echo "✨📦✨ Downloading cwebp binary\n"
 	curl -sL https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.3.1-mac-x86-64.tar.gz | tar -xz
-	mkdir -p bin
+	mkdir -p assets/bin
 	mv ./libwebp-1.3.1-mac-x86-64/bin/cwebp ./assets/bin/cwebp
 	rm -rf libwebp-1.3.1-mac-x86-64
 	@echo ""
