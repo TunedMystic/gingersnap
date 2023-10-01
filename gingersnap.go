@@ -2230,7 +2230,7 @@ var Themes = map[string]Theme{
 	"green": {
 		Primary:   "#0f766e", // teal-700
 		Secondary: "#0f766e", // teal-700
-		Link:      "#2563eb", // blue-600
+		Link:      "#0369a1", // sky-700
 	},
 	"pink": {
 		Primary:   "#db2777", // pink-600

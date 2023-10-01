@@ -5,7 +5,7 @@
     {{$display := .Display}}
 
     <div class="{{if $display.Grid}}full-section{{else}}main-section{{end}}">
-        <h1 class="decorate-primary underline font-bold text-3xl text-slate-800 leading-relaxed mb-7">{{.Heading}}</h1>
+        <h1 class="font-bold text-3xl text-slate-800 leading-relaxed mb-7">{{.Heading}}</h1>
 
         {{if $display.Grid}}
             {{template "post-grid" .Posts}}
