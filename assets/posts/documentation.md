@@ -95,6 +95,7 @@ Defines site-specific settings.
 | `tagline` | A short description of the site _(50-70 characters)_ |
 | `description` | A long description of the site _(70-155 characters)_ |
 | `theme` | The color theme of the site _([see available themes](#themes))_ |
+| `display` | Render the posts in "grid" or "list" style |
 
 ```json
 "site": {
@@ -102,7 +103,8 @@ Defines site-specific settings.
 	"host": "mysite.com",
 	"tagline": "short descr ...",
 	"description": "longer descr ...",
-	"theme": "pink"
+	"theme": "pink",
+	"display": "list"
 }
 ```
 
@@ -172,7 +174,9 @@ Defines the export destination. This _(optional)_ setting requires a repository 
 		"name": "Gingersnap",
 		"host": "gingersnap.dev",
 		"tagline": "The Snappy Way to Build Static Sites.",
-		"description": "Gingersnap is a simple and effortless static site generator. Get up and running with one command, and export the site when you're ready to publish!"
+		"description": "Gingersnap is a simple and effortless static site generator. Get up and running with one command, and export the site when you're ready to publish!",
+		"theme": "pink",
+		"display": "grid"
 	},
 	"homepage": [
 		"$featured",
