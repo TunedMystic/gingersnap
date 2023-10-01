@@ -2,18 +2,18 @@
 {{template "page" .}}
 <div class="w-full mx-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl px-5">
 
-    <div class="main-section mx-auto flex-col space-y-7">
+    <div class="main-section mx-auto flex flex-col space-y-7">
 
-        <h1 class="font-bold text-3xl text-slate-900 mb-3">{{.Heading}}</h1>
+        <h1 class="font-bold text-3xl text-slate-900">{{.Heading}}</h1>
 
         {{range .Posts}}
-            <div class="w-full flex items-center justify-between">
+            <div class="w-full flex flex-col sm:flex-row items-start sm:items-center">
 
-                <p class="w-9/12">
-                    <a style="font-size: 1.0625rem;" class="link font-medium" href="{{.Route}}">{{.Heading}}</a>
+                <p class="w-full w-9/12">
+                    <a class="link text-lg font-medium" href="{{.Route}}">{{.Heading}}</a>
                 </p>
 
-                <p class="w-3/12 flex justify-end text-slate-400">
+                <p class="w-full w-3/12 flex justify-start sm:justify-end text-slate-400">
                     {{if .Updated}}{{.Updated}}{{else}}{{.Pubdate}}{{end}}
                 </p>
 
