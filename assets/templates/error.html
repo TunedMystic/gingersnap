@@ -29,9 +29,18 @@
 
 
     {{if .LatestPosts}}
+        {{$display := .Display}}
+
         <!-- Latest Articles -->
         <hr class="my-12 pb-5">
-        {{template "post-grid" .LatestPosts}}
+
+        <div class="{{if $display.Grid}}full-section{{else}}main-section{{end}}">
+            {{if $display.Grid}}
+                {{template "post-grid" .LatestPosts}}
+            {{else}}
+                {{template "post-list" .LatestPosts}}
+            {{end}}
+        </div>
     {{end}}
 
 </div>

@@ -2,18 +2,27 @@
 {{template "page" .}}
 <div class="w-full mx-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl px-5">
 
-    {{range .Sections}}
-        <div class="flex items-center justify-between mb-7">
+    {{$display := .Display}}
 
-            <h2 class="decorate-primary underline font-bold text-3xl text-slate-800 leading-relaxed">{{.Category.Title}}</h2>
+    <div class="{{if $display.Grid}}full-section{{else}}main-section{{end}}">
+        {{range .Sections}}
 
-            {{if not .Category.IsEmpty}}
-                <p class="text-slate-500">See all in <a class="link underline" href="{{.Category.Route}}">{{.Category.Title}} &raquo;</a></p>
+            <div class="flex items-center justify-between mb-7">
+                <h2 class="decorate-primary underline font-bold text-3xl text-slate-800 leading-relaxed">{{.Category.Title}}</h2>
+
+                {{if not .Category.IsEmpty}}
+                    <p class="text-slate-500">See all in <a class="link underline" href="{{.Category.Route}}">{{.Category.Title}} &raquo;</a></p>
+                {{end}}
+            </div>
+
+            {{if $display.Grid}}
+                {{template "post-grid" .Posts}}
+            {{else}}
+                {{template "post-list" .Posts}}
             {{end}}
 
-        </div>
-        {{template "post-grid" .Posts}}
-    {{end}}
+        {{end}}
+    </div>
 
 </div>
 {{template "endpage" .}}

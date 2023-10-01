@@ -165,65 +165,11 @@ func (g *Gingersnap) HandleIndex() http.HandlerFunc {
 	// Create sections for rendering the homepage.
 	for _, slug := range g.Config.Homepage {
 
-		// If specified, then gather the "latest" posts.
-		if slug == SectionLatest {
-
-			categoryLatest := Category{
-				Slug:  "",
-				Title: "Latest Posts",
-			}
-
-			// Create the section.
-			section := Section{
-				Category: categoryLatest,
-				Posts:    g.Store.PostsLatest,
-			}
-
-			// Add the section.
-			sections = append(sections, section)
-			continue
-		}
-
-		// If specified, then gather the "featured" posts.
-		if slug == SectionFeatured {
-
-			categoryFeatured := Category{
-				Slug:  "",
-				Title: "Featured Posts",
-			}
-
-			// Create the section.
-			section := Section{
-				Category: categoryFeatured,
-				Posts:    g.Store.PostsFeatured,
-			}
-
-			// Add the section.
-			sections = append(sections, section)
-			continue
-		}
-
-		// Gather the posts for the specified category.
-		// Raise error if category is not found.
-		cat, ok := g.Store.CategoriesBySlug[slug]
+		section, ok := g.Store.Sections[slug]
 		if !ok {
-			panic(fmt.Sprintf("homepage section error: cannot find category [%s]", slug))
+			panic(fmt.Sprintf("cannot find Section '%s'", slug))
 		}
-
-		posts, ok := g.Store.PostsByCategory[cat]
-		if !ok {
-			panic(fmt.Sprintf("homepage section error: no posts found for category [%s]", slug))
-		}
-
-		// Create the section.
-		section := Section{
-			Category: cat,
-			Posts:    posts[:min(LimitSection, len(posts))],
-		}
-
-		// Add the section.
 		sections = append(sections, section)
-
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -704,7 +650,8 @@ type Site struct {
 	Url         string
 	Email       string
 	Image       Image
-	Theme       string `json:"theme"`
+	Theme       string  `json:"theme"`
+	Display     Display `json:"display"`
 }
 
 // Link stores data for an anchor link.
@@ -759,6 +706,15 @@ func NewConfig(configBytes []byte, debug bool) (*Config, error) {
 	}
 
 	config.Theme = theme
+
+	// Retrieve the display. Set appropriate defaults.
+	if config.Site.Display == "" {
+		config.Site.Display = Display("grid")
+	}
+
+	if d := config.Site.Display; !d.Grid() && !d.List() {
+		return nil, fmt.Errorf("could not load display [%s]", d)
+	}
 
 	return config, nil
 }
@@ -900,6 +856,7 @@ type RenderData struct {
 	NavbarLinks []Link
 	FooterLinks []Link
 	Theme       Theme
+	Display     Display
 
 	// Application info
 	AppDebug bool
@@ -930,6 +887,7 @@ func (g *Gingersnap) NewRenderData(r *http.Request) RenderData {
 		NavbarLinks: g.Config.NavbarLinks,
 		FooterLinks: g.Config.FooterLinks,
 		Theme:       g.Config.Theme,
+		Display:     g.Config.Site.Display,
 
 		Copyright: fmt.Sprintf("%d", time.Now().Year()),
 		AppDebug:  g.Config.Debug,
@@ -1052,10 +1010,38 @@ func (c Category) Route() string {
 
 // Section represents a section of a web page.
 // It stores a collection of posts for a category.
+//
+// For non-conventional sections like "Latest Posts",
+// the category can be ephemeral.
 // .
 type Section struct {
 	Category Category
 	Posts    []*Post
+}
+
+// ------------------------------------------------------------------
+//
+//
+// Type: Display
+//
+//
+// ------------------------------------------------------------------
+
+// Display describes the method for rendering
+// post sections across the website.
+// .
+type Display string
+
+// Display the post sections in a grid format.
+// .
+func (d Display) Grid() bool {
+	return d == "grid"
+}
+
+// Display the post sections in a list format.
+// .
+func (d Display) List() bool {
+	return d == "list"
 }
 
 // ------------------------------------------------------------------
@@ -1079,10 +1065,42 @@ type Store struct {
 
 	Categories       []Category
 	CategoriesBySlug map[string]Category
+
+	Sections map[string]Section
 }
 
 func NewStore() *Store {
 	return &Store{}
+}
+
+func (s *Store) InitSections() {
+	s.Sections = make(map[string]Section, len(s.PostsByCategory)+2)
+
+	// Create sections for each "category-grouping" of posts.
+	for cat := range s.PostsByCategory {
+		s.Sections[cat.Slug] = Section{
+			Category: cat,
+			Posts:    s.PostsByCategory[cat],
+		}
+	}
+
+	// Create section for the "Latest Posts" pseudo-category.
+	s.Sections[SectionLatest] = Section{
+		Category: Category{
+			Slug:  "",
+			Title: "Latest Posts",
+		},
+		Posts: s.PostsLatest,
+	}
+
+	// Create section for the "Featured Posts" pseudo-category.
+	s.Sections[SectionFeatured] = Section{
+		Category: Category{
+			Slug:  "",
+			Title: "Featured Posts",
+		},
+		Posts: s.PostsFeatured,
+	}
 }
 
 func (s *Store) InitCategories(categoriesBySlug map[string]Category) {
@@ -2050,6 +2068,7 @@ func (g *Gingersnap) Configure(s Settings) {
 	store := NewStore()
 	store.InitPosts(pr.PostsBySlug)
 	store.InitCategories(pr.CategoriesBySlug)
+	store.InitSections()
 
 	// Construct the templates, using the embedded FS.
 	templates, err := NewTemplate(Templates)
