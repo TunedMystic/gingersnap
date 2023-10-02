@@ -213,6 +213,9 @@ Defines the export destination. This _(optional)_ setting requires a repository 
 }
 ```
 
+### Example display options
+![gingersnap-display-types](https://github.com/TunedMystic/gingersnap-cli/assets/6523726/60a68500-ce0b-41d0-924a-9d90cce6c3f1)
+
 ---
 
 ## Examples
