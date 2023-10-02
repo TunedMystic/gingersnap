@@ -24,7 +24,22 @@ func main() {
 		ExportDir:  "dist",
 		Debug:      true,
 	}
+
 	switch os.Args[1] {
+
+	case "version":
+
+		// ----------------------------------------------------------
+		//
+		//
+		// Version - View build info
+		//
+		//
+		// ----------------------------------------------------------
+
+		Loginfo("\nGingersnap")
+		Loginfo("  Built At    %s", BuildDate)
+		Loginfo("  Git Hash    %s\n", BuildHash)
 
 	case "init":
 
@@ -323,7 +338,7 @@ func Logerr(msg string, args ...any) {
 // ------------------------------------------------------------------
 //
 //
-// Help text
+// Constants
 //
 //
 // ------------------------------------------------------------------
@@ -342,4 +357,10 @@ Commands:
   export      Export the project as a static site
   deploy      Export the project, and push it to a dedicated repository
   clean       Remove temp files and dirs
+  version     View build info
 `
+
+var (
+	BuildDate = ""
+	BuildHash = ""
+)

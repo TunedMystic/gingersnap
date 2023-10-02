@@ -19,7 +19,7 @@ css: bin/tailwind
 ## @(app) - Build the app binary
 build: clean
 	@echo "✨📦✨ Building the app binary\n"
-	@go build -ldflags="-s -w" -o bin/gingersnap ./cmd/cli/
+	@go build -ldflags="-s -w -X 'main.BuildHash=$$(git rev-parse --short=10 HEAD)' -X 'main.BuildDate=$$(date)'" -o bin/gingersnap ./cmd/cli/
 
 
 ## @(app) - Build the app binary and copy it to $GOPATH
