@@ -186,12 +186,10 @@ Defines the export destination. This _(optional)_ setting requires a repository 
 	"navbarLinks": [
 		{"text": "Go", "href": "/category/go/"},
 		{"text": "Python", "href": "/category/python/"},
-		{"text": "SQL", "href": "/category/sql/"},
 		{"text": "About Us", "href": "/about/"}
 	],
 	"footerLinks": [
 		{"text": "Home", "href": "/"},
-		{"text": "About Us", "href": "/about/"},
 		{"text": "Sitemap", "href": "/sitemap/"},
 		{"text": "Privacy Policy", "href": "/privacy-policy/"}
 	],

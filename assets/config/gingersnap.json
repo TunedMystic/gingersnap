@@ -12,7 +12,6 @@
 	"navbarLinks": [
 		{"text": "Go", "href": "/category/go/"},
 		{"text": "Python", "href": "/category/python/"},
-		{"text": "SQL", "href": "/category/sql/"},
 		{"text": "About Us", "href": "/about/"}
 	],
 	"footerLinks": [
