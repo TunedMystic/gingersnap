@@ -1,4 +1,4 @@
-![gingersnap](https://github.com/TunedMystic/gingersnap-cli/assets/6523726/97927bb9-1ccb-49c1-9daf-33a0a1365810)
+![gingersnap](https://github.com/TunedMystic/gingersnap-cli/assets/6523726/32d70e4c-1818-485d-8ed5-ee1116c0e70a)
 
 Gingersnap is a static site generator built in Go.
 
