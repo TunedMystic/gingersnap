@@ -14,7 +14,7 @@ featured: true
 
 ## Getting started
 
-Gingersnap is a static site generator built in Go. It converts markdown files into a fully functional website.
+[Gingersnap](https://github.com/TunedMystic/gingersnap) is a static site generator built in Go. It converts markdown files into a fully functional website.
 
 With a single command, users can setup an entire project, allowing them to jump straight into editing and content creation.
 

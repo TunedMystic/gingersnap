@@ -17,7 +17,7 @@ css: bin/tailwind
 
 
 ## @(app) - Build the app binary
-build: clean
+build: clean assets/bin/cwebp
 	@echo "✨📦✨ Building the app binary\n"
 	@go build -ldflags="-s -w -X 'main.BuildHash=$$(git rev-parse --short=10 HEAD)' -X 'main.BuildDate=$$(date)'" -o bin/gingersnap ./cmd/cli/
 
@@ -41,6 +41,20 @@ clean:
 	@rm -f $$GOPATH/bin/gingersnap
 
 
+tailwind: bin/tailwind
+	@echo "✨📦✨ Running tailwind\n"
+	@bash -c "./bin/tailwind --input ./tailwind.input.css --output ./assets/css/styles.css --minify $(args)"
+
+
+bin/tailwind:
+	@echo "✨📦✨ Downloading tailwindcss binary\n"
+	curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-macos-arm64
+	chmod +x tailwindcss-macos-arm64
+	mkdir -p bin
+	mv tailwindcss-macos-arm64 ./bin/tailwind
+	@echo ""
+
+
 bin/watchexec:
 	@echo "✨📦✨ Downloading watchexec binary\n"
 	curl -sL https://github.com/watchexec/watchexec/releases/download/v1.23.0/watchexec-1.23.0-x86_64-apple-darwin.tar.xz | tar -xz
@@ -57,20 +71,6 @@ assets/bin/cwebp:
 	mv ./libwebp-1.3.1-mac-x86-64/bin/cwebp ./assets/bin/cwebp
 	rm -rf libwebp-1.3.1-mac-x86-64
 	@echo ""
-
-
-bin/tailwind:
-	@echo "✨📦✨ Downloading tailwindcss binary\n"
-	curl -sLO https://github.com/tailwindlabs/tailwindcss/releases/latest/download/tailwindcss-macos-arm64
-	chmod +x tailwindcss-macos-arm64
-	mkdir -p bin
-	mv tailwindcss-macos-arm64 ./bin/tailwind
-	@echo ""
-
-
-tailwind:
-	@echo "✨📦✨ Running tailwind\n"
-	@bash -c "./bin/tailwind --input ./tailwind.input.css --output ./assets/css/styles.css --minify $(args)"
 
 
 

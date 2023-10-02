@@ -22,5 +22,6 @@ Projects have a limited set of features and configuration. This helps keep the b
 
 ## Learn More
 
-Read the detailed guide here - [Gingersnap Documentation](/docs/)
+The [Gingersnap documentation](/docs/)
+The [Gingersnap repository](https://github.com/TunedMystic/gingersnap)
 Have fun building sites with Gingersnap! 🍪 ❤️
