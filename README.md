@@ -34,8 +34,10 @@ With a single command, users can setup an entire project, allowing them to jump 
 
 Projects have a limited set of features and configuration. This helps keep the blogging workflow streamlined and ensures a more straightforward experience for users.
 
+<br />
+
 <details open>
-    <summary>Table of Contents</summary>
+    <summary><strong>Table of Contents</strong></summary>
 
 - [Quickstart](#quickstart)
 - [Project structure](#project-structure)
@@ -43,7 +45,13 @@ Projects have a limited set of features and configuration. This helps keep the b
 - [Examples](#examples)
 </details>
 
-## Quickstart
+
+
+<br />
+
+
+
+### Quickstart
 
 First, create an empty directory and navigate to it.
 
@@ -75,9 +83,19 @@ The site will be exported to the `dist/` directory.
 gingersnap export
 ```
 
+
+<br />
+
+
 ---
 
-## Project structure
+
+
+<br />
+
+
+
+### Project structure
 
 A gingersnap project contains the following directory structure:
 
@@ -93,9 +111,21 @@ A gingersnap project contains the following directory structure:
 
 **Config** - The config file stores settings and layout configurations for the site. More details about the config file [below](#config).
 
+
+
+<br />
+
+
+
 ---
 
-## Config
+
+
+<br />
+
+
+
+### Config
 
 The `gingersnap.json` config file stores settings and layout configurations for the site. Here is an overview of the config options.
 
@@ -180,6 +210,8 @@ Defines the export destination. This _(optional)_ setting requires a repository 
 "staticRepository": "/path/to/static/repo"
 ```
 
+<br />
+
 ### Example config
 
 ```json
@@ -213,19 +245,44 @@ Defines the export destination. This _(optional)_ setting requires a repository 
 }
 ```
 
+<br />
+
 ### Example display options
+
+The `site.display` setting will tell Gingersnap to render Post blocks as a list or as a grid. Post blocks are used in the [homepage](https://gingersnap.dev/), in [category pages](https://gingersnap.dev/category/go/), and in [post detail pages](https://gingersnap.dev/golang-working-with-time/).
+
+Here is an example of how these two displays are rendered.
+
 ![gingersnap-display-types](https://github.com/TunedMystic/gingersnap-cli/assets/6523726/60a68500-ce0b-41d0-924a-9d90cce6c3f1)
+
+
+
+<br />
+
+
 
 ---
 
-## Examples
+
+
+<br />
+
+
+
+### Examples
 
 Here are some tips for working with Gingersnap projects.
+
+
+<br />
 
 
 #### Draft Posts
 
 Any post marked as draft will never be processed or exported by Gingersnap. You can make a post draft by adding `draft: true` in the markdown front matter.
+
+
+<br />
 
 
 #### Featured Posts
@@ -237,6 +294,9 @@ You can make a post featured by adding `featured: true` in the markdown front ma
 You can display featured posts on the homepage by adding the `"$featured"` section to the [homepage settings](#homepage).
 
 
+<br />
+
+
 #### Standalone Posts
 
 A standalone post has no relation to other content across the site. Examples of standalone posts are a "contact" page, an "about" page, or a "privacy-policy" page.
@@ -246,6 +306,9 @@ When Gingersnap displays a standalone post, it will not include related or lates
 You can make a post standalone by adding `page: true` to the markdown front matter.
 
 
+<br />
+
+
 #### Lead Image
 
 Each post must contain a lead image. You can set the lead in the markdown front matter with the `image_url` and `image_alt` fields.
@@ -253,6 +316,9 @@ Each post must contain a lead image. You can set the lead in the markdown front 
 To keep things simple, all lead images must be in `webp` format and must have a resolution of `1280x720`.
 
 Gingersnap will display the lead image in the post detail page. Alternatively, you can hide the lead image in the post detail page with `hide_image: true`.
+
+
+<br />
 
 
 #### Themes
@@ -274,5 +340,7 @@ When you specify a simple theme, Gingersnap will use the primary color of the ro
 
 <img width="748" alt="gingersnap-themes-simplified" src="https://github.com/TunedMystic/gingersnap-cli/assets/6523726/de5d92e4-ed4c-4fe2-b1e7-4926736418f1">
 
+
+<br />
 
 And that's it! Have fun building sites with Gingersnap! 🍪 ❤️

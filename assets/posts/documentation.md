@@ -166,6 +166,8 @@ Defines the export destination. This _(optional)_ setting requires a repository 
 "staticRepository": "/path/to/static/repo"
 ```
 
+<br />
+
 ### Example config
 
 ```json
