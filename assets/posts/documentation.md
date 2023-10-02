@@ -173,7 +173,7 @@ Defines the export destination. This _(optional)_ setting requires a repository 
 	"site": {
 		"name": "Gingersnap",
 		"host": "gingersnap.dev",
-		"tagline": "The Snappy Way to Build Static Sites.",
+		"tagline": "The Snappy Way to Build Static Sites",
 		"description": "Gingersnap is a simple and effortless static site generator. Get up and running with one command, and export the site when you're ready to publish!",
 		"theme": "pink",
 		"display": "grid"
