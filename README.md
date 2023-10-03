@@ -12,7 +12,7 @@ Gingersnap is a static site generator built in Go.
 
 **Clone the repo**
 ```shell
-git clone https://github.com/tunedmystic/gingersnap-cli && cd gingersnap-cli
+git clone https://github.com/tunedmystic/gingersnap && cd gingersnap
 ```
 
 **Build and install the app binary**
