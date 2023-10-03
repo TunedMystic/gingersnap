@@ -67,7 +67,7 @@ type Gingersnap struct {
 
 // New returns an empty Gingernap engine.
 // .
-func New() *Gingersnap {
+func NewGingersnap() *Gingersnap {
 	return &Gingersnap{}
 }
 
