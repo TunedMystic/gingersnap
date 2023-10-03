@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"gingersnap"
+	app "gingersnap"
 )
 
 func main() {
@@ -17,7 +17,7 @@ func main() {
 	}
 
 	// Settings for gingersnap resources.
-	s := gingersnap.Settings{
+	s := app.Settings{
 		ConfigPath: "gingersnap.json",
 		PostsDir:   "posts",
 		MediaDir:   "media",
@@ -51,16 +51,16 @@ func main() {
 		//
 		// ----------------------------------------------------------
 
-		// If gingersnap.json exists in the current directory,
+		// If the config exists in the current directory,
 		// then do not scaffold a new project here.
 		if Exists(s.ConfigPath) {
-			Logerr("Config gingersnap.json detected. Skipping.")
+			Logerr("Project already initialized. Skipping.")
 		}
 
 		// Copy embedded resources into the current directory.
-		gingersnap.CopyDir(gingersnap.Assets, "assets/media", ".")
-		gingersnap.CopyDir(gingersnap.Assets, "assets/posts", ".")
-		gingersnap.CopyFile(gingersnap.Assets, "assets/config/gingersnap.json", "./gingersnap.json")
+		app.CopyDir(app.Assets, "assets/media", ".")
+		app.CopyDir(app.Assets, "assets/posts", ".")
+		app.CopyFile(app.Assets, "assets/config/"+s.ConfigPath, "./"+s.ConfigPath)
 
 		Loginfo("Gingersnap project initialized ✅")
 
@@ -74,14 +74,12 @@ func main() {
 		//
 		// ----------------------------------------------------------
 
-		// If gingersnap.json does not exist in the current directory,
-		// then do not start the server
-		if !Exists(s.ConfigPath) {
-			Logerr("No gingersnap.json config detected. Skipping.")
-		}
+		// Check that the required configs/dirs exist
+		// for the gingersnap engine.
+		EnsureProject(s)
 
 		// Construct the gingersnap engine.
-		g := gingersnap.New()
+		g := app.NewGingersnap()
 		g.Configure(s)
 
 		// Run the server with file watcher.
@@ -97,17 +95,9 @@ func main() {
 		//
 		// ----------------------------------------------------------
 
-		// If gingersnap.json does not exist in the current directory,
-		// then do not start the server
-		if !Exists(s.ConfigPath) {
-			Logerr("No gingersnap.json config detected. Skipping.")
-		}
-
-		// If gingersnap.json does not exist in the current directory,
-		// then do not start the server
-		if !Exists(s.MediaDir) {
-			Logerr("No media directory detected. Skipping.")
-		}
+		// Check that the required configs/dirs exist
+		// for the gingersnap engine.
+		EnsureProject(s)
 
 		// The user cache dir, used for user-specific cached data.
 		dir, err := os.UserCacheDir()
@@ -117,10 +107,10 @@ func main() {
 
 		// Construct a new Webp, with the user cache dir
 		// as the root directory.
-		w := gingersnap.NewWebp(dir)
+		w := app.NewWebp(dir)
 
 		// Gather the images in the media directory.
-		imgPaths, err := gingersnap.LocalGlob(s.MediaDir, "png", "jpg", "jpeg")
+		imgPaths, err := app.LocalGlob(s.MediaDir, "png", "jpg", "jpeg")
 		if err != nil {
 			Logerr("webp error: %s", err)
 		}
@@ -140,10 +130,14 @@ func main() {
 		//
 		// ----------------------------------------------------------
 
+		// Check that the required configs/dirs exist
+		// for the gingersnap engine.
+		EnsureProject(s)
+
 		s.Debug = false
 
 		// Construct the gingersnap engine.
-		g := gingersnap.New()
+		g := app.NewGingersnap()
 		g.Configure(s)
 
 		// Export the site.
@@ -163,10 +157,14 @@ func main() {
 		//
 		// ----------------------------------------------------------
 
+		// Check that the required configs/dirs exist
+		// for the gingersnap engine.
+		EnsureProject(s)
+
 		s.Debug = false
 
 		// Construct the gingersnap engine.
-		g := gingersnap.New()
+		g := app.NewGingersnap()
 		g.Configure(s)
 
 		// ----------------------------------------------------------
@@ -219,7 +217,7 @@ func main() {
 		// Copy the exported site to the prod repo directory.
 		//
 		Loginfo("[3/5] Copying into the static site directory")
-		gingersnap.CopyDir(os.DirFS(s.ExportDir), ".", ProdRepo)
+		app.CopyDir(os.DirFS(s.ExportDir), ".", ProdRepo)
 
 		//
 		// Navigate to the prod repo, commit the changes and push upstream.
@@ -262,7 +260,7 @@ func main() {
 
 		// Construct a new Webp, with the user cache dir
 		// as the root directory.
-		w := gingersnap.NewWebp(dir)
+		w := app.NewWebp(dir)
 
 		// Remove the `cwebp` binary.
 		if err := w.RemoveBinary(); err != nil {
@@ -273,6 +271,34 @@ func main() {
 		Loginfo("Unknown command '%s'", os.Args[1])
 		Loginfo("Run 'gingersnap' for help with usage")
 		Loginfo("")
+	}
+}
+
+// ------------------------------------------------------------------
+//
+//
+// Helper functions
+//
+//
+// ------------------------------------------------------------------
+
+func EnsureProject(s app.Settings) {
+	// If the config does not exist in the current directory,
+	// then do not start the server.
+	if !Exists(s.ConfigPath) {
+		Logerr("No config detected. Skipping.")
+	}
+
+	// If the media directory does not exist in the current directory,
+	// then do not start the server.
+	if !Exists(s.MediaDir) {
+		Logerr("No media directory detected. Skipping.")
+	}
+
+	// If the posts directory does not exist in the current directory,
+	// then do not start the server.
+	if !Exists(s.PostsDir) {
+		Logerr("No posts directory detected. Skipping.")
 	}
 }
 
