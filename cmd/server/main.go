@@ -1,17 +1,9 @@
 package main
 
-import app "gingersnap"
+import "gingersnap/app"
 
 func main() {
-	s := app.Settings{
-		ConfigPath: "assets/config/gingersnap.json",
-		PostsDir:   "assets/posts",
-		MediaDir:   "assets/media",
-		ExportDir:  "dist",
-		Debug:      true,
-	}
-
 	g := app.NewGingersnap()
-	g.Configure(s)
+	g.Configure()
 	g.RunServer()
 }

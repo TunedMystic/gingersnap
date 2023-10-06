@@ -7,26 +7,26 @@ import (
 	"path/filepath"
 	"time"
 
-	app "gingersnap"
+	"github.com/fsnotify/fsnotify"
+
+	"gingersnap/app"
+	"gingersnap/app/utils"
 )
 
 func main() {
 	if len(os.Args) < 2 {
-		Loginfo(helpText)
+		loginfo(helpText)
 		os.Exit(0)
 	}
 
-	// Settings for gingersnap resources.
-	s := app.Settings{
-		ConfigPath: "gingersnap.json",
-		PostsDir:   "posts",
-		MediaDir:   "media",
-		ExportDir:  "dist",
-		Debug:      true,
-	}
+	g := app.NewGingersnap()
+	g.Debug = true
+	g.ConfigPath = "gingersnap.json"
+	g.PostsPath = "posts"
+	g.MediaPath = "media"
+	g.ExportPath = "dist"
 
 	switch os.Args[1] {
-
 	case "version":
 
 		// ----------------------------------------------------------
@@ -37,9 +37,9 @@ func main() {
 		//
 		// ----------------------------------------------------------
 
-		Loginfo("\nGingersnap")
-		Loginfo("  Built At    %s", BuildDate)
-		Loginfo("  Git Hash    %s\n", BuildHash)
+		loginfo("\nGingersnap")
+		loginfo("  Built At    %s", BuildDate)
+		loginfo("  Git Hash    %s\n", BuildHash)
 
 	case "init":
 
@@ -53,16 +53,14 @@ func main() {
 
 		// If the config exists in the current directory,
 		// then do not scaffold a new project here.
-		if Exists(s.ConfigPath) {
-			Logerr("Project already initialized. Skipping.")
+		if utils.Exists(g.ConfigPath) {
+			logerr("Project already initialized. Skipping.")
 		}
 
 		// Copy embedded resources into the current directory.
-		app.CopyDir(app.Assets, "assets/media", ".")
-		app.CopyDir(app.Assets, "assets/posts", ".")
-		app.CopyFile(app.Assets, "assets/config/"+s.ConfigPath, "./"+s.ConfigPath)
+		g.Unpack()
 
-		Loginfo("Gingersnap project initialized ✅")
+		loginfo("Gingersnap project initialized ✅")
 
 	case "dev":
 
@@ -74,16 +72,14 @@ func main() {
 		//
 		// ----------------------------------------------------------
 
-		// Check that the required configs/dirs exist
-		// for the gingersnap engine.
-		EnsureProject(s)
+		// Check that the project files exist.
+		ensureProject(g)
 
-		// Construct the gingersnap engine.
-		g := app.NewGingersnap()
-		g.Configure(s)
+		// Configure the gingersnap engine.
+		g.Configure()
 
 		// Run the server with file watcher.
-		g.RunServerWithWatcher(s)
+		runServerWithWatcher(g)
 
 	case "webp":
 
@@ -95,29 +91,20 @@ func main() {
 		//
 		// ----------------------------------------------------------
 
-		// Check that the required configs/dirs exist
-		// for the gingersnap engine.
-		EnsureProject(s)
+		// Check that the project files exist.
+		ensureProject(g)
 
-		// The user cache dir, used for user-specific cached data.
-		dir, err := os.UserCacheDir()
-		if err != nil {
-			Logerr("webp error: %s", err)
-		}
-
-		// Construct a new Webp, with the user cache dir
-		// as the root directory.
-		w := app.NewWebp(dir)
+		w := app.NewWebp()
 
 		// Gather the images in the media directory.
-		imgPaths, err := app.LocalGlob(s.MediaDir, "png", "jpg", "jpeg")
+		imgPaths, err := utils.LocalGlob(g.MediaPath, "png", "jpg", "jpeg")
 		if err != nil {
-			Logerr("webp error: %s", err)
+			logerr("webp error: %s", err)
 		}
 
 		// Convert all the images in the media directory to webp.
-		if err := w.ConvertMany(imgPaths); err != nil {
-			Logerr("webp error: %s", err)
+		if err := w.Convert(imgPaths...); err != nil {
+			logerr("webp error: %s", err)
 		}
 
 	case "export":
@@ -130,22 +117,20 @@ func main() {
 		//
 		// ----------------------------------------------------------
 
-		// Check that the required configs/dirs exist
-		// for the gingersnap engine.
-		EnsureProject(s)
+		// Check that the project files exist.
+		ensureProject(g)
 
-		s.Debug = false
+		g.Debug = false
 
-		// Construct the gingersnap engine.
-		g := app.NewGingersnap()
-		g.Configure(s)
+		// Configure the gingersnap engine.
+		g.Configure()
 
 		// Export the site.
-		if err := g.Export(s.ExportDir); err != nil {
-			Logerr("export error: %s", err)
+		if err := g.Export(); err != nil {
+			logerr("export error: %s", err)
 		}
 
-		Loginfo("Site export complete ✅")
+		loginfo("Site export complete ✅")
 
 	case "deploy":
 
@@ -157,85 +142,74 @@ func main() {
 		//
 		// ----------------------------------------------------------
 
-		// Check that the required configs/dirs exist
-		// for the gingersnap engine.
-		EnsureProject(s)
+		// Check that the project files exist.
+		ensureProject(g)
 
-		s.Debug = false
+		g.Debug = false
 
-		// Construct the gingersnap engine.
-		g := app.NewGingersnap()
-		g.Configure(s)
+		// Configure the gingersnap engine.
+		g.Configure()
 
-		// ----------------------------------------------------------
-		// Preliminary checks
-		// ----------------------------------------------------------
+		// [1/2] Preliminary checks ---------------------------------
 
 		// The gingersnap project directory.
-		ProjectDir := CurrentDir()
+		ProjectDir := currentDir()
 
 		// The git repository where the production static site will be stored.
-		ProdRepo := g.Config.ProdRepo
+		ProdRepo := g.Repository()
 
 		if ProdRepo == "" {
-			Logerr("Please specify a git repository to deploy the site to.")
+			logerr("Please specify a git repository to deploy the site to.")
 		}
 
 		if ProjectDir == ProdRepo {
-			Logerr("Cannot push site to current directory. You must specify another git repository.")
+			logerr("Cannot push site to current directory. You must specify another git repository.")
 		}
 
-		if !Exists(ProdRepo) {
-			Logerr("Dir %s does not exist.", ProdRepo)
+		if !utils.Exists(ProdRepo) {
+			logerr("Dir %s does not exist.", ProdRepo)
 		}
 
-		if !Exists(filepath.Join(ProdRepo, ".git")) {
-			Logerr("Dir %s is not a git repository.", ProdRepo)
+		if !utils.Exists(filepath.Join(ProdRepo, ".git")) {
+			logerr("Dir %s is not a git repository.", ProdRepo)
 		}
 
-		// ----------------------------------------------------------
-		// Export and deploy
-		// ----------------------------------------------------------
+		// [2/2] Export and Deploy ----------------------------------
 
-		//
 		// Export the site.
 		//
-		Loginfo("[1/5] Exporting the site")
-		if err := g.Export(s.ExportDir); err != nil {
-			Logerr("export error: %s", err)
+		loginfo("[1/5] Exporting the site")
+		if err := g.Export(); err != nil {
+			logerr("export error: %s", err)
 		}
 
-		//
 		// Remove all content from the prod repo directory.
 		//
-		Loginfo("[2/5] Removing static site contents")
-		Chdir(ProdRepo)
-		Command("git", "rm", "-rf", "--ignore-unmatch", "--quiet", ".")
-		Chdir(ProjectDir)
+		loginfo("[2/5] Removing static site contents")
+		chdir(ProdRepo)
+		command("git", "rm", "-rf", "--ignore-unmatch", "--quiet", ".")
+		chdir(ProjectDir)
 
-		//
 		// Copy the exported site to the prod repo directory.
 		//
-		Loginfo("[3/5] Copying into the static site directory")
-		app.CopyDir(os.DirFS(s.ExportDir), ".", ProdRepo)
+		loginfo("[3/5] Copying into the static site directory")
+		utils.CopyDir(os.DirFS(g.ExportPath), ".", ProdRepo)
 
-		//
 		// Navigate to the prod repo, commit the changes and push upstream.
 		//
-		Loginfo("[4/5] Deploying the site")
-		Chdir(ProdRepo)
-		Command("git", "add", "-A")
-		Command("git", "commit", "-m", fmt.Sprintf("Updated site on %s", time.Now().Format(time.UnixDate)))
-		Command("git", "push", "-f", "origin", "main")
-		Chdir(ProjectDir)
+		loginfo("[4/5] Deploying the site")
+		chdir(ProdRepo)
+		command("git", "add", "-A")
+		command("git", "commit", "-m", fmt.Sprintf("Updated site on %s", time.Now().Format(time.UnixDate)))
+		command("git", "push", "-f", "origin", "main")
+		chdir(ProjectDir)
 
-		//
 		// Remove the exported site from the project directory.
 		//
-		Loginfo("[5/5] Cleaning up")
-		Remove(s.ExportDir)
+		loginfo("[5/5] Cleaning up")
+		remove(g.ExportPath)
 
-		Loginfo("Site export and deploy complete ✅")
+		loginfo("Site export and deploy complete ✅")
 
 	case "clean":
 
@@ -247,58 +221,21 @@ func main() {
 		//
 		// ----------------------------------------------------------
 
-		Loginfo("[1/2] Remove temp directories")
-		Remove(s.ExportDir)
+		loginfo("[1/2] Remove temp directories")
+		remove(g.ExportPath)
 
-		Loginfo("[2/2] Remove cached directories")
-
-		// The user cache dir, used for user-specific cached data.
-		dir, err := os.UserCacheDir()
-		if err != nil {
-			Logerr("webp error: %s", err)
-		}
-
-		// Construct a new Webp, with the user cache dir
-		// as the root directory.
-		w := app.NewWebp(dir)
+		loginfo("[2/2] Remove helper directories")
+		w := app.NewWebp()
 
 		// Remove the `cwebp` binary.
-		if err := w.RemoveBinary(); err != nil {
-			Logerr("webp error: %s", err)
+		if err := w.Clean(); err != nil {
+			logerr("webp error: %s", err)
 		}
 
 	default:
-		Loginfo("Unknown command '%s'", os.Args[1])
-		Loginfo("Run 'gingersnap' for help with usage")
-		Loginfo("")
-	}
-}
-
-// ------------------------------------------------------------------
-//
-//
-// Helper functions
-//
-//
-// ------------------------------------------------------------------
-
-func EnsureProject(s app.Settings) {
-	// If the config does not exist in the current directory,
-	// then do not start the server.
-	if !Exists(s.ConfigPath) {
-		Logerr("No config detected. Skipping.")
-	}
-
-	// If the media directory does not exist in the current directory,
-	// then do not start the server.
-	if !Exists(s.MediaDir) {
-		Logerr("No media directory detected. Skipping.")
-	}
-
-	// If the posts directory does not exist in the current directory,
-	// then do not start the server.
-	if !Exists(s.PostsDir) {
-		Logerr("No posts directory detected. Skipping.")
+		loginfo("Unknown command '%s'", os.Args[1])
+		loginfo("Run 'gingersnap' for help with usage")
+		loginfo("")
 	}
 }
 
@@ -310,7 +247,7 @@ func EnsureProject(s app.Settings) {
 //
 // ------------------------------------------------------------------
 
-func CurrentDir() string {
+func currentDir() string {
 	dir, err := os.Getwd()
 	if err != nil {
 		fmt.Println(err)
@@ -319,7 +256,7 @@ func CurrentDir() string {
 	return dir
 }
 
-func Command(cmds ...string) {
+func command(cmds ...string) {
 	_, err := exec.Command(cmds[0], cmds[1:]...).Output()
 	if err != nil {
 		fmt.Println(err)
@@ -327,38 +264,101 @@ func Command(cmds ...string) {
 	}
 }
 
-func Chdir(source string) {
+func chdir(source string) {
 	if err := os.Chdir(source); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 }
 
-func Exists(source string) bool {
-	_, err := os.Stat(source)
-
-	if os.IsNotExist(err) {
-		return false
-	}
-	return true
-}
-
-func Remove(source string) {
+func remove(source string) {
 	if err := os.RemoveAll(source); err != nil {
 		fmt.Println(err)
 		os.Exit(1)
 	}
 }
 
-func Loginfo(msg string, args ...any) {
+func loginfo(msg string, args ...any) {
 	formattedMsg := fmt.Sprintf(msg, args...)
 	fmt.Printf("%s\n", formattedMsg)
 }
 
-func Logerr(msg string, args ...any) {
+func logerr(msg string, args ...any) {
 	fmt.Printf(msg, args...)
 	fmt.Println()
 	os.Exit(1)
+}
+
+// ------------------------------------------------------------------
+//
+//
+// Helper functions
+//
+//
+// ------------------------------------------------------------------
+
+// ensureProject checks that the required configs/dirs
+// exist for the gingersnap engine.
+// .
+func ensureProject(g *app.Gingersnap) {
+	// If the config does not exist in the current directory,
+	// then do not start the server.
+	if !utils.Exists(g.ConfigPath) {
+		logerr("No config detected. Skipping.")
+	}
+
+	// If the media directory does not exist in the current directory,
+	// then do not start the server.
+	if !utils.Exists(g.MediaPath) {
+		logerr("No media directory detected. Skipping.")
+	}
+
+	// If the posts directory does not exist in the current directory,
+	// then do not start the server.
+	if !utils.Exists(g.PostsPath) {
+		logerr("No posts directory detected. Skipping.")
+	}
+}
+
+// runServerWithWatcher runs the server and and watches for file changes.
+// On file change, it resets the gingersnap engine and restarts the server.
+// .
+func runServerWithWatcher(g *app.Gingersnap) error {
+	// Create new watcher.
+	w, err := fsnotify.NewWatcher()
+	if err != nil {
+		return err
+	}
+
+	if err = w.Add(g.ConfigPath); err != nil {
+		return err
+	}
+
+	if err = w.Add(utils.SafeDir(g.PostsPath)); err != nil {
+		return err
+	}
+
+	if err = w.Add(utils.SafeDir(g.MediaPath)); err != nil {
+		return err
+	}
+
+	fmt.Printf("Watching for file changes")
+
+	go g.RunServer()
+
+	for {
+		select {
+		case event := <-w.Events:
+			if event.Has(fsnotify.Write) || event.Has(fsnotify.Create) || event.Has(fsnotify.Rename) {
+				fmt.Println("Files changed. Restarting server")
+
+				g.Configure()
+				go g.RunServer()
+			}
+		case err := <-w.Errors:
+			return err
+		}
+	}
 }
 
 // ------------------------------------------------------------------
