@@ -59,7 +59,7 @@ func (s *store) InitPosts(postsBySlug map[string]*post) {
 	for slug := range s.postsBySlug {
 		p := s.postsBySlug[slug]
 
-		if p.isBlog {
+		if p.IsBlog {
 			s.posts = append(s.posts, p)
 		} else {
 			s.pages = append(s.pages, p)
@@ -68,7 +68,7 @@ func (s *store) InitPosts(postsBySlug map[string]*post) {
 
 	// [2/5] Sort the posts by pubdate timestamp.
 	sort.SliceStable(s.posts, func(i, j int) bool {
-		return s.posts[i].pubdateTS > s.posts[j].pubdateTS
+		return s.posts[i].PubdateTS > s.posts[j].PubdateTS
 	})
 
 	// [3/5] Prepare the posts by category.
@@ -76,11 +76,11 @@ func (s *store) InitPosts(postsBySlug map[string]*post) {
 		p := s.posts[i]
 
 		// skip if the post has no category (standalone post)
-		if p.category.isEmpty() {
+		if p.Category.IsEmpty() {
 			continue
 		}
 
-		cat := p.category
+		cat := p.Category
 
 		// Create slice if it does not exist.
 		if len(s.postsByCategory[cat]) == 0 {
@@ -102,7 +102,7 @@ func (s *store) InitPosts(postsBySlug map[string]*post) {
 	for i := range s.posts {
 		p := s.posts[i]
 
-		if p.isFeatured {
+		if p.IsFeatured {
 			s.postsFeatured = append(s.postsFeatured, p)
 		}
 	}
@@ -128,38 +128,38 @@ func (s *store) InitSections() {
 	// Create sections for each "category-grouping" of posts.
 	for cat := range s.postsByCategory {
 		s.sections[cat.Slug] = section{
-			category: cat,
-			posts:    s.postsByCategory[cat],
+			Category: cat,
+			Posts:    s.postsByCategory[cat],
 		}
 	}
 
 	// Create section for the "Latest Posts" pseudo-category.
 	s.sections[sectionLatest] = section{
-		category: category{
+		Category: category{
 			Slug:  "",
 			Title: "Latest Posts",
 		},
-		posts: s.postsLatest,
+		Posts: s.postsLatest,
 	}
 
 	// Create section for the "Featured Posts" pseudo-category.
 	s.sections[sectionFeatured] = section{
-		category: category{
+		Category: category{
 			Slug:  "",
 			Title: "Featured Posts",
 		},
-		posts: s.postsFeatured,
+		Posts: s.postsFeatured,
 	}
 }
 
 func (s *store) RelatedPosts(p *post) []*post {
 	// If the post is a standalone post, then return nil.
-	if p.isPage {
+	if p.IsPage {
 		return nil
 	}
 
 	// Retrieve the posts for the category.
-	cPosts, ok := s.postsByCategory[p.category]
+	cPosts, ok := s.postsByCategory[p.Category]
 
 	// If there are no posts for the category,
 	// then return nil.

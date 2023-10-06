@@ -68,9 +68,9 @@ type Gingersnap struct {
 func NewGingersnap() *Gingersnap {
 	return &Gingersnap{
 		Debug:      true,
-		ConfigPath: "assets/config/gingersnap.json",
-		PostsPath:  "assets/posts",
-		MediaPath:  "assets/media",
+		ConfigPath: "app/assets/config/gingersnap.json",
+		PostsPath:  "app/assets/posts",
+		MediaPath:  "app/assets/media",
 		ExportPath: "dist",
 	}
 }
@@ -180,7 +180,7 @@ func (g *Gingersnap) RunServer() {
 func (g *Gingersnap) Unpack() {
 	utils.CopyDir(assets, "assets/media", ".")
 	utils.CopyDir(assets, "assets/posts", ".")
-	utils.CopyFile(assets, "assets/config/gingersnap.json", ".")
+	utils.CopyFile(assets, "assets/config/gingersnap.json", "gingersnap.json")
 }
 
 // ------------------------------------------------------------------
@@ -207,17 +207,17 @@ func (g *Gingersnap) routes() http.Handler {
 
 	// Build routes for all blog posts.
 	for _, p := range g.store.posts {
-		r.Handle(p.route(), g.handlePost(p))
+		r.Handle(p.Route(), g.handlePost(p))
 	}
 
 	// Build routes for all standalone posts (pages).
 	for _, p := range g.store.pages {
-		r.Handle(p.route(), g.handlePost(p))
+		r.Handle(p.Route(), g.handlePost(p))
 	}
 
 	// Build category routes
 	for _, cat := range g.store.categories {
-		r.Handle(cat.route(), g.handleCategory(cat))
+		r.Handle(cat.Route(), g.handleCategory(cat))
 	}
 
 	return g.recoverPanic(g.logRequest(g.secureHeaders(r)))
@@ -263,17 +263,17 @@ func (g *Gingersnap) handlePost(post *post) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
 		rd := g.newRenderData(r)
-		rd.Title = post.title
-		rd.Description = post.description
-		rd.Heading = post.heading
+		rd.Title = post.Title
+		rd.Description = post.Description
+		rd.Heading = post.Heading
 		rd.Post = post
 		rd.LatestPosts = g.store.postsLatestSm
 		rd.RelatedPosts = g.store.RelatedPosts(post)
 
-		if post.image.isEmpty() {
+		if post.Image.IsEmpty() {
 			rd.Image = g.config.Site.Image
 		} else {
-			rd.Image = post.image
+			rd.Image = post.Image
 		}
 
 		g.render(w, http.StatusOK, "post", &rd)
@@ -384,21 +384,21 @@ func (g *Gingersnap) handleSitemapXml() http.HandlerFunc {
 	for _, post := range g.store.posts {
 		lastMod := ""
 
-		if ts := post.latestTS(); ts > 0 {
+		if ts := post.LatestTS(); ts > 0 {
 			lastMod = time.Unix(int64(ts), 0).UTC().Format("2006-01-02T00:00:00+00:00")
 		}
 
-		urlSet[permalink(post.route())] = lastMod
+		urlSet[permalink(post.Route())] = lastMod
 	}
 
 	// Add sitemap entries for all the standalone posts (pages).
 	for _, post := range g.store.pages {
-		urlSet[permalink(post.route())] = ""
+		urlSet[permalink(post.Route())] = ""
 	}
 
 	// Add sitemap entries for all the categories.
 	for _, cat := range g.store.categories {
-		urlSet[permalink(cat.route())] = ""
+		urlSet[permalink(cat.Route())] = ""
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {

@@ -93,7 +93,7 @@ func newConfig(configBytes []byte, debug bool) (*config, error) {
 		c.Site.Display = display("grid")
 	}
 
-	if d := c.Site.Display; !d.isGrid() && !d.isList() {
+	if d := c.Site.Display; !d.IsGrid() && !d.IsList() {
 		return nil, fmt.Errorf("could not load display [%s]", d)
 	}
 
@@ -153,13 +153,13 @@ type display string
 
 // isGrid reports if the display is set to "grid"
 // .
-func (d display) isGrid() bool {
+func (d display) IsGrid() bool {
 	return d == "grid"
 }
 
 // isList reports if the display is set to "list"
 // .
-func (d display) isList() bool {
+func (d display) IsList() bool {
 	return d == "list"
 }
 

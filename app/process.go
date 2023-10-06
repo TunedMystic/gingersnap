@@ -242,21 +242,21 @@ func (pr *processor) processPost(mkdownBytes []byte) error {
 
 	// Save the post.
 	pr.postsBySlug[slug] = &post{
-		isPage:      isPage,
-		isBlog:      isBlog,
-		isFeatured:  isFeatured,
-		showLead:    showLead,
-		slug:        slug,
-		title:       title,
-		heading:     heading,
-		description: description,
-		category:    cat,
-		image:       img,
-		body:        buf.String(),
-		pubdate:     pubdate,
-		pubdateTS:   pubdateTs,
-		updated:     updated,
-		updatedTS:   updatedTs,
+		IsPage:      isPage,
+		IsBlog:      isBlog,
+		IsFeatured:  isFeatured,
+		ShowLead:    showLead,
+		Slug:        slug,
+		Title:       title,
+		Heading:     heading,
+		Description: description,
+		Category:    cat,
+		Image:       img,
+		Body:        buf.String(),
+		Pubdate:     pubdate,
+		PubdateTS:   pubdateTs,
+		Updated:     updated,
+		UpdatedTS:   updatedTs,
 	}
 
 	return nil

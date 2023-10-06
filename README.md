@@ -202,12 +202,12 @@ Defines anchor links for the footer. This _(optional)_ setting requires a list o
 
 <br />
 
-#### Static Repository
+#### Repository
 Defines the export destination. This _(optional)_ setting requires a repository path where the site will be exported to.
 
 
 ```json
-"staticRepository": "/path/to/static/repo"
+"repository": "/path/to/static/repo"
 ```
 
 <br />
@@ -241,7 +241,7 @@ Defines the export destination. This _(optional)_ setting requires a repository 
         {"text": "Sitemap", "href": "/sitemap/"},
         {"text": "Privacy Policy", "href": "/privacy-policy/"}
     ],
-    "staticRepository": "/path/to/static/repo"
+    "repository": "/path/to/static/repo"
 }
 ```
 

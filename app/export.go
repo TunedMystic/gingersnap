@@ -69,17 +69,17 @@ func (g *Gingersnap) newExporter() (*exporter, error) {
 
 	// Build routes for all blog posts.
 	for _, post := range g.store.posts {
-		urls = append(urls, post.route())
+		urls = append(urls, post.Route())
 	}
 
 	// Build routes for all standalone posts (pages).
 	for _, post := range g.store.pages {
-		urls = append(urls, post.route())
+		urls = append(urls, post.Route())
 	}
 
 	// Build routes for all categories.
 	for _, cat := range g.store.categories {
-		urls = append(urls, cat.route())
+		urls = append(urls, cat.Route())
 	}
 
 	// [2/2] Construct the exporter -----------------------

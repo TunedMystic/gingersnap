@@ -14,69 +14,69 @@ import "fmt"
 // .
 type post struct {
 	// If the Post is a standalone post (page)
-	isPage bool
+	IsPage bool
 
 	// If the Post is a blog post
-	isBlog bool
+	IsBlog bool
 
 	// If the post is a featured post
-	isFeatured bool
+	IsFeatured bool
 
 	// If the lead image should be displayed
-	showLead bool
+	ShowLead bool
 
 	// The post slug
-	slug string
+	Slug string
 
 	// The post meta title
-	title string
+	Title string
 
 	// The post heading, or main title
-	heading string
+	Heading string
 
 	// The post description
-	description string
+	Description string
 
 	// The post category
-	category category
+	Category category
 
 	// The lead image
-	image image
+	Image image
 
 	// The post body
-	body string
+	Body string
 
 	// The publish date - January 2, 2006
-	pubdate string
+	Pubdate string
 
 	// The publish date, as a UNIX timestamp
-	pubdateTS int
+	PubdateTS int
 
 	// The updated date - January 2, 2006
-	updated string
+	Updated string
 
 	// The updated date, as a UNIX timestamp
-	updatedTS int
+	UpdatedTS int
 
 	// The index of the post in the `PostsByCategory` map.
 	idxCategory int
 }
 
-// latestTS returns the Post's latest timestamped date.
+// LatestTS returns the Post's latest timestamped date.
 // .
-func (p *post) latestTS() int {
-	if p.updatedTS > p.pubdateTS {
-		return p.updatedTS
+func (p *post) LatestTS() int {
+	if p.UpdatedTS > p.PubdateTS {
+		return p.UpdatedTS
 	}
-	return p.pubdateTS
+	return p.PubdateTS
 }
 
-// route returns the url path for the Post.
+// Route returns the url path for the Post.
 //
 // ex: "/post-slug/"
 // .
-func (p *post) route() string {
-	return fmt.Sprintf("/%s/", p.slug)
+func (p *post) Route() string {
+	return fmt.Sprintf("/%s/", p.Slug)
 }
 
 // ------------------------------------------------------------------
@@ -94,17 +94,17 @@ type category struct {
 	Title string
 }
 
-// isEmpty reports if the category is empty.
+// IsEmpty reports if the category is empty.
 // .
-func (c category) isEmpty() bool {
+func (c category) IsEmpty() bool {
 	return c.Slug == ""
 }
 
-// route returns the url path for the category.
+// Route returns the url path for the category.
 //
 // ex: "/category/some-slug/"
 // .
-func (c category) route() string {
+func (c category) Route() string {
 	return fmt.Sprintf("/category/%s/", c.Slug)
 }
 
@@ -123,8 +123,8 @@ func (c category) route() string {
 // the category can be a pseudo-category.
 // .
 type section struct {
-	category category
-	posts    []*post
+	Category category
+	Posts    []*post
 }
 
 // A homepage section which represents all latest posts.
@@ -153,7 +153,7 @@ type image struct {
 
 // isEmpty reports if the image is empty.
 // .
-func (i *image) isEmpty() bool {
+func (i *image) IsEmpty() bool {
 	return i.Url == ""
 }
 

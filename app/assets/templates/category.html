@@ -2,12 +2,12 @@
 {{template "page" .}}
 <div class="w-full mx-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl px-5">
 
-    {{$display := .Display}}
+    {{$isGrid := .Display.IsGrid}}
 
-    <div class="{{if $display.Grid}}full-section{{else}}main-section{{end}}">
+    <div class="{{if $isGrid}}full-section{{else}}main-section{{end}}">
         <h1 class="font-bold text-3xl text-slate-800 leading-relaxed mb-7">{{.Heading}}</h1>
 
-        {{if $display.Grid}}
+        {{if $isGrid}}
             {{template "post-grid" .Posts}}
         {{else}}
             {{template "post-list" .Posts}}
