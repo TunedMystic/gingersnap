@@ -153,60 +153,61 @@ func main() {
 		// [1/2] Preliminary checks ---------------------------------
 
 		// The gingersnap project directory.
-		ProjectDir := currentDir()
+		projectDir := currentDir()
 
 		// The git repository where the production static site will be stored.
-		ProdRepo := g.Repository()
+		repository := g.Repository()
 
-		if ProdRepo == "" {
+		if repository == "" {
 			logerr("Please specify a git repository to deploy the site to.")
 		}
 
-		if ProjectDir == ProdRepo {
+		if projectDir == repository {
 			logerr("Cannot push site to current directory. You must specify another git repository.")
 		}
 
-		if !utils.Exists(ProdRepo) {
-			logerr("Dir %s does not exist.", ProdRepo)
+		if !utils.Exists(repository) {
+			logerr("Dir %s does not exist.", repository)
 		}
 
-		if !utils.Exists(filepath.Join(ProdRepo, ".git")) {
-			logerr("Dir %s is not a git repository.", ProdRepo)
+		if !utils.Exists(filepath.Join(repository, ".git")) {
+			logerr("Dir %s is not a git repository.", repository)
 		}
 
 		// [2/2] Export and Deploy ----------------------------------
 
 		// Export the site.
 		//
-		loginfo("[1/5] Exporting the site")
+		loginfo("[1/6] Exporting the site")
 		if err := g.Export(); err != nil {
 			logerr("export error: %s", err)
 		}
 
 		// Remove all content from the prod repo directory.
 		//
-		loginfo("[2/5] Removing static site contents")
-		chdir(ProdRepo)
+		loginfo("[2/6] Removing static site contents")
+		chdir(repository)
 		command("git", "rm", "-rf", "--ignore-unmatch", "--quiet", ".")
-		chdir(ProjectDir)
+		chdir(projectDir)
 
 		// Copy the exported site to the prod repo directory.
 		//
-		loginfo("[3/5] Copying into the static site directory")
-		utils.CopyDir(os.DirFS(g.ExportPath), ".", ProdRepo)
+		loginfo("[3/6] Copying into repository")
+		utils.CopyDir(os.DirFS(g.ExportPath), ".", repository)
 
-		// Navigate to the prod repo, commit the changes and push upstream.
+		// Navigate to the prod repo and commit the changes.
 		//
-		loginfo("[4/5] Deploying the site")
-		chdir(ProdRepo)
+		loginfo("[4/6] Commiting changes")
+		chdir(repository)
 		command("git", "add", "-A")
 		command("git", "commit", "-m", fmt.Sprintf("Updated site on %s", time.Now().Format(time.UnixDate)))
+		loginfo("[5/6] Pushing site upstream")
 		command("git", "push", "-f", "origin", "main")
-		chdir(ProjectDir)
+		chdir(projectDir)
 
 		// Remove the exported site from the project directory.
 		//
-		loginfo("[5/5] Cleaning up")
+		loginfo("[6/6] Cleaning up")
 		remove(g.ExportPath)
 
 		loginfo("Site export and deploy complete ✅")
