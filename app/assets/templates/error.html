@@ -29,13 +29,13 @@
 
 
     {{if .LatestPosts}}
-        {{$display := .Display}}
+        {{$isGrid := .Display.IsGrid}}
 
         <!-- Latest Articles -->
         <hr class="my-12 pb-5">
 
-        <div class="{{if $display.Grid}}full-section{{else}}main-section{{end}}">
-            {{if $display.Grid}}
+        <div class="{{if $isGrid}}full-section{{else}}main-section{{end}}">
+            {{if $isGrid}}
                 {{template "post-grid" .LatestPosts}}
             {{else}}
                 {{template "post-list" .LatestPosts}}

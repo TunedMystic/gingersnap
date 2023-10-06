@@ -20,5 +20,5 @@
 		{"text": "Sitemap", "href": "/sitemap/"},
 		{"text": "Privacy Policy", "href": "/privacy-policy/"}
 	],
-	"staticRepository": "/path/to/static/repo"
+	"repository": "/path/to/static/repo"
 }

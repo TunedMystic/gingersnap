@@ -2,9 +2,9 @@
 {{template "page" .}}
 <div class="w-full mx-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl px-5">
 
-    {{$display := .Display}}
+    {{$isGrid := .Display.IsGrid}}
 
-    <div class="{{if $display.Grid}}full-section{{else}}main-section{{end}}">
+    <div class="{{if $isGrid}}full-section{{else}}main-section{{end}}">
         {{range .Sections}}
 
             <div class="flex items-center justify-between mb-7">
@@ -15,7 +15,7 @@
                 {{end}}
             </div>
 
-            {{if $display.Grid}}
+            {{if $isGrid}}
                 {{template "post-grid" .Posts}}
             {{else}}
                 {{template "post-list" .Posts}}

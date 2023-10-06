@@ -52,13 +52,13 @@
             {{end}}
 
             {{if .RelatedPosts}}
-                {{$display := .Display}}
+                {{$isGrid := .Display.IsGrid}}
 
                 <!-- Related Articles -->
                 <hr class="my-11">
 
                 <p class="text-xl font-bold text-slate-900 mb-6">You May Also Like</p>
-                {{if $display.Grid}}
+                {{if $isGrid}}
                     {{template "post-related-grid" .RelatedPosts}}
                 {{else}}
                     {{template "post-related-list" .RelatedPosts}}
