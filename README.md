@@ -263,7 +263,7 @@ The `site.display` setting will tell Gingersnap to render Post blocks as a list 
 
 Here is an example of how these two displays are rendered.
 
-![gingersnap-display-types](https://github.com/TunedMystic/gingersnap-cli/assets/6523726/60a68500-ce0b-41d0-924a-9d90cce6c3f1)
+![gingersnap-display-types](https://github.com/TunedMystic/gingersnap/assets/6523726/1accf1c0-0a76-45b3-84ec-44eac4c6fd00)
 
 
 
