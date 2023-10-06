@@ -342,7 +342,7 @@ func runServerWithWatcher(g *app.Gingersnap) error {
 		return err
 	}
 
-	fmt.Printf("Watching for file changes")
+	fmt.Println("Watching for file changes")
 
 	go g.RunServer()
 
