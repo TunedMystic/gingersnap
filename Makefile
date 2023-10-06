@@ -43,7 +43,7 @@ clean:
 
 tailwind: bin/tailwind
 	@echo "✨📦✨ Running tailwind\n"
-	@bash -c "./bin/tailwind --input ./tailwind.input.css --output ./assets/css/styles.css --minify $(args)"
+	@bash -c "./bin/tailwind --input ./tailwind.input.css --output ./app/assets/css/styles.css --minify $(args)"
 
 
 bin/tailwind:
