@@ -5,6 +5,7 @@ import (
 	"embed"
 	"fmt"
 	htmlTmp "html/template"
+	"io"
 	"io/fs"
 	"log"
 	"net/http"
@@ -151,6 +152,8 @@ func (g *Gingersnap) Configure() {
 // Export exports the server as a static site.
 // .
 func (g *Gingersnap) Export() error {
+
+	g.logger = log.New(io.Discard, "", 0)
 
 	ex, err := g.newExporter()
 	if err != nil {
