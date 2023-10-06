@@ -1,4 +1,4 @@
-![gingersnap](https://github.com/TunedMystic/gingersnap-cli/assets/6523726/32d70e4c-1818-485d-8ed5-ee1116c0e70a)
+![gingersnap](https://github.com/TunedMystic/gingersnap/assets/6523726/44e509da-be86-4e94-93b5-0760b8fd44b0)
 
 Gingersnap is a static site generator built in Go.
 
@@ -19,6 +19,16 @@ git clone https://github.com/tunedmystic/gingersnap && cd gingersnap
 ```shell
 make install
 ```
+
+
+
+<br />
+
+
+
+## Demo Site
+
+Check out the [demo site](https://gingersnap.dev/), built with Gingersnap.
 
 
 
@@ -325,7 +335,7 @@ Gingersnap will display the lead image in the post detail page. Alternatively, y
 
 Gingersnap comes with the following color themes, each with a primary _(left)_ and secondary _(right)_ color. The primary color is applied to the site header and the category links. The secondary color is applied to all heading tags, except `h1`.
 
-<img width="748" alt="gingersnap-themes" src="https://github.com/TunedMystic/gingersnap-cli/assets/6523726/4345ab30-9350-4f17-814e-c8270cf01ea9">
+<img width="748" alt="gingersnap-themes" src="https://github.com/TunedMystic/gingersnap/assets/6523726/c11233a8-db2d-4492-819b-3622138f976d">
 
 
 You can also simplify the themes by adding `"-simple"` to the theme name in the `gingersnap.json` file.
@@ -338,7 +348,7 @@ You can also simplify the themes by adding `"-simple"` to the theme name in the 
 
 When you specify a simple theme, Gingersnap will use the primary color of the root theme, and will use black as the secondary color.
 
-<img width="748" alt="gingersnap-themes-simplified" src="https://github.com/TunedMystic/gingersnap-cli/assets/6523726/de5d92e4-ed4c-4fe2-b1e7-4926736418f1">
+<img width="748" alt="gingersnap-themes-simplified" src="https://github.com/TunedMystic/gingersnap/assets/6523726/a92bad1d-c6fd-47da-b267-116debd1ecdb">
 
 
 <br />
