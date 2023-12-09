@@ -57,17 +57,17 @@ bin/tailwind:
 
 bin/watchexec:
 	@echo "✨📦✨ Downloading watchexec binary\n"
-	curl -sL https://github.com/watchexec/watchexec/releases/download/v1.23.0/watchexec-1.23.0-x86_64-apple-darwin.tar.xz | tar -xz
+	curl -sL https://github.com/watchexec/watchexec/releases/download/v1.23.0/watchexec-1.23.0-aarch64-apple-darwin.tar.xz | tar -xz
 	mkdir -p bin
-	mv ./watchexec-1.23.0-x86_64-apple-darwin/watchexec ./bin/watchexec
-	rm -rf watchexec-1.23.0-x86_64-apple-darwin
+	mv ./watchexec-1.23.0-aarch64-apple-darwin/watchexec ./bin/watchexec
+	rm -rf watchexec-1.23.0-aarch64-apple-darwin
 	@echo ""
 
 
 app/assets/bin/cwebp:
 	@echo "✨📦✨ Downloading cwebp binary\n"
 	curl -sL https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.3.1-mac-x86-64.tar.gz | tar -xz
-	mkdir -p assets/bin
+	mkdir -p ./app/assets/bin
 	mv ./libwebp-1.3.1-mac-x86-64/bin/cwebp ./app/assets/bin/cwebp
 	rm -rf libwebp-1.3.1-mac-x86-64
 	@echo ""
