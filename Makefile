@@ -66,10 +66,10 @@ bin/watchexec:
 
 app/assets/bin/cwebp:
 	@echo "✨📦✨ Downloading cwebp binary\n"
-	curl -sL https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.3.1-mac-x86-64.tar.gz | tar -xz
+	curl -sL https://storage.googleapis.com/downloads.webmproject.org/releases/webp/libwebp-1.3.2-mac-arm64.tar.gz | tar -xz
 	mkdir -p ./app/assets/bin
-	mv ./libwebp-1.3.1-mac-x86-64/bin/cwebp ./app/assets/bin/cwebp
-	rm -rf libwebp-1.3.1-mac-x86-64
+	mv ./libwebp-1.3.2-mac-arm64/bin/cwebp ./app/assets/bin/cwebp
+	rm -rf libwebp-1.3.2-mac-arm64
 	@echo ""
 
 
