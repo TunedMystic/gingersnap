@@ -150,6 +150,15 @@ func (s *store) InitSections() {
 		},
 		Posts: s.postsFeatured,
 	}
+
+	// Create section for the "All Posts" pseudo-category.
+	s.sections[sectionAll] = section{
+		Category: category{
+			Slug:  "",
+			Title: "",
+		},
+		Posts: s.posts,
+	}
 }
 
 func (s *store) RelatedPosts(p *post) []*post {

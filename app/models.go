@@ -133,6 +133,9 @@ const sectionLatest = "$latest"
 // A homepage section which represents all featured posts.
 const sectionFeatured = "$featured"
 
+// A homepage section which represents all posts.
+const sectionAll = "$all"
+
 // ------------------------------------------------------------------
 //
 //
