@@ -17,7 +17,7 @@
         {{range .}}
             <div>
                 <a class="flex flex-col space-y-2.5" href="{{.Route}}">
-                    <img class="rounded drop-shadow" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" alt="{{.Image.Alt}}">
+                    <img class="rounded drop-shadow" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" loading="lazy" alt="{{.Image.Alt}}">
                     <p class="text-xl leading-snug text-slate-900">{{.Heading}}</p>
                 </a>
             </div>
