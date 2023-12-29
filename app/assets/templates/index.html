@@ -8,7 +8,9 @@
         {{range .Sections}}
 
             <div class="flex items-center justify-between mb-7">
-                <h2 class="font-bold text-3xl text-slate-800 leading-relaxed">{{.Category.Title}}</h2>
+                {{if .Category.Title}}
+                    <h2 class="font-bold text-3xl text-slate-800 leading-relaxed">{{.Category.Title}}</h2>
+                {{end}}
 
                 {{if not .Category.IsEmpty}}
                     <p class="text-slate-500">See all in <a class="link underline" href="{{.Category.Route}}">{{.Category.Title}} &raquo;</a></p>

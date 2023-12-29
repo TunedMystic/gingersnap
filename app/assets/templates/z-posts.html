@@ -5,7 +5,6 @@
                 <p class="text-xl leading-snug font-semibold">
                     <a class="link-plain" href="{{.Route}}">{{.Heading}}</a>
                 </p>
-                <p style="font-size: 0.9375rem;" class="leading-relaxed text-slate-700 mt-2">{{.Description}}</p>
             </div>
         {{end}}
     </div>
@@ -19,9 +18,8 @@
             <div>
                 <a class="flex flex-col space-y-2.5" href="{{.Route}}">
                     <img class="rounded drop-shadow" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" alt="{{.Image.Alt}}">
-                    <p class="text-lg leading-snug text-slate-900 font-semibold pt-2">{{.Heading}}</p>
+                    <p class="text-xl leading-snug text-slate-900">{{.Heading}}</p>
                 </a>
-                <p style="font-size: 0.9375rem;" class="leading-relaxed text-slate-700 mt-2">{{.Description}}</p>
             </div>
         {{end}}
     </div>
@@ -34,14 +32,14 @@
         {{range .}}
             <div class="space-y-1 sm:space-y-1.5">
                 <a href="{{.Route}}">
-                    <img class="rounded" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" alt="{{.Image.Alt}}">
+                    <img class="rounded" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" loading="lazy" alt="{{.Image.Alt}}">
                 </a>
 
                 <p class="primary font-medium text-base sm:text-sm underline pt-1">
                     <a href="{{.Category.Route}}">{{.Category.Title}}</a>
                 </p>
 
-                <p class="text-slate-900 font-semibold text-lg sm:text-base lg:font-medium">
+                <p class="text-slate-900 font-medium text-lg sm:text-base">
                     <a href="{{.Route}}">{{.Heading}}</a>
                 </p>
             </div>
@@ -58,8 +56,6 @@
                 <p class="text-lg font-medium">
                     <a class="link-plain" href="{{.Route}}">{{.Heading}}</a>
                 </p>
-
-                <p style="font-size: 0.9375rem;" class="leading-relaxed text-slate-700 mt-2">{{.Description}}</p>
             </div>
         {{end}}
     </div>
