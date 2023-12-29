@@ -32,7 +32,7 @@
         {{range .}}
             <div class="space-y-1 sm:space-y-1.5">
                 <a href="{{.Route}}">
-                    <img class="rounded" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" alt="{{.Image.Alt}}">
+                    <img class="rounded" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" loading="lazy" alt="{{.Image.Alt}}">
                 </a>
 
                 <p class="primary font-medium text-base sm:text-sm underline pt-1">
