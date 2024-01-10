@@ -7,7 +7,7 @@
 
 
         <!-- Article Heading -->
-        <h1 class="font-bold text-3xl text-slate-900 mb-3">{{.Heading}}</h1>
+        <h1 class="font-bold text-3xl lg:text-4xl text-slate-900 mb-3"><span class="leading-snug">{{.Heading}}</span></h1>
 
 
         {{if .Post.IsBlog}}
@@ -24,7 +24,7 @@
 
             <!-- Article Lead Image -->
             {{if .Post.ShowLead}}
-                <img class="rounded drop-shadow mb-8" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" alt="{{.Image.Alt}}" />
+                <img class="rounded-none drop-shadow-none mb-8" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" alt="{{.Image.Alt}}" />
             {{end}}
         {{end}}
 
