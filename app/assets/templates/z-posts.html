@@ -17,7 +17,7 @@
         {{range .}}
             <div>
                 <a class="flex flex-col space-y-2.5" href="{{.Route}}">
-                    <img class="rounded-none drop-shadow-none" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" loading="lazy" alt="{{.Image.Alt}}">
+                    <img width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" loading="lazy" alt="{{.Image.Alt}}">
                     <p class="text-xl leading-snug text-slate-900">{{.Heading}}</p>
                 </a>
             </div>
@@ -32,7 +32,7 @@
         {{range .}}
             <div class="space-y-1 sm:space-y-1.5">
                 <a href="{{.Route}}">
-                    <img class="rounded-none" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" loading="lazy" alt="{{.Image.Alt}}">
+                    <img width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" loading="lazy" alt="{{.Image.Alt}}">
                 </a>
 
                 {{/*
