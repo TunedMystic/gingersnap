@@ -17,7 +17,7 @@
         {{range .}}
             <div>
                 <a class="flex flex-col space-y-2.5" href="{{.Route}}">
-                    <img class="rounded drop-shadow" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" loading="lazy" alt="{{.Image.Alt}}">
+                    <img width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" loading="lazy" alt="{{.Image.Alt}}">
                     <p class="text-xl leading-snug text-slate-900">{{.Heading}}</p>
                 </a>
             </div>
@@ -28,16 +28,18 @@
 
 
 {{define "post-related-grid"}}
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-5">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
         {{range .}}
             <div class="space-y-1 sm:space-y-1.5">
                 <a href="{{.Route}}">
-                    <img class="rounded" width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" loading="lazy" alt="{{.Image.Alt}}">
+                    <img width="{{.Image.Width}}" height="{{.Image.Height}}" src="{{.Image.Url}}" loading="lazy" alt="{{.Image.Alt}}">
                 </a>
 
+                {{/*
                 <p class="primary font-medium text-base sm:text-sm underline pt-1">
                     <a href="{{.Category.Route}}">{{.Category.Title}}</a>
                 </p>
+                */}}
 
                 <p class="text-slate-900 font-medium text-lg sm:text-base">
                     <a href="{{.Route}}">{{.Heading}}</a>
