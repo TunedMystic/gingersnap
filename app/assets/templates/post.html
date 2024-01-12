@@ -14,9 +14,9 @@
             <!-- Article Metadata -->
             <div class="flex text-slate-500 space-x-2.5 pt-1 mb-8">
                 {{if .Post.Updated}}
-                    <p class="updated-date">Updated on {{.Post.Updated}}</p>
+                    <p class="updated-date">Updated: {{.Post.Updated}}</p>
                 {{else}}
-                    <p class="publish-date">Published on {{.Post.Pubdate}}</p>
+                    <p class="publish-date">Published: {{.Post.Pubdate}}</p>
                 {{end}}
                 <span>&sdot;</span>
                 <p class="primary font-medium underline"><a href="/category/{{.Post.Category.Slug}}/">{{.Post.Category.Title}}</a></p>
@@ -38,6 +38,7 @@
         {{if .Post.IsBlog}}
             {{$currentPostSlug := .Post.Slug}}
 
+            {{/*
             {{if .LatestPosts}}
                 <!-- Latest Articles -->
                 <hr class="my-11">
@@ -50,6 +51,7 @@
                     {{end}}
                 </div>
             {{end}}
+            */}}
 
             {{if .RelatedPosts}}
                 {{$isGrid := .Display.IsGrid}}

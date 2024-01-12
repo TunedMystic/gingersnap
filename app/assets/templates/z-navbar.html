@@ -1,18 +1,23 @@
 {{define "navbar"}}
-<header class="w-full mx-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl px-5      py-4 mb-8">
-    <div class="flex flex-col justify-center items-center space-y-3 pb-4 border-b border-slate-200">
+<header class="w-full bg-slate-50 border-b border-slate-200">
+    <div class="mx-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl px-5 py-4">
+        <div class="flex flex-col justify-center items-center space-y-3">
 
-        <h3 class="primary font-bold text-2xl">
-            <a href="/">{{.SiteName}}</a>
-        </h3>
+            <h3 class="primary font-bold text-2xl">
+                <a href="/">{{.SiteName}}</a>
+            </h3>
 
-        {{if .NavbarLinks}}
-            <nav class="flex flex-wrap justify-center text-slate-700">
-                {{range .NavbarLinks}}
-                    <p class="px-1.5 py-1"><a class="px-2 hover:underline" href="{{.Href}}">{{.Text}}</a></p>
-                {{end}}
-            </nav>
-        {{end}}
+            {{if .NavbarLinks}}
+                <nav class="flex flex-wrap justify-center text-slate-700">
+                    {{range .NavbarLinks}}
+                        <p class="px-1.5 py-1"><a class="px-2 hover:underline" href="{{.Href}}">{{.Text}}</a></p>
+                    {{end}}
+                </nav>
+            {{end}}
+        </div>
     </div>
 </header>
+
+<div class="mb-8"></div>
+
 {{end}}

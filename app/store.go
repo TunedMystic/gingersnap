@@ -4,7 +4,7 @@ import "sort"
 
 // Cutoff values for different post lists.
 const limitFeatured = 3
-const limitRelated = 3
+const limitRelated = 6
 const limitLatest = 9
 const limitSection = 6
 const limitLatestPostDetail = 4

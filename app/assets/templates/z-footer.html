@@ -1,16 +1,21 @@
 {{define "footer"}}
-<footer class="w-full mx-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl px-5     mt-24 py-8 border-t border-slate-200">
-    <div class="flex flex-col justify-center items-center space-y-6 text-slate-500">
 
-        {{if .FooterLinks}}
-            <nav class="flex flex-wrap justify-center pb-1">
-                {{range .FooterLinks}}
-                    <p class="px-1.5 py-1"><a class="px-2 hover:underline" href="{{.Href}}">{{.Text}}</a></p>
-                {{end}}
-            </nav>
-        {{end}}
+<div class="mt-24"></div>
 
-        <p>Copyright &copy; {{.Copyright}} All Rights Reserved</p>
+<footer class="w-full bg-slate-50 border-t border-slate-200">
+    <div class="mx-auto sm:max-w-3xl lg:max-w-5xl xl:max-w-6xl px-5 py-8">
+        <div class="flex flex-col justify-center items-center space-y-6 text-slate-500">
+
+            {{if .FooterLinks}}
+                <nav class="flex flex-wrap justify-center pb-1">
+                    {{range .FooterLinks}}
+                        <p class="px-1.5 py-1"><a class="px-2 hover:underline" href="{{.Href}}">{{.Text}}</a></p>
+                    {{end}}
+                </nav>
+            {{end}}
+
+            <p>Copyright &copy; {{.Copyright}} All Rights Reserved</p>
+        </div>
     </div>
 </footer>
 {{end}}
