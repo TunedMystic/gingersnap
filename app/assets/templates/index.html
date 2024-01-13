@@ -4,6 +4,8 @@
 
     {{$isGrid := .Display.IsGrid}}
 
+    <h1 class="font-bold text-center text-2xl text-slate-800 leading-relaxed mt-2 mb-10">{{.Heading}}</h1>
+
     <div class="{{if $isGrid}}full-section{{else}}main-section{{end}}">
         {{range .Sections}}
 

@@ -5,7 +5,7 @@
     {{$isGrid := .Display.IsGrid}}
 
     <div class="{{if $isGrid}}full-section{{else}}main-section{{end}}">
-        <h1 class="font-bold text-3xl text-slate-800 leading-relaxed mb-7">{{.Heading}}</h1>
+        <h1 class="font-bold text-3xl text-slate-800 leading-relaxed mb-8">{{.Heading}}</h1>
 
         {{if $isGrid}}
             {{template "post-grid" .Posts}}

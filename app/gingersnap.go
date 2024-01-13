@@ -295,7 +295,7 @@ func (g *Gingersnap) handleCategory(cat category) http.HandlerFunc {
 		}
 
 		rd := g.newRenderData(r)
-		rd.Title = fmt.Sprintf("%s related Posts - Explore our Content on %s", cat.Title, g.config.Site.Name)
+		rd.Title = fmt.Sprintf("%s Posts - Explore our Content on %s", cat.Title, g.config.Site.Name)
 		rd.Description = fmt.Sprintf("Browse through the %s category on %s and take a look at our posts.", cat.Title, g.config.Site.Name)
 		rd.Heading = cat.Title
 		rd.Category = cat
