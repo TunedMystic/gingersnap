@@ -58,6 +58,9 @@ type renderData struct {
 	Theme       theme
 	Display     display
 
+	// Metrics
+	AnalyticsTag string
+
 	// Application info
 	AppDebug bool
 	AppError string
@@ -88,6 +91,8 @@ func (g *Gingersnap) newRenderData(r *http.Request) renderData {
 		FooterLinks: g.config.FooterLinks,
 		Theme:       g.config.Theme,
 		Display:     g.config.Site.Display,
+
+		AnalyticsTag: g.config.AnalyticsTag,
 
 		Copyright: fmt.Sprintf("%d", time.Now().Year()),
 		AppDebug:  g.config.Debug,

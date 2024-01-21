@@ -35,6 +35,9 @@ type config struct {
 	// Site styling
 	Theme theme
 
+	// The Analytics Tag for metrics
+	AnalyticsTag string `json:"analyticsTag"`
+
 	// If the program is running in DEBUG mode
 	Debug bool
 
